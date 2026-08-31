@@ -28,6 +28,7 @@ interface AdminHeaderProps {
   onLogout: () => void;
   spotBtcPriceUsd: number;
   totalHashratePH: number;
+  miningUptimePercent: number;
 }
 
 export const AdminHeader: React.FC<AdminHeaderProps> = ({
@@ -38,7 +39,8 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   onQuickAction,
   onLogout,
   spotBtcPriceUsd,
-  totalHashratePH
+  totalHashratePH,
+  miningUptimePercent
 }) => {
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -120,9 +122,13 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
             <span className="text-white font-bold">{totalHashratePH.toFixed(1)} PH/s</span>
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs font-mono text-emerald-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>MCT-01: 97.8% SLA</span>
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono ${
+            miningUptimePercent > 0
+              ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
+              : 'bg-gray-800/60 border border-gray-700 text-gray-400'
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${miningUptimePercent > 0 ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'}`}></span>
+            <span>{miningUptimePercent > 0 ? `MCT-01: ${miningUptimePercent}% SLA` : 'No Active Facility'}</span>
           </div>
         </div>
 

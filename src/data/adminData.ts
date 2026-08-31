@@ -1285,24 +1285,27 @@ export const mockSystemSettings: SystemSettingsConfig = {
 };
 
 // Aliases matching Portal coordinator expectations
+// Zeroed until real investor allocations, mining telemetry, and payout data
+// are wired into the database — these were fake demo numbers shown regardless
+// of actual account state. `spotBtcPriceUsd` is a market fact, kept as-is.
 export const initialAdminKpis = {
-  totalInvestors: 248,
-  activeInvestors: 231,
-  totalInvestmentUsd: 2450000,
-  totalBtcAllocated: 38.65,
-  totalBtcMined: 42.85,
-  totalBtcPaidOut: 31.20,
-  pendingPayoutBtc: 1.82,
-  miningHashratePH: 425.0,
-  minersOnline: 1185,
-  totalMiners: 1220,
-  miningUptimePercent: 97.8,
-  monthlyRevenueUsd: 185400,
-  monthlyCostUsd: 92300,
-  netProfitUsd: 93100,
+  totalInvestors: 0,
+  activeInvestors: 0,
+  totalInvestmentUsd: 0,
+  totalBtcAllocated: 0,
+  totalBtcMined: 0,
+  totalBtcPaidOut: 0,
+  pendingPayoutBtc: 0,
+  miningHashratePH: 0,
+  minersOnline: 0,
+  totalMiners: 0,
+  miningUptimePercent: 0,
+  monthlyRevenueUsd: 0,
+  monthlyCostUsd: 0,
+  netProfitUsd: 0,
   spotBtcPriceUsd: 64250,
-  dailyBtcProduced: 0.1425,
-  activeFacilities: 2
+  dailyBtcProduced: 0,
+  activeFacilities: 0
 };
 
 export const initialMiningFacilities = [

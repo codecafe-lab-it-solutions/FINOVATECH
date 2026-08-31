@@ -18,6 +18,7 @@ import { InvestorUser, InvestorNotification, InvestorTab } from '../../types';
 
 interface InvestorNavbarProps {
   user: InvestorUser;
+  walletBalanceBtc: number;
   notifications: InvestorNotification[];
   currentTab: InvestorTab;
   onSelectTab: (tab: InvestorTab) => void;
@@ -29,6 +30,7 @@ interface InvestorNavbarProps {
 
 export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
   user,
+  walletBalanceBtc,
   notifications,
   currentTab,
   onSelectTab,
@@ -107,7 +109,7 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
             >
               <Wallet className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Wallet:</span>
-              <span className="text-[#F7931A] group-hover:text-amber-400 font-bold">0.085 BTC</span>
+              <span className="text-[#F7931A] group-hover:text-amber-400 font-bold">{walletBalanceBtc} BTC</span>
             </button>
 
             {/* Notification Bell with Dropdown */}
@@ -199,8 +201,14 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
                   <div className="text-xs font-bold text-white leading-tight truncate max-w-[110px]">
                     {user.name.split(' ')[0]} {user.name.split(' ')[1]?.[0]}.
                   </div>
-                  <div className="text-[10px] text-emerald-400 font-mono leading-none">
-                    KYC Verified
+                  <div className={`text-[10px] font-mono leading-none ${
+                    user.kycStatus === 'Verified'
+                      ? 'text-emerald-400'
+                      : user.kycStatus === 'Action Required'
+                        ? 'text-rose-400'
+                        : 'text-amber-400'
+                  }`}>
+                    KYC {user.kycStatus}
                   </div>
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 text-gray-400 hidden sm:block" />

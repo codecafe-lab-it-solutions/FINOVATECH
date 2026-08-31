@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PageRoute } from './types';
+import { AuthUser, fetchCurrentUser } from './lib/api';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { HeroStats } from './components/HeroStats';
@@ -29,19 +30,48 @@ import { LoginScreen } from './components/LoginScreen';
 import { InvestorPortal } from './components/investor/InvestorPortal';
 import { AdminPortal } from './components/admin/AdminPortal';
 
+const AUTH_TOKEN_KEY = 'finovatech_auth_token';
+
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState<PageRoute>('home');
-  
-  const [isInvestorLoggedIn, setIsInvestorLoggedIn] = useState<boolean>(() => {
-    return localStorage.getItem('finovatech_investor_auth') === 'true';
-  });
 
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => {
-    return localStorage.getItem('finovatech_admin_auth') === 'true';
-  });
+  const [authToken, setAuthToken] = useState<string | null>(() => localStorage.getItem(AUTH_TOKEN_KEY));
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  // True once we've resolved whether the stored token (if any) is still valid.
+  const [authReady, setAuthReady] = useState<boolean>(() => !localStorage.getItem(AUTH_TOKEN_KEY));
+
+  const isInvestorLoggedIn = authUser?.role === 'investor';
+  const isAdminLoggedIn = authUser?.role === 'admin';
+
+  // Validate any stored session token against the backend on first load.
+  useEffect(() => {
+    if (!authToken) {
+      setAuthReady(true);
+      return;
+    }
+    let cancelled = false;
+    fetchCurrentUser(authToken)
+      .then(({ user }) => {
+        if (!cancelled) setAuthUser(user);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          localStorage.removeItem(AUTH_TOKEN_KEY);
+          setAuthToken(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setAuthReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [authToken]);
 
   // Handle URL hash changes for deep linking while ensuring default is always 'home'
   useEffect(() => {
+    if (!authReady) return;
+
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '').toLowerCase();
       if (['about', 'mining', 'infrastructure', 'operations', 'leadership', 'contact', 'login', 'portal', 'admin-portal'].includes(hash)) {
@@ -67,7 +97,7 @@ export default function App() {
 
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [isInvestorLoggedIn, isAdminLoggedIn]);
+  }, [authReady, isInvestorLoggedIn, isAdminLoggedIn]);
 
   const handleNavigate = (route: PageRoute) => {
     sessionStorage.setItem('finovatech_navigated', 'true');
@@ -94,36 +124,51 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleInvestorLoginSuccess = () => {
-    setIsInvestorLoggedIn(true);
-    localStorage.setItem('finovatech_investor_auth', 'true');
-    setCurrentRoute('portal');
-    window.location.hash = 'portal';
+  // Credentials are verified by the backend; the returned role decides which
+  // panel the session lands in — no manual role selection on the client.
+  const handleAuthSuccess = (token: string, user: AuthUser) => {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    setAuthToken(token);
+    setAuthUser(user);
+    const route: PageRoute = user.role === 'admin' ? 'admin-portal' : 'portal';
+    setCurrentRoute(route);
+    window.location.hash = route;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleAdminLoginSuccess = () => {
-    setIsAdminLoggedIn(true);
-    localStorage.setItem('finovatech_admin_auth', 'true');
-    setCurrentRoute('admin-portal');
-    window.location.hash = 'admin-portal';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Used after an in-app credential change (e.g. Admin Settings) — the
+  // backend reissues a token since the old one's claims are now stale.
+  const handleCredentialsUpdated = (token: string, user: AuthUser) => {
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    setAuthToken(token);
+    setAuthUser(user);
   };
 
   const handleLogout = () => {
-    setIsInvestorLoggedIn(false);
-    setIsAdminLoggedIn(false);
-    localStorage.removeItem('finovatech_investor_auth');
-    localStorage.removeItem('finovatech_admin_auth');
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    setAuthToken(null);
+    setAuthUser(null);
     setCurrentRoute('home');
     window.location.hash = '';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // While validating a stored session token, avoid flashing the login screen.
+  if (!authReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#070B14] text-gray-400 font-mono text-xs">
+        Verifying session...
+      </div>
+    );
+  }
+
   // If in Admin Portal, render the full-screen sovereign Admin Portal
-  if (currentRoute === 'admin-portal' && isAdminLoggedIn) {
+  if (currentRoute === 'admin-portal' && isAdminLoggedIn && authUser) {
     return (
       <AdminPortal
+        authUser={authUser}
+        authToken={authToken as string}
+        onCredentialsUpdated={handleCredentialsUpdated}
         onLogout={handleLogout}
         onNavigateHome={() => handleNavigate('home')}
       />
@@ -131,9 +176,10 @@ export default function App() {
   }
 
   // If in Investor Portal, render the full-screen sovereign Investor portal
-  if (currentRoute === 'portal' && isInvestorLoggedIn) {
+  if (currentRoute === 'portal' && isInvestorLoggedIn && authUser) {
     return (
       <InvestorPortal
+        authUser={authUser}
         onLogout={handleLogout}
         onNavigateWebsite={() => handleNavigate('home')}
       />
@@ -145,8 +191,7 @@ export default function App() {
     return (
       <div className="min-h-screen flex flex-col bg-[#070B14] text-gray-100">
         <LoginScreen
-          onLoginSuccess={handleInvestorLoginSuccess}
-          onAdminLoginSuccess={handleAdminLoginSuccess}
+          onAuthSuccess={handleAuthSuccess}
           onNavigateHome={() => handleNavigate('home')}
         />
       </div>

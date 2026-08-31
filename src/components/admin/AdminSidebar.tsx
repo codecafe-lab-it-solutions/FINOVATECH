@@ -129,10 +129,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     },
     {
       title: 'GOVERNANCE & SYSTEM',
-      hidden: true,
       items: [
-        { id: 'audit-logs', label: 'Audit Trail Logs', icon: FileCheck },
-        { id: 'users-roles', label: 'Roles & Permissions', icon: UserCog },
+        { id: 'audit-logs', label: 'Audit Trail Logs', icon: FileCheck, hidden: true },
+        { id: 'users-roles', label: 'Roles & Permissions', icon: UserCog, hidden: true },
         { id: 'system-settings', label: 'System Settings', icon: Sliders }
       ]
     }

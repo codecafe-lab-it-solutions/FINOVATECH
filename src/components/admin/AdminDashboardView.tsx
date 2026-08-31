@@ -49,7 +49,9 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               Finovatech Mining Operations & Finance
             </h2>
             <p className="text-sm text-gray-400 mt-1 max-w-2xl">
-              Consolidated overview of 1,220 enterprise ASIC units across Muscat (MCT-01) & Salalah (SLL-02), real-time investor ledgers, and SHA-256 production.
+              {kpis.totalMiners > 0
+                ? `Consolidated overview of ${kpis.totalMiners.toLocaleString()} enterprise ASIC units across Muscat (MCT-01) & Salalah (SLL-02), real-time investor ledgers, and SHA-256 production.`
+                : 'No mining facilities or ASIC fleet on record yet — real-time investor ledgers and SHA-256 production will appear here once operations go live.'}
             </p>
           </div>
 
@@ -91,7 +93,8 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             </div>
             <div className="text-xl sm:text-2xl font-extrabold text-white font-mono">{kpis.totalInvestors}</div>
             <div className="text-[11px] text-emerald-400 font-mono mt-1 flex items-center gap-1">
-              <span className="font-semibold">{kpis.activeInvestors} Active</span> (93%)
+              <span className="font-semibold">{kpis.activeInvestors} Active</span>
+              {' '}({kpis.totalInvestors > 0 ? Math.round((kpis.activeInvestors / kpis.totalInvestors) * 100) : 0}%)
             </div>
           </div>
 
@@ -175,7 +178,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               {kpis.minersOnline} <span className="text-xs text-gray-500 font-normal">/ {kpis.totalMiners}</span>
             </div>
             <div className="text-[11px] text-emerald-400 font-mono mt-1">
-              97.1% Fleet Online
+              {kpis.totalMiners > 0 ? Math.round((kpis.minersOnline / kpis.totalMiners) * 100) : 0}% Fleet Online
             </div>
           </div>
 

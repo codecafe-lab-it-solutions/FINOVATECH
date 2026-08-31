@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AdminTab, AdminUser, AdminRole } from '../../types';
+import { AuthUser } from '../../lib/api';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
 
@@ -56,16 +57,38 @@ import {
 } from '../../data/adminData';
 
 interface AdminPortalProps {
+  authUser: AuthUser;
+  authToken: string;
+  onCredentialsUpdated: (token: string, user: AuthUser) => void;
   onLogout: () => void;
   onNavigateHome?: () => void;
 }
 
-export const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout, onNavigateHome }) => {
+export const AdminPortal: React.FC<AdminPortalProps> = ({
+  authUser,
+  authToken,
+  onCredentialsUpdated,
+  onLogout,
+  onNavigateHome
+}) => {
   const [currentTab, setCurrentTab] = useState<AdminTab>('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  
-  // State for Admin User & Role
-  const [currentAdminUser, setCurrentAdminUser] = useState<AdminUser>(initialAdminUsers[0]);
+
+  // State for Admin User & Role — identity comes from the authenticated
+  // session, the rest of the profile (role label, permissions) stays demo data.
+  const [currentAdminUser, setCurrentAdminUser] = useState<AdminUser>({
+    ...initialAdminUsers[0],
+    id: authUser.id,
+    username: authUser.username,
+    name: authUser.name
+  });
+
+  // Keeps the header/sidebar in sync immediately after a credentials change,
+  // without requiring the admin to log out and back in.
+  const handleCredentialsUpdated: typeof onCredentialsUpdated = (token, user) => {
+    setCurrentAdminUser((prev) => ({ ...prev, username: user.username, name: user.name }));
+    onCredentialsUpdated(token, user);
+  };
 
   // Operational State
   const [kpis, setKpis] = useState(initialAdminKpis);
@@ -147,6 +170,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout, onNavigateHo
             onLogout={onLogout}
             spotBtcPriceUsd={kpis.spotBtcPriceUsd}
             totalHashratePH={kpis.miningHashratePH}
+            miningUptimePercent={kpis.miningUptimePercent}
           />
 
           {/* Dynamic Module View Content */}
@@ -306,6 +330,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ onLogout, onNavigateHo
               <AdminSettingsView
                 settings={systemSettings}
                 onSaveSettings={(updated) => setSystemSettings(updated)}
+                authToken={authToken}
+                currentUsername={currentAdminUser.username || ''}
+                onCredentialsUpdated={handleCredentialsUpdated}
               />
             )}
           </main>

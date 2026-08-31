@@ -39,15 +39,26 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800/90 border border-gray-700 text-xs font-mono">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-gray-300">ALLOCATION ACTIVE:</span>
-              <span className="text-[#F7931A] font-bold">125 TH/s DEDICATED</span>
+              {metrics.totalBtcAllocated > 0 ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-gray-300">ALLOCATION ACTIVE:</span>
+                  <span className="text-[#F7931A] font-bold">{metrics.totalBtcAllocated} BTC DEDICATED</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-gray-500" />
+                  <span className="text-gray-400">NO ACTIVE ALLOCATION YET</span>
+                </>
+              )}
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               Welcome back, {user.name}
             </h1>
             <p className="text-xs sm:text-sm text-gray-400 font-mono">
-              Contract #{user.agreementNumber} • Active Term: {user.startDate} – {user.maturityDate}
+              {metrics.totalBtcAllocated > 0
+                ? `Contract #${user.agreementNumber} • Active Term: ${user.startDate} – ${user.maturityDate}`
+                : 'No active investment contract yet — an allocation will appear here once your account is funded.'}
             </p>
           </div>
 
@@ -205,11 +216,13 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
           <div className="grid grid-cols-2 gap-3 text-xs font-mono">
             <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
               <div className="text-gray-400 text-[11px]">Investment Plan</div>
-              <div className="text-white font-bold text-sm mt-0.5">125 TH/s Dedicated ASIC Pod</div>
+              <div className="text-white font-bold text-sm mt-0.5">{user.plan}</div>
             </div>
             <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
               <div className="text-gray-400 text-[11px]">Contract Duration</div>
-              <div className="text-white font-bold text-sm mt-0.5">4-Year Defined Term Lease</div>
+              <div className="text-white font-bold text-sm mt-0.5">
+                {metrics.totalBtcAllocated > 0 ? '4-Year Defined Term Lease' : 'N/A — no active contract'}
+              </div>
             </div>
             <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
               <div className="text-gray-400 text-[11px]">Daily Mining Revenue</div>
