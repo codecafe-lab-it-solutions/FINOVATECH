@@ -33,53 +33,67 @@ export const InvestorSidebar: React.FC<InvestorSidebarProps> = ({
   unreadNotificationsCount,
   openTicketsCount
 }) => {
-  const menuGroups = [
+  type MenuItem = {
+    id: InvestorTab;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    badge?: string;
+    hidden?: boolean;
+  };
+
+  const menuGroups: { group: string; hidden?: boolean; items: MenuItem[] }[] = [
     {
       group: 'Core Portfolio',
       items: [
-        { id: 'overview' as InvestorTab, label: '1. Overview Dashboard', icon: LayoutDashboard },
-        { id: 'profile' as InvestorTab, label: '2. Investor Profile & KYC', icon: User },
-        { id: 'investment' as InvestorTab, label: '3. Investment Terms & Docs', icon: FileText },
-        { id: 'mining-performance' as InvestorTab, label: '4. Live Mining Telemetry', icon: Activity },
+        { id: 'overview' as InvestorTab, label: 'Overview Dashboard', icon: LayoutDashboard },
+        { id: 'profile' as InvestorTab, label: 'Investor Profile & KYC', icon: User },
+        { id: 'investment' as InvestorTab, label: 'Investment Terms & Docs', icon: FileText },
+        { id: 'mining-performance' as InvestorTab, label: 'Live Mining Telemetry', icon: Activity, hidden: true },
       ]
     },
     {
       group: 'Financials & Yields',
       items: [
-        { id: 'wallet' as InvestorTab, label: '5. Dedicated BTC Wallet', icon: Wallet },
-        { id: 'earnings-history' as InvestorTab, label: '6. Earnings / Mining Log', icon: History },
-        { id: 'payout-history' as InvestorTab, label: '7. Payout Records', icon: CreditCard },
-        { id: 'roi-performance' as InvestorTab, label: '8. ROI & Growth Analytics', icon: TrendingUp },
+        { id: 'wallet' as InvestorTab, label: 'Dedicated BTC Wallet', icon: Wallet },
+        { id: 'earnings-history' as InvestorTab, label: 'Earnings / Mining Log', icon: History },
+        { id: 'payout-history' as InvestorTab, label: 'Payout Records', icon: CreditCard },
+        { id: 'roi-performance' as InvestorTab, label: 'ROI & Growth Analytics', icon: TrendingUp, hidden: true },
       ]
     },
     {
       group: 'Facility & Audits',
+      hidden: true,
       items: [
-        { id: 'infrastructure-fleet' as InvestorTab, label: '9. Pod & Miner Fleet', icon: Server },
-        { id: 'reports' as InvestorTab, label: '10. Document Center', icon: FolderArchive },
-        { id: 'monthly-statements' as InvestorTab, label: '11. Monthly Statements', icon: FileSpreadsheet, badge: 'Aug 26' },
+        { id: 'infrastructure-fleet' as InvestorTab, label: 'Pod & Miner Fleet', icon: Server },
+        { id: 'reports' as InvestorTab, label: 'Document Center', icon: FolderArchive },
+        { id: 'monthly-statements' as InvestorTab, label: 'Monthly Statements', icon: FileSpreadsheet, badge: 'Aug 26' },
       ]
     },
     {
       group: 'Account & Operations',
+      hidden: true,
       items: [
-        { 
-          id: 'notifications' as InvestorTab, 
-          label: '12. Notification Center', 
-          icon: Bell, 
-          badge: unreadNotificationsCount > 0 ? `${unreadNotificationsCount}` : undefined 
+        {
+          id: 'notifications' as InvestorTab,
+          label: 'Notification Center',
+          icon: Bell,
+          badge: unreadNotificationsCount > 0 ? `${unreadNotificationsCount}` : undefined
         },
-        { 
-          id: 'support' as InvestorTab, 
-          label: '13. Support & RM Helpdesk', 
-          icon: HelpCircle, 
-          badge: openTicketsCount > 0 ? `${openTicketsCount} Active` : undefined 
+        {
+          id: 'support' as InvestorTab,
+          label: 'Support & RM Helpdesk',
+          icon: HelpCircle,
+          badge: openTicketsCount > 0 ? `${openTicketsCount} Active` : undefined
         },
-        { id: 'referrals' as InvestorTab, label: '14. Partner / Referrals', icon: Users },
-        { id: 'security' as InvestorTab, label: '15. Security & 2FA Center', icon: ShieldCheck },
+        { id: 'referrals' as InvestorTab, label: 'Partner / Referrals', icon: Users },
+        { id: 'security' as InvestorTab, label: 'Security & 2FA Center', icon: ShieldCheck },
       ]
     }
   ];
+
+  // Numbering is derived from visible items only, so a hidden section never
+  // leaves a gap (e.g. 3 then 5) that would hint something was removed.
+  let visibleItemNumber = 0;
 
   return (
     <aside className="w-full lg:w-72 bg-[#0F172A] border-r border-gray-800 text-gray-300 flex flex-col justify-between shrink-0 select-none">
@@ -87,18 +101,19 @@ export const InvestorSidebar: React.FC<InvestorSidebarProps> = ({
       {/* Scrollable Navigation List */}
       <div className="p-3 sm:p-4 space-y-6 overflow-y-auto max-h-[calc(100dvh-4rem)]">
         
-        {menuGroups.map((group, gIdx) => (
+        {menuGroups.filter((group) => !group.hidden).map((group, gIdx) => (
           <div key={gIdx} className="space-y-1">
-            
+
             {/* Group Category Header */}
             <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-gray-500 px-3 py-1">
               {group.group}
             </div>
 
             {/* Menu Buttons */}
-            {group.items.map((item) => {
+            {group.items.filter((item) => !item.hidden).map((item) => {
               const Icon = item.icon;
               const isActive = currentTab === item.id;
+              visibleItemNumber += 1;
               return (
                 <button
                   key={item.id}
@@ -114,7 +129,7 @@ export const InvestorSidebar: React.FC<InvestorSidebarProps> = ({
                     <Icon className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${
                       isActive ? 'text-gray-950' : 'text-gray-400 group-hover:text-[#F7931A]'
                     }`} />
-                    <span className="truncate">{item.label}</span>
+                    <span className="truncate">{visibleItemNumber}. {item.label}</span>
                   </div>
 
                   {item.badge ? (
