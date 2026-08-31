@@ -17,39 +17,53 @@ import { SupportHelpdeskTab } from './SupportHelpdeskTab';
 import { ReferralPartnerTab } from './ReferralPartnerTab';
 import { SecurityCenterTab } from './SecurityCenterTab';
 
-import { 
-  INITIAL_INVESTOR_USER, 
-  INITIAL_OVERVIEW_METRICS, 
-  INITIAL_WALLET_TRANSACTIONS, 
-  INITIAL_MINING_EARNINGS, 
-  INITIAL_PAYOUTS, 
-  FLEET_MACHINES, 
-  INITIAL_DOCUMENTS, 
-  INITIAL_MONTHLY_STATEMENTS, 
-  INITIAL_NOTIFICATIONS, 
-  INITIAL_TICKETS, 
-  INITIAL_REFERRALS, 
-  INITIAL_SESSIONS 
+import {
+  INITIAL_INVESTOR_USER,
+  INITIAL_OVERVIEW_METRICS,
+  INITIAL_WALLET_TRANSACTIONS,
+  INITIAL_MINING_EARNINGS,
+  INITIAL_PAYOUTS,
+  FLEET_MACHINES,
+  INITIAL_DOCUMENTS,
+  INITIAL_MONTHLY_STATEMENTS,
+  INITIAL_NOTIFICATIONS,
+  INITIAL_TICKETS,
+  INITIAL_REFERRALS,
+  INITIAL_SESSIONS
 } from '../../data/investorData';
-import { 
-  InvestorTab, 
-  InvestorUser, 
-  WalletTransaction, 
-  SupportTicket 
+import { buildEmptyInvestorProfile, buildEmptyOverviewMetrics } from '../../data/emptyInvestorData';
+import {
+  InvestorTab,
+  InvestorUser,
+  WalletTransaction,
+  SupportTicket
 } from '../../types';
+import { AuthUser } from '../../lib/api';
 
 interface InvestorPortalProps {
+  authUser: AuthUser;
   onLogout: () => void;
   onNavigateWebsite: () => void;
 }
 
+// `investor1` is the shared demo/seed account and keeps its rich sample
+// portfolio; every other (really registered) investor starts from zero.
+const isDemoInvestor = (username: string) => username.toLowerCase() === 'investor1';
+
 export const InvestorPortal: React.FC<InvestorPortalProps> = ({
+  authUser,
   onLogout,
   onNavigateWebsite
 }) => {
   const [currentTab, setCurrentTab] = useState<InvestorTab>('overview');
-  const [user, setUser] = useState<InvestorUser>(INITIAL_INVESTOR_USER);
-  const [metrics, setMetrics] = useState(INITIAL_OVERVIEW_METRICS);
+  const [user, setUser] = useState<InvestorUser>(
+    isDemoInvestor(authUser.username)
+      ? { ...INITIAL_INVESTOR_USER, id: authUser.id, username: authUser.username, name: authUser.name }
+      : buildEmptyInvestorProfile(authUser)
+  );
+  const [metrics, setMetrics] = useState(
+    isDemoInvestor(authUser.username) ? INITIAL_OVERVIEW_METRICS : buildEmptyOverviewMetrics()
+  );
   const [transactions, setTransactions] = useState(INITIAL_WALLET_TRANSACTIONS);
   const [earnings, setEarnings] = useState(INITIAL_MINING_EARNINGS);
   const [payouts, setPayouts] = useState(INITIAL_PAYOUTS);
@@ -136,6 +150,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
       {/* Top Navbar */}
       <InvestorNavbar
         user={user}
+        walletBalanceBtc={metrics.totalBtcAllocated}
         notifications={notifications}
         currentTab={currentTab}
         onSelectTab={handleSelectTab}
@@ -155,6 +170,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
             onSelectTab={handleSelectTab}
             unreadNotificationsCount={unreadNotifs}
             openTicketsCount={openTickets}
+            hasActiveAllocation={metrics.totalBtcAllocated > 0}
           />
         </div>
 
@@ -179,6 +195,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
                   onSelectTab={handleSelectTab}
                   unreadNotificationsCount={unreadNotifs}
                   openTicketsCount={openTickets}
+                  hasActiveAllocation={metrics.totalBtcAllocated > 0}
                 />
               </div>
             </div>

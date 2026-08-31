@@ -25,13 +25,15 @@ interface InvestorSidebarProps {
   onSelectTab: (tab: InvestorTab) => void;
   unreadNotificationsCount: number;
   openTicketsCount: number;
+  hasActiveAllocation: boolean;
 }
 
 export const InvestorSidebar: React.FC<InvestorSidebarProps> = ({
   currentTab,
   onSelectTab,
   unreadNotificationsCount,
-  openTicketsCount
+  openTicketsCount,
+  hasActiveAllocation
 }) => {
   type MenuItem = {
     id: InvestorTab;
@@ -160,10 +162,10 @@ export const InvestorSidebar: React.FC<InvestorSidebarProps> = ({
             </span>
           </div>
           <div className="text-[10px] text-gray-500">
-            Assigned: 125 TH/s Dedicated Compute
+            {hasActiveAllocation ? 'Assigned: 125 TH/s Dedicated Compute' : 'No compute assigned yet'}
           </div>
           <div className="text-[10px] text-[#F7931A] font-bold">
-            Foundry USA VIP Pool
+            {hasActiveAllocation ? 'Foundry USA VIP Pool' : 'Pool: Not Assigned'}
           </div>
         </div>
 
