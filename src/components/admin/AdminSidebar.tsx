@@ -45,12 +45,14 @@ interface AdminSidebarProps {
 
 interface NavSection {
   title: string;
+  hidden?: boolean;
   items: {
     id: AdminTab;
     label: string;
     icon: React.ElementType;
     badge?: string | number;
     badgeColor?: string;
+    hidden?: boolean;
   }[];
 }
 
@@ -79,7 +81,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { id: 'all-investors', label: 'Investor Management', icon: Users },
         { id: 'kyc-queue', label: 'KYC & Compliance', icon: ShieldCheck, badge: pendingKycCount, badgeColor: 'bg-amber-500 text-black' },
         { id: 'investment-plans', label: 'Investment Plans', icon: Layers },
-        { id: 'investor-allocations', label: 'Hashrate Allocations', icon: PieChart }
+        { id: 'investor-allocations', label: 'Hashrate Allocations', icon: PieChart, hidden: true }
       ]
     },
     {
@@ -91,6 +93,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     },
     {
       title: 'MINING OPERATIONS',
+      hidden: true,
       items: [
         { id: 'mining-overview', label: 'Mining Farms (MCT/SLL)', icon: Zap },
         { id: 'asic-machines', label: 'ASIC Machine Fleet', icon: Cpu, badge: '1,220', badgeColor: 'bg-emerald-500/20 text-emerald-300' },
@@ -108,6 +111,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     },
     {
       title: 'FINANCE & ACCOUNTING',
+      hidden: true,
       items: [
         { id: 'finance-overview', label: 'Finance & P&L', icon: DollarSign },
         { id: 'investor-liabilities', label: 'Investor Liability Ledger', icon: Scale },
@@ -116,6 +120,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     },
     {
       title: 'CRM & COMMUNICATIONS',
+      hidden: true,
       items: [
         { id: 'support-crm', label: 'Support / CRM Tickets', icon: Headphones, badge: openTicketCount, badgeColor: 'bg-blue-500 text-white' },
         { id: 'notifications-center', label: 'Communication Center', icon: Bell },
@@ -124,6 +129,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     },
     {
       title: 'GOVERNANCE & SYSTEM',
+      hidden: true,
       items: [
         { id: 'audit-logs', label: 'Audit Trail Logs', icon: FileCheck },
         { id: 'users-roles', label: 'Roles & Permissions', icon: UserCog },
@@ -219,13 +225,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
       {/* Navigation Scrollable Body */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-5 custom-scrollbar text-xs">
-        {sections.map((sec, idx) => (
+        {sections.filter((sec) => !sec.hidden).map((sec, idx) => (
           <div key={idx} className="space-y-1">
             <div className="px-3 text-[10px] font-mono font-bold tracking-wider text-gray-500 uppercase">
               {sec.title}
             </div>
             <div className="space-y-0.5">
-              {sec.items.map((item) => {
+              {sec.items.filter((item) => !item.hidden).map((item) => {
                 const Icon = item.icon;
                 const isActive = currentTab === item.id;
                 return (

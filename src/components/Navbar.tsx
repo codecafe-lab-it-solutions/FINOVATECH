@@ -116,7 +116,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                 className="inline-flex items-center justify-center gap-1.5 px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-lg bg-[#F7931A]/10 hover:bg-[#F7931A]/20 text-[#D97706] hover:text-[#B45309] border border-[#F7931A]/30 text-xs font-bold font-mono tracking-wide transition-all cursor-pointer whitespace-nowrap min-h-[38px]"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-[#F7931A] shrink-0" />
-                <span>Investor Login</span>
+                <span>Login</span>
               </button>
 
               <button
@@ -227,7 +227,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                 className="w-full py-3 px-3 rounded-xl bg-[#111827] text-white font-bold text-xs font-mono tracking-wide flex items-center justify-center gap-1.5 shadow-xs cursor-pointer min-h-[46px] border border-gray-800"
               >
                 <ShieldCheck className="w-4 h-4 text-[#F7931A]" />
-                <span>Investor Login</span>
+                <span>Login</span>
               </button>
 
               <button

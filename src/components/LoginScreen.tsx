@@ -1,18 +1,13 @@
 import React, { useState } from 'react';
-import { 
-  Lock, 
-  User, 
-  ArrowRight, 
-  ShieldCheck, 
-  Eye, 
-  EyeOff, 
-  CheckCircle2, 
-  AlertCircle, 
-  KeyRound,
-  Building2,
-  Cpu,
-  Shield,
-  Briefcase
+import {
+  Lock,
+  User,
+  ArrowRight,
+  ShieldCheck,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  Building2
 } from 'lucide-react';
 
 interface LoginScreenProps {
@@ -26,9 +21,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   onAdminLoginSuccess,
   onNavigateHome
 }) => {
-  const [activeTab, setActiveTab] = useState<'investor' | 'admin'>('investor');
-  const [username, setUsername] = useState('investor1');
-  const [password, setPassword] = useState('12345');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -43,14 +37,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       const u = username.trim();
       const p = password.trim();
 
-      // Check Admin credentials
-      if ((u === 'Admin' || u.toLowerCase() === 'admin') && p === 'Admin') {
+      // Credentials are matched dynamically — whichever role matches signs the user
+      // straight into that respective panel, no manual role selection needed.
+      if (u.toLowerCase() === 'admin' && p === 'Admin') {
         setIsLoading(false);
         onAdminLoginSuccess();
         return;
       }
 
-      // Check Investor credentials
       if (u === 'investor1' && p === '12345') {
         setIsLoading(false);
         onLoginSuccess();
@@ -58,36 +52,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       }
 
       setIsLoading(false);
-      if (activeTab === 'admin') {
-        setError('Invalid admin credentials. Use username "Admin" and password "Admin".');
-      } else {
-        setError('Invalid investor credentials. Use username "investor1" and password "12345", or switch to Admin tab.');
-      }
+      setError('Invalid username or password. Please try again.');
     }, 450);
-  };
-
-  const handleSelectTab = (tab: 'investor' | 'admin') => {
-    setActiveTab(tab);
-    setError('');
-    if (tab === 'admin') {
-      setUsername('Admin');
-      setPassword('Admin');
-    } else {
-      setUsername('investor1');
-      setPassword('12345');
-    }
-  };
-
-  const handleFillDemo = (type: 'investor' | 'admin') => {
-    setActiveTab(type);
-    setError('');
-    if (type === 'admin') {
-      setUsername('Admin');
-      setPassword('Admin');
-    } else {
-      setUsername('investor1');
-      setPassword('12345');
-    }
   };
 
   return (
@@ -138,81 +104,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <span className="text-[#F7931A]">MCT-01 256-BIT SSL</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-3">
-            {activeTab === 'admin' ? 'Admin Management Console' : 'Investor Portal Login'}
+            Login
           </h1>
           <p className="text-xs sm:text-sm text-gray-400 mt-1 max-w-xs mx-auto">
-            {activeTab === 'admin' 
-              ? 'Access institutional command center, mining telemetry, and payout engines.' 
-              : 'Access your Bitcoin mining allocations, wallet balances, and performance.'}
+            Enter your username and password to sign in.
           </p>
-        </div>
-
-        {/* Tab Switcher: Investor vs Admin */}
-        <div className="p-1 rounded-2xl bg-gray-900 border border-gray-800 flex items-center mb-5 font-mono text-xs">
-          <button
-            type="button"
-            onClick={() => handleSelectTab('investor')}
-            className={`flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
-              activeTab === 'investor'
-                ? 'bg-[#F7931A] text-gray-950 font-bold shadow-md'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <User className="w-3.5 h-3.5" />
-            <span>Investor Portal</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleSelectTab('admin')}
-            className={`flex-1 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer ${
-              activeTab === 'admin'
-                ? 'bg-[#F7931A] text-gray-950 font-bold shadow-md'
-                : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <Shield className="w-3.5 h-3.5" />
-            <span>Admin Console</span>
-          </button>
-        </div>
-
-        {/* Demo Credentials Quick Autofill Box */}
-        <div className="mb-5 p-3.5 rounded-2xl bg-gray-900/90 border border-gray-800 text-xs text-gray-300 flex flex-col gap-2">
-          <div className="flex items-center justify-between text-[11px] font-mono font-bold text-gray-400">
-            <span className="flex items-center gap-1.5 text-amber-400">
-              <KeyRound className="w-3.5 h-3.5" /> Quick Demo Credentials:
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
-            <button
-              type="button"
-              onClick={() => handleFillDemo('investor')}
-              className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
-                activeTab === 'investor'
-                  ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
-                  : 'bg-gray-950 border-gray-800 text-gray-400 hover:border-gray-700'
-              }`}
-            >
-              <div className="font-bold text-white">Investor Login</div>
-              <div className="text-[10px] text-gray-400 mt-0.5">User: <strong className="text-white">investor1</strong></div>
-              <div className="text-[10px] text-gray-400">Pass: <strong className="text-white">12345</strong></div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleFillDemo('admin')}
-              className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
-                activeTab === 'admin'
-                  ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
-                  : 'bg-gray-950 border-gray-800 text-gray-400 hover:border-gray-700'
-              }`}
-            >
-              <div className="font-bold text-white">Admin Login</div>
-              <div className="text-[10px] text-gray-400 mt-0.5">User: <strong className="text-white">Admin</strong></div>
-              <div className="text-[10px] text-gray-400">Pass: <strong className="text-white">Admin</strong></div>
-            </button>
-          </div>
         </div>
 
         {/* Login Form Container */}
@@ -230,7 +126,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             {/* Username Input */}
             <div>
               <label className="block text-xs font-mono font-semibold uppercase text-gray-400 mb-1.5">
-                {activeTab === 'admin' ? 'Admin Username' : 'Investor Username / ID'}
+                Username / Investor ID
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
@@ -242,7 +138,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder={activeTab === 'admin' ? 'Admin' : 'investor1'}
+                  placeholder="Enter your username"
                   className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A] transition-all font-mono"
                 />
               </div>
@@ -309,9 +205,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 </div>
               ) : (
                 <>
-                  <span>
-                    {activeTab === 'admin' ? 'Launch Admin Panel' : 'Sign In to Investor Dashboard'}
-                  </span>
+                  <span>Sign In</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
