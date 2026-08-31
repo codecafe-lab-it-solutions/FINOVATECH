@@ -1,0 +1,6 @@
+{
+  "name": "FINOVATECH Mining Company",
+  "description": "Institutional Bitcoin mining and digital-asset infrastructure company headquartered in Muscat, Sultanate of Oman.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
