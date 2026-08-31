@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import path from 'node:path';
+import fs from 'node:fs';
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import { createUser, findUserById, findUserByUsername, seedIfEmpty, updateCredentials } from './db';
@@ -7,6 +9,12 @@ import { signToken, verifyToken, TokenPayload } from './auth';
 
 const app = express();
 app.use(express.json());
+
+// In production this same process serves the built frontend (vite build's
+// dist/) alongside the API, so there's just one server to run and one port
+// to point a reverse proxy at.
+const DIST_DIR = path.resolve(process.cwd(), 'dist');
+const isProduction = process.env.NODE_ENV === 'production';
 
 const PORT = process.env.API_PORT ? Number(process.env.API_PORT) : 8787;
 
@@ -138,18 +146,28 @@ app.get('/api/auth/me', (req, res) => {
   }
 });
 
+// Serve the built frontend (only present after `npm run build`). The app
+// uses hash-based routing (#login, #portal, ...), so a single index.html
+// fallback for any non-API GET request is all client-side routing needs.
+if (isProduction && fs.existsSync(DIST_DIR)) {
+  app.use(express.static(DIST_DIR));
+  app.get(/^(?!\/api\/).*/, (_req, res) => {
+    res.sendFile(path.join(DIST_DIR, 'index.html'));
+  });
+}
+
 async function start() {
   try {
     await initSchema();
     await seedIfEmpty();
   } catch (err) {
-    console.error('[finovatech-api] Could not connect to MySQL. Is the MySQL80 service running, and did you run server/scripts/setup-mysql.sql?');
+    console.error('[finovatech-api] Could not connect to MySQL. Is the MySQL server running, and did you run server/scripts/setup-mysql.sql against it?');
     console.error(err);
     process.exit(1);
   }
 
   app.listen(PORT, () => {
-    console.log(`[finovatech-api] listening on http://localhost:${PORT}`);
+    console.log(`[finovatech-api] listening on http://localhost:${PORT}${isProduction ? ' (serving built frontend + API)' : ''}`);
   });
 }
 
