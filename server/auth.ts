@@ -6,6 +6,7 @@ const TOKEN_TTL = '7d';
 
 export interface TokenPayload {
   sub: string;
+  sid: string;
   username: string;
   role: UserRole;
   name: string;

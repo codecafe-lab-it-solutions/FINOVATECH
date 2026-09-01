@@ -29,6 +29,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +55,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       // decides which panel the session lands in — no manual role selection.
       const { token, user } =
         mode === 'register'
-          ? await registerRequest(username.trim(), password, fullName.trim())
+          ? await registerRequest(username.trim(), password, fullName.trim(), referralCode.trim() || undefined)
           : await loginRequest(username.trim(), password);
       onAuthSuccess(token, user);
     } catch (err) {
@@ -226,6 +227,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A] transition-all font-mono"
                   />
                 </div>
+              </div>
+            )}
+
+            {mode === 'register' && (
+              <div>
+                <label className="block text-xs font-mono font-semibold uppercase text-gray-400 mb-1.5">
+                  Referral Code (optional)
+                </label>
+                <input
+                  id="register-referral-code-input"
+                  type="text"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value)}
+                  placeholder="e.g. FINO-XXXXXXXX"
+                  className="w-full px-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A] transition-all font-mono"
+                />
               </div>
             )}
 

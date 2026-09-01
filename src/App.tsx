@@ -180,8 +180,10 @@ export default function App() {
     return (
       <InvestorPortal
         authUser={authUser}
+        authToken={authToken as string}
         onLogout={handleLogout}
         onNavigateWebsite={() => handleNavigate('home')}
+        onCredentialsUpdated={handleCredentialsUpdated}
       />
     );
   }
