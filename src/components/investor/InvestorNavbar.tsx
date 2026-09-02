@@ -14,12 +14,13 @@ import {
   User,
   ChevronDown
 } from 'lucide-react';
-import { InvestorUser, InvestorNotification, InvestorTab } from '../../types';
+import { InvestorUser, InvestorTab } from '../../types';
+import { ApiNotification } from '../../lib/api';
 
 interface InvestorNavbarProps {
   user: InvestorUser;
   walletBalanceBtc: number;
-  notifications: InvestorNotification[];
+  notifications: ApiNotification[];
   currentTab: InvestorTab;
   onSelectTab: (tab: InvestorTab) => void;
   onLogout: () => void;
@@ -42,7 +43,7 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
     <header className="sticky top-0 z-40 bg-[#0F172A] border-b border-gray-800 text-white">
@@ -61,14 +62,14 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
 
             <div className="flex items-center gap-2.5">
               <img
-                src="/finovatech_favicon.svg"
-                alt="FINOVATECH"
+                src="/finovateck_favicon.svg"
+                alt="FINOVATECK"
                 className="w-8 h-8 rounded-xl shadow-md shrink-0"
               />
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-extrabold tracking-tight text-white">
-                    FINOVATECH
+                    FINOVATECK
                   </span>
                   <span className="px-1.5 py-0.5 rounded bg-[#F7931A]/20 text-[#F7931A] text-[9px] font-mono font-bold uppercase tracking-wider">
                     INVESTOR PORTAL
@@ -154,13 +155,16 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
                     {notifications.slice(0, 3).map((item) => (
                       <div key={item.id} className="py-2.5 px-2 hover:bg-gray-800/50 rounded-lg transition-colors">
                         <div className="flex items-center justify-between text-[11px] text-gray-400 font-mono mb-1">
-                          <span className="text-[#F7931A] font-semibold">{item.badge}</span>
-                          <span>{item.date}</span>
+                          <span className="text-[#F7931A] font-semibold uppercase">{item.type}</span>
+                          <span>{item.createdAt}</span>
                         </div>
                         <div className="text-xs font-semibold text-white">{item.title}</div>
                         <p className="text-[11px] text-gray-400 line-clamp-2 mt-0.5">{item.message}</p>
                       </div>
                     ))}
+                    {notifications.length === 0 && (
+                      <div className="py-6 text-center text-[11px] text-gray-500">No notifications yet.</div>
+                    )}
                   </div>
 
                   <div className="pt-3 mt-2 border-t border-gray-800 text-center">

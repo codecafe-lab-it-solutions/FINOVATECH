@@ -4,7 +4,7 @@ import { AboutSection } from '../components/AboutSection';
 import { FacilityReelsViewer } from '../components/FacilityReelsViewer';
 import { CorporateTransparency } from '../components/CorporateTransparency';
 import { OmanMuscatSection } from '../components/OmanMuscatSection';
-import { WhyFinovatech } from '../components/WhyFinovatech';
+import { WhyFinovateck } from '../components/WhyFinovateck';
 import { PageRoute } from '../types';
 
 interface AboutPageProps {
@@ -15,10 +15,10 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
   return (
     <div className="min-h-screen bg-white">
       <PageHeader
-        category="About FINOVATECH"
+        category="About FINOVATECK"
         badge="Corporate Profile & Infrastructure"
         title="Institutional Digital Infrastructure from Muscat"
-        subtitle="FINOVATECH Mining Company develops and operates purpose-built computing infrastructure supporting the global digital-asset ecosystem with operational discipline."
+        subtitle="FINOVATECK Mining Company develops and operates purpose-built computing infrastructure supporting the global digital-asset ecosystem with operational discipline."
         backgroundImage="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=2400&q=85"
         metrics={[
           { label: 'Headquarters', value: 'Muscat, Oman' },
@@ -31,7 +31,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
       <FacilityReelsViewer />
       <OmanMuscatSection onNavigate={onNavigate} />
       <CorporateTransparency onNavigate={onNavigate} />
-      <WhyFinovatech onNavigate={onNavigate} />
+      <WhyFinovateck onNavigate={onNavigate} />
     </div>
   );
 };

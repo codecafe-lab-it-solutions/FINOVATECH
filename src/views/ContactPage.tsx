@@ -14,7 +14,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
       <PageHeader
         category="Corporate Inquiries"
         badge="Institutional Communications Desk"
-        title="Connect with FINOVATECH Mining Company"
+        title="Connect with FINOVATECK Mining Company"
         subtitle="Direct your institutional inquiries regarding computing operations, digital asset infrastructure, or strategic collaboration to our Muscat headquarters."
         backgroundImage="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=2400&q=85"
         metrics={[

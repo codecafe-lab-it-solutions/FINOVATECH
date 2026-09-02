@@ -59,7 +59,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             className="hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer text-gray-400"
           >
             <Home className="w-3.5 h-3.5 text-[#F7931A]" />
-            <span>FINOVATECH</span>
+            <span>FINOVATECK</span>
           </button>
           <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
           <span className="text-gray-200 font-semibold">{category}</span>

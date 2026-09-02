@@ -88,7 +88,7 @@ export const InvestorSidebar: React.FC<InvestorSidebarProps> = ({
           badge: openTicketsCount > 0 ? `${openTicketsCount} Active` : undefined
         },
         { id: 'referrals' as InvestorTab, label: 'Partner / Referrals', icon: Users },
-        { id: 'security' as InvestorTab, label: 'Security & 2FA Center', icon: ShieldCheck },
+        { id: 'security' as InvestorTab, label: 'Security Center', icon: ShieldCheck },
       ]
     }
   ];

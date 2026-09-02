@@ -48,7 +48,7 @@ export const MiningInfrastructure: React.FC<MiningInfrastructureProps> = ({ onNa
             Institutional Infrastructure Components
           </h2>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-            Every layer of FINOVATECH's computational facility in Muscat is engineered to institutional specifications for thermal resilience, energy efficiency, and uninterrupted connectivity.
+            Every layer of FINOVATECK's computational facility in Muscat is engineered to institutional specifications for thermal resilience, energy efficiency, and uninterrupted connectivity.
           </p>
         </div>
 

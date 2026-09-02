@@ -3,15 +3,13 @@ import {
   Wallet, 
   ArrowUpRight, 
   ArrowDownLeft, 
-  ExternalLink, 
-  ShieldCheck, 
-  CheckCircle2, 
-  Clock, 
-  Copy, 
-  Check, 
-  AlertCircle, 
-  Coins, 
-  Lock,
+  ExternalLink,
+  CheckCircle2,
+  Clock,
+  Copy,
+  Check,
+  AlertCircle,
+  Coins,
   Send,
   X,
   RefreshCw
@@ -22,23 +20,23 @@ interface WalletTabProps {
   transactions: WalletTransaction[];
   metrics: InvestorOverviewMetrics;
   user: InvestorUser;
-  onAddTransaction: (tx: WalletTransaction) => void;
+  onRequestPayout: (amountBtc: number, destinationWallet: string) => Promise<void>;
 }
 
 export const WalletTab: React.FC<WalletTabProps> = ({
   transactions,
   metrics,
   user,
-  onAddTransaction
+  onRequestPayout
 }) => {
   const [copiedTx, setCopiedTx] = useState<string | null>(null);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawStep, setWithdrawStep] = useState<1 | 2 | 3>(1);
   const [withdrawAmount, setWithdrawAmount] = useState('0.005');
   const [destinationAddress, setDestinationAddress] = useState(user.payoutBtcAddress);
-  const [otpCode, setOtpCode] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
+  const [withdrawError, setWithdrawError] = useState<string | null>(null);
 
   const availableBtc = metrics.totalBtcAllocated;
   const pendingBtc = metrics.btcPendingAccrued;
@@ -63,26 +61,18 @@ export const WalletTab: React.FC<WalletTabProps> = ({
     setWithdrawStep(2);
   };
 
-  const handleConfirmOtp = () => {
+  const handleConfirmOtp = async () => {
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
+    setWithdrawError(null);
+    try {
+      await onRequestPayout(parseFloat(withdrawAmount), destinationAddress);
       setWithdrawStep(3);
-      
-      const newTx: WalletTransaction = {
-        id: `WTX-${Date.now().toString().slice(-3)}`,
-        date: '26 Aug 2026, 07:55 UTC (Just Now)',
-        type: 'Payout',
-        amountBtc: -parseFloat(withdrawAmount),
-        amountUsd: -(parseFloat(withdrawAmount) * btcPriceUsd),
-        status: 'Processing',
-        txid: '9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e',
-        explorerUrl: 'https://mempool.space/tx/9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e',
-        destination: destinationAddress
-      };
-      onAddTransaction(newTx);
-      setWithdrawSuccess(`Withdrawal of ${withdrawAmount} BTC initiated and queued for 2-hour blockchain broadcast.`);
-    }, 800);
+      setWithdrawSuccess(`Payout request for ${withdrawAmount} BTC submitted and is awaiting admin approval.`);
+    } catch (err) {
+      setWithdrawError(err instanceof Error ? err.message : 'Could not submit payout request.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -99,7 +89,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             Investor Wallet & Treasury Management
           </h2>
           <p className="text-xs text-gray-400 font-mono mt-0.5">
-            Non-custodial on-chain payout queues with 256-bit multisig destination whitelisting
+            Your real BTC balance and transaction ledger, with admin-reviewed withdrawal requests
           </p>
         </div>
 
@@ -211,7 +201,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             </span>
           </div>
           <span className="text-xs text-gray-400 font-mono">
-            Click TXID for Mempool / Blockstream verification
+            {transactions.length} entr{transactions.length === 1 ? 'y' : 'ies'}
           </span>
         </div>
 
@@ -259,25 +249,29 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                     </span>
                   </td>
                   <td className="py-3 px-3 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-2">
-                      <a
-                        href={tx.explorerUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#F7931A] hover:underline flex items-center gap-1 font-mono text-[11px]"
-                        title={tx.txid}
-                      >
-                        <span>{tx.txid.slice(0, 8)}...{tx.txid.slice(-8)}</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                      <button
-                        onClick={() => handleCopy(tx.txid, tx.id)}
-                        className="text-gray-500 hover:text-white cursor-pointer"
-                        title="Copy TXID"
-                      >
-                        {copiedTx === tx.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                      </button>
-                    </div>
+                    {tx.txid ? (
+                      <div className="flex items-center justify-end gap-2">
+                        <a
+                          href={tx.explorerUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#F7931A] hover:underline flex items-center gap-1 font-mono text-[11px]"
+                          title={tx.txid}
+                        >
+                          <span>{tx.txid.slice(0, 8)}...{tx.txid.slice(-8)}</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <button
+                          onClick={() => handleCopy(tx.txid, tx.id)}
+                          className="text-gray-500 hover:text-white cursor-pointer"
+                          title="Copy TXID"
+                        >
+                          {copiedTx === tx.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-gray-600 font-mono text-[11px]">Internal ledger entry</span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -313,10 +307,10 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                 1. Amount & Address
               </div>
               <div className={`p-2 rounded-lg ${withdrawStep === 2 ? 'bg-[#F7931A] text-gray-950 font-bold' : 'bg-gray-800 text-gray-400'}`}>
-                2. 2FA Confirmation
+                2. Confirm
               </div>
               <div className={`p-2 rounded-lg ${withdrawStep === 3 ? 'bg-emerald-500 text-white font-bold' : 'bg-gray-800 text-gray-400'}`}>
-                3. Queued on Chain
+                3. Submitted
               </div>
             </div>
 
@@ -339,12 +333,12 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                     className="w-full px-3 py-2.5 rounded-xl bg-gray-950 border border-gray-700 text-white focus:outline-hidden focus:border-[#F7931A]"
                   />
                   <div className="text-[11px] text-gray-400 mt-1">
-                    ≈ ${(parseFloat(withdrawAmount || '0') * btcPriceUsd).toFixed(2)} USD (Miner fee: 0.00005 BTC included)
+                    ≈ ${(parseFloat(withdrawAmount || '0') * btcPriceUsd).toFixed(2)} USD
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 mb-1">Destination Bitcoin Address (Whitelisted):</label>
+                  <label className="block text-gray-400 mb-1">Destination Bitcoin Address:</label>
                   <input
                     type="text"
                     required
@@ -355,35 +349,42 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                 </div>
 
                 <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px]">
-                  Institutional Rule: Withdrawals strictly execute to verified whitelisted addresses. 2FA verification mandatory.
+                  Withdrawal requests are reviewed and approved by an administrator before funds move.
                 </div>
 
                 <button
                   type="submit"
                   className="w-full py-3 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs cursor-pointer"
                 >
-                  Proceed to 2FA Authentication →
+                  Review & Confirm →
                 </button>
               </form>
             )}
 
-            {/* Step 2: 2FA */}
+            {/* Step 2: Confirm */}
             {withdrawStep === 2 && (
               <div className="space-y-4 text-xs font-mono">
                 <p className="text-gray-300">
-                  Please enter the 6-digit OTP code sent to your registered device for withdrawal authorization of <strong className="text-white">{withdrawAmount} BTC</strong>.
+                  Confirm your payout request before it's submitted for admin review.
                 </p>
 
-                <div>
-                  <input
-                    type="text"
-                    autoFocus
-                    placeholder="Enter 2FA Code (Demo: 123456)"
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-gray-950 border border-gray-700 text-white font-mono text-center tracking-widest text-lg focus:outline-hidden focus:border-[#F7931A]"
-                  />
+                <div className="p-4 rounded-xl bg-gray-950 border border-gray-700 space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Amount:</span>
+                    <span className="text-white font-bold">{withdrawAmount} BTC</span>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-gray-400 shrink-0">Destination:</span>
+                    <span className="text-amber-200/90 break-all text-right">{destinationAddress}</span>
+                  </div>
                 </div>
+
+                {withdrawError && (
+                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{withdrawError}</span>
+                  </div>
+                )}
 
                 <button
                   type="button"
@@ -391,7 +392,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                   onClick={handleConfirmOtp}
                   className="w-full py-3 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {isProcessing ? 'Validating Cryptographic Signature...' : 'Authorize Blockchain Broadcast'}
+                  {isProcessing ? 'Submitting Payout Request...' : 'Confirm & Submit Request'}
                 </button>
               </div>
             )}
@@ -402,13 +403,10 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                 <div className="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <h4 className="text-base font-bold text-white">Withdrawal Dispatched</h4>
+                <h4 className="text-base font-bold text-white">Payout Request Submitted</h4>
                 <p className="text-gray-300">
-                  Your withdrawal of <strong className="text-white">{withdrawAmount} BTC</strong> has been signed by the Muscat node multisig and submitted to the mempool.
+                  Your request to withdraw <strong className="text-white">{withdrawAmount} BTC</strong> has been recorded and is now awaiting admin review and approval. You'll see it under Payout Records once processed.
                 </p>
-                <div className="p-3 rounded-xl bg-gray-950 border border-gray-800 text-[11px] text-gray-400 break-all">
-                  TXID: 9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8e
-                </div>
                 <button
                   type="button"
                   onClick={() => setShowWithdrawModal(false)}

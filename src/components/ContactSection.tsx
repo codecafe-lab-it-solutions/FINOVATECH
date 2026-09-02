@@ -39,7 +39,7 @@ export const ContactSection: React.FC = () => {
             Let's Build the Digital Asset Infrastructure of Tomorrow.
           </h2>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-            Connect with FINOVATECH to explore technology, infrastructure and strategic opportunities within the digital-asset ecosystem.
+            Connect with FINOVATECK to explore technology, infrastructure and strategic opportunities within the digital-asset ecosystem.
           </p>
         </div>
 
@@ -82,7 +82,7 @@ export const ContactSection: React.FC = () => {
                   <Mail className="w-4 h-4 text-[#F7931A] shrink-0 mt-1" />
                   <div>
                     <div className="font-semibold text-gray-900">Official Inquiry Desk</div>
-                    <div className="text-xs font-mono text-gray-700">corporate@finovatech-mining.om</div>
+                    <div className="text-xs font-mono text-gray-700">corporate@finovateck-mining.om</div>
                   </div>
                 </div>
               </div>
@@ -97,7 +97,7 @@ export const ContactSection: React.FC = () => {
             <div className="p-5 rounded-xl bg-white border border-gray-200 text-xs text-gray-500 flex items-start gap-3">
               <Shield className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
               <p>
-                All institutional correspondence is reviewed under corporate governance guidelines. FINOVATECH does not provide financial advice, trading accounts, or investment products.
+                All institutional correspondence is reviewed under corporate governance guidelines. FINOVATECK does not provide financial advice, trading accounts, or investment products.
               </p>
             </div>
 
@@ -116,7 +116,7 @@ export const ContactSection: React.FC = () => {
                     Inquiry Transmitted Successfully
                   </h3>
                   <p className="text-sm text-gray-600 max-w-md mx-auto">
-                    Thank you for reaching out to FINOVATECH Mining Company. Your correspondence has been logged with our corporate office in Muscat, Oman.
+                    Thank you for reaching out to FINOVATECK Mining Company. Your correspondence has been logged with our corporate office in Muscat, Oman.
                   </p>
                   <button
                     onClick={() => {
@@ -141,7 +141,7 @@ export const ContactSection: React.FC = () => {
                       Corporate Correspondence Form
                     </h3>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      Direct inquiries to the FINOVATECH operational and leadership office.
+                      Direct inquiries to the FINOVATECK operational and leadership office.
                     </p>
                   </div>
 
@@ -222,7 +222,7 @@ export const ContactSection: React.FC = () => {
                       required
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      placeholder="Please outline the nature of your inquiry regarding FINOVATECH digital infrastructure operations..."
+                      placeholder="Please outline the nature of your inquiry regarding FINOVATECK digital infrastructure operations..."
                       className="w-full px-3.5 py-2.5 rounded-lg bg-[#F8F9FA] border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-hidden focus:border-[#111827] focus:bg-white transition-all resize-none"
                     ></textarea>
                   </div>
@@ -237,7 +237,7 @@ export const ContactSection: React.FC = () => {
                       <span>Transmitting Correspondence...</span>
                     ) : (
                       <>
-                        <span>Contact FINOVATECH</span>
+                        <span>Contact FINOVATECK</span>
                         <Send className="w-4 h-4 text-[#F7931A]" />
                       </>
                     )}

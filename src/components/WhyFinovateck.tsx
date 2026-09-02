@@ -1,13 +1,13 @@
 import React from 'react';
-import { WHY_FINOVATECH } from '../data/companyData';
+import { WHY_FINOVATECK } from '../data/companyData';
 import { Cpu, ShieldCheck, Server, Compass, Check } from 'lucide-react';
 import { PageRoute } from '../types';
 
-interface WhyFinovatechProps {
+interface WhyFinovateckProps {
   onNavigate?: (route: PageRoute) => void;
 }
 
-export const WhyFinovatech: React.FC<WhyFinovatechProps> = ({ onNavigate }) => {
+export const WhyFinovateck: React.FC<WhyFinovateckProps> = ({ onNavigate }) => {
   const getIcon = (idx: number) => {
     switch (idx) {
       case 0:
@@ -24,7 +24,7 @@ export const WhyFinovatech: React.FC<WhyFinovatechProps> = ({ onNavigate }) => {
   };
 
   return (
-    <section id="why-finovatech-section" className="py-20 lg:py-28 bg-[#F8F9FA] border-b border-gray-200">
+    <section id="why-finovateck-section" className="py-20 lg:py-28 bg-[#F8F9FA] border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
@@ -36,16 +36,16 @@ export const WhyFinovatech: React.FC<WhyFinovatechProps> = ({ onNavigate }) => {
             </span>
           </div>
           <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-[#111827] tracking-tight leading-tight">
-            Why FINOVATECH
+            Why FINOVATECK
           </h2>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-            Positioned as a disciplined industrial operator, FINOVATECH prioritizes physical infrastructure stability, transparent metrics, and verifiable computing performance.
+            Positioned as a disciplined industrial operator, FINOVATECK prioritizes physical infrastructure stability, transparent metrics, and verifiable computing performance.
           </p>
         </div>
 
         {/* 4-Column Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {WHY_FINOVATECH.map((pillar, idx) => (
+          {WHY_FINOVATECK.map((pillar, idx) => (
             <div
               key={pillar.title}
               id={`why-pillar-${idx}`}

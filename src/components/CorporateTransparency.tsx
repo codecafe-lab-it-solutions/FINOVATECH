@@ -24,7 +24,7 @@ export const CorporateTransparency: React.FC<CorporateTransparencyProps> = ({ on
             Built on Clarity and Accountability
           </h2>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-            FINOVATECH maintains clear and factual disclosures regarding corporate structure, operational scope, and governance mandates.
+            FINOVATECK maintains clear and factual disclosures regarding corporate structure, operational scope, and governance mandates.
           </p>
         </div>
 
@@ -72,7 +72,7 @@ export const CorporateTransparency: React.FC<CorporateTransparencyProps> = ({ on
                 <span>Governance & Compliance Mandates</span>
               </div>
               <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                FINOVATECH operates exclusively as an infrastructure provider and technology operator. The company does not solicit retail investments, offer speculative financial instruments, or make guarantees regarding cryptocurrency valuations or mining profitability.
+                FINOVATECK operates exclusively as an infrastructure provider and technology operator. The company does not solicit retail investments, offer speculative financial instruments, or make guarantees regarding cryptocurrency valuations or mining profitability.
               </p>
             </div>
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Menu, X, ArrowUpRight, ChevronRight, MapPin, Building2, ShieldCheck, Phone, Mail } from 'lucide-react';
 import { PageRoute } from '../types';
-import finovatechLogo from '../assets/finovatech_logo.svg';
+import finovateckLogo from '../assets/finovateck_logo.svg';
 
 interface NavbarProps {
   currentRoute: PageRoute;
@@ -73,11 +73,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
               id="brand-logo-btn"
               onClick={() => handleNavClick('home')}
               className="flex items-center gap-2 sm:gap-3 group text-left cursor-pointer focus:outline-hidden py-1 shrink-0 transition-opacity hover:opacity-95"
-              aria-label="FINOVATECH Home"
+              aria-label="FINOVATECK Home"
             >
               <img
-                src={finovatechLogo}
-                alt="FINOVATECH MINING COMPANY"
+                src={finovateckLogo}
+                alt="FINOVATECK MINING COMPANY"
                 className="h-8 sm:h-9 lg:h-10 w-auto object-contain block"
               />
             </button>
@@ -241,7 +241,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
             </div>
 
             <div className="text-center text-[10px] font-mono text-gray-400">
-              FINOVATECH MINING COMPANY • EST. 2025 • SULTANATE OF OMAN
+              FINOVATECK MINING COMPANY • EST. 2025 • SULTANATE OF OMAN
             </div>
           </div>
         </div>

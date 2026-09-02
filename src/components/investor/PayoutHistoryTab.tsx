@@ -45,7 +45,7 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts }) =
             Disbursed Payouts & Settlement History
           </h2>
           <p className="text-xs text-gray-400 font-mono mt-0.5">
-            Cryptographically signed on-chain distributions to investor whitelisted addresses
+            Real payout records reviewed and approved by an administrator
           </p>
         </div>
 
@@ -95,7 +95,7 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts }) =
             Settlement Audit Registry
           </span>
           <span className="text-xs text-gray-400 font-mono">
-            Deep Blockchain Confirmations
+            Real Payout Records
           </span>
         </div>
 
@@ -109,8 +109,7 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts }) =
                 <th className="pb-3 px-3">Value (USD)</th>
                 <th className="pb-3 px-3">Destination Wallet</th>
                 <th className="pb-3 px-3">Status</th>
-                <th className="pb-3 px-3">Confirmations</th>
-                <th className="pb-3 px-3 text-right">Blockchain TXID</th>
+                <th className="pb-3 px-3 text-right">Transaction</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800/60">
@@ -131,28 +130,29 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts }) =
                       <span>{row.status}</span>
                     </span>
                   </td>
-                  <td className="py-3.5 px-3 text-gray-300 whitespace-nowrap">
-                    <span className="text-emerald-400 font-bold">{row.confirmations.toLocaleString()}+</span> blocks
-                  </td>
                   <td className="py-3.5 px-3 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-2">
-                      <a
-                        href={row.explorerUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#F7931A] hover:underline flex items-center gap-1 font-mono text-[11px]"
-                      >
-                        <span>{row.txid.slice(0, 6)}...{row.txid.slice(-6)}</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                      <button
-                        onClick={() => handleCopy(row.txid, row.id)}
-                        className="text-gray-500 hover:text-white cursor-pointer"
-                        title="Copy TXID"
-                      >
-                        {copiedId === row.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-                      </button>
-                    </div>
+                    {row.txid ? (
+                      <div className="flex items-center justify-end gap-2">
+                        <a
+                          href={row.explorerUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#F7931A] hover:underline flex items-center gap-1 font-mono text-[11px]"
+                        >
+                          <span>{row.txid.slice(0, 6)}...{row.txid.slice(-6)}</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <button
+                          onClick={() => handleCopy(row.txid, row.id)}
+                          className="text-gray-500 hover:text-white cursor-pointer"
+                          title="Copy TXID"
+                        >
+                          {copiedId === row.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-gray-600 font-mono text-[11px]">Internal record</span>
+                    )}
                   </td>
                 </tr>
               ))}

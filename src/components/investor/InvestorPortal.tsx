@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { InvestorNavbar } from './InvestorNavbar';
 import { InvestorSidebar } from './InvestorSidebar';
 import { InvestorDashboardTab } from './InvestorDashboardTab';
@@ -17,125 +17,175 @@ import { SupportHelpdeskTab } from './SupportHelpdeskTab';
 import { ReferralPartnerTab } from './ReferralPartnerTab';
 import { SecurityCenterTab } from './SecurityCenterTab';
 
+import { InvestorTab, InvestorUser, InvestorOverviewMetrics } from '../../types';
 import {
-  INITIAL_INVESTOR_USER,
-  INITIAL_OVERVIEW_METRICS,
-  INITIAL_WALLET_TRANSACTIONS,
-  INITIAL_MINING_EARNINGS,
-  INITIAL_PAYOUTS,
-  FLEET_MACHINES,
-  INITIAL_DOCUMENTS,
-  INITIAL_MONTHLY_STATEMENTS,
-  INITIAL_NOTIFICATIONS,
-  INITIAL_TICKETS,
-  INITIAL_REFERRALS,
-  INITIAL_SESSIONS
-} from '../../data/investorData';
-import { buildEmptyInvestorProfile, buildEmptyOverviewMetrics } from '../../data/emptyInvestorData';
-import {
-  InvestorTab,
-  InvestorUser,
-  WalletTransaction,
-  SupportTicket
-} from '../../types';
-import { AuthUser } from '../../lib/api';
+  AuthUser,
+  fetchInvestorProfile,
+  fetchInvestorTransactions,
+  fetchInvestorPayouts,
+  fetchInvestorEarnings,
+  fetchInvestorStatements,
+  fetchInvestorNotifications,
+  setNotificationReadApi,
+  markAllNotificationsReadApi,
+  fetchInvestorSessions,
+  revokeSessionApi,
+  fetchInvestorTickets,
+  createInvestorTicket,
+  addInvestorTicketMessage,
+  fetchInvestorReferrals,
+  fetchInvestorMachines,
+  fetchInvestorDocuments,
+  requestPayoutApi,
+  updateInvestorProfileApi,
+  ApiEarningRow,
+  ApiMonthlyStatement,
+  ApiNotification,
+  ApiSession,
+  ApiTicket,
+  ApiReferredInvestor,
+  ApiMachine,
+  ApiDocument
+} from '../../lib/api';
+import { profileToUser, profileToMetrics, transactionToWallet, payoutToRecord } from '../../lib/investorMappers';
 
 interface InvestorPortalProps {
   authUser: AuthUser;
+  authToken: string;
   onLogout: () => void;
   onNavigateWebsite: () => void;
+  onCredentialsUpdated: (token: string, user: AuthUser) => void;
 }
-
-// `investor1` is the shared demo/seed account and keeps its rich sample
-// portfolio; every other (really registered) investor starts from zero.
-const isDemoInvestor = (username: string) => username.toLowerCase() === 'investor1';
 
 export const InvestorPortal: React.FC<InvestorPortalProps> = ({
   authUser,
+  authToken,
   onLogout,
-  onNavigateWebsite
+  onNavigateWebsite,
+  onCredentialsUpdated
 }) => {
   const [currentTab, setCurrentTab] = useState<InvestorTab>('overview');
-  const [user, setUser] = useState<InvestorUser>(
-    isDemoInvestor(authUser.username)
-      ? { ...INITIAL_INVESTOR_USER, id: authUser.id, username: authUser.username, name: authUser.name }
-      : buildEmptyInvestorProfile(authUser)
-  );
-  const [metrics, setMetrics] = useState(
-    isDemoInvestor(authUser.username) ? INITIAL_OVERVIEW_METRICS : buildEmptyOverviewMetrics()
-  );
-  const [transactions, setTransactions] = useState(INITIAL_WALLET_TRANSACTIONS);
-  const [earnings, setEarnings] = useState(INITIAL_MINING_EARNINGS);
-  const [payouts, setPayouts] = useState(INITIAL_PAYOUTS);
-  const [machines, setMachines] = useState(FLEET_MACHINES);
-  const [documents, setDocuments] = useState(INITIAL_DOCUMENTS);
-  const [statements, setStatements] = useState(INITIAL_MONTHLY_STATEMENTS);
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
-  const [tickets, setTickets] = useState(INITIAL_TICKETS);
-  const [referrals, setReferrals] = useState(INITIAL_REFERRALS);
-  const [sessions, setSessions] = useState(INITIAL_SESSIONS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
+  const [user, setUser] = useState<InvestorUser | null>(null);
+  const [metrics, setMetrics] = useState<InvestorOverviewMetrics | null>(null);
+  const [transactions, setTransactions] = useState<ReturnType<typeof transactionToWallet>[]>([]);
+  const [payouts, setPayouts] = useState<ReturnType<typeof payoutToRecord>[]>([]);
+  const [earnings, setEarnings] = useState<ApiEarningRow[]>([]);
+  const [statements, setStatements] = useState<ApiMonthlyStatement[]>([]);
+  const [notifications, setNotifications] = useState<ApiNotification[]>([]);
+  const [sessions, setSessions] = useState<ApiSession[]>([]);
+  const [tickets, setTickets] = useState<ApiTicket[]>([]);
+  const [referralCode, setReferralCode] = useState('');
+  const [referredUsers, setReferredUsers] = useState<ApiReferredInvestor[]>([]);
+  const [machines, setMachines] = useState<ApiMachine[]>([]);
+  const [documents, setDocuments] = useState<ApiDocument[]>([]);
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
+  const loadPortfolio = useCallback(async () => {
+    try {
+      const [{ profile }, { transactions: txs }, { payouts: pos }] = await Promise.all([
+        fetchInvestorProfile(authToken),
+        fetchInvestorTransactions(authToken),
+        fetchInvestorPayouts(authToken)
+      ]);
+
+      const mappedMetrics = profileToMetrics(profile);
+      const completedPayouts = pos.filter((p) => p.status === 'Completed');
+      mappedMetrics.totalPayoutsBtc = completedPayouts.reduce((sum, p) => sum + p.amountBtc, 0);
+      mappedMetrics.totalPayoutsUsd = mappedMetrics.totalPayoutsBtc * mappedMetrics.currentBtcPriceUsd;
+
+      setUser(profileToUser(profile));
+      setMetrics(mappedMetrics);
+      setTransactions(txs.map(transactionToWallet));
+      setPayouts(pos.map(payoutToRecord));
+      setLoadError('');
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : 'Could not load your portfolio.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authToken]);
+
+  const loadNotifications = useCallback(() => {
+    fetchInvestorNotifications(authToken).then(({ notifications }) => setNotifications(notifications)).catch(() => {});
+  }, [authToken]);
+
+  const loadSessions = useCallback(() => {
+    fetchInvestorSessions(authToken).then(({ sessions }) => setSessions(sessions)).catch(() => {});
+  }, [authToken]);
+
+  const loadTickets = useCallback(() => {
+    fetchInvestorTickets(authToken).then(({ tickets }) => setTickets(tickets)).catch(() => {});
+  }, [authToken]);
+
+  useEffect(() => {
+    loadPortfolio();
+    loadNotifications();
+    loadSessions();
+    loadTickets();
+    fetchInvestorEarnings(authToken).then(({ earnings }) => setEarnings(earnings)).catch(() => {});
+    fetchInvestorStatements(authToken).then(({ statements }) => setStatements(statements)).catch(() => {});
+    fetchInvestorReferrals(authToken).then(({ referralCode, referredUsers }) => {
+      setReferralCode(referralCode);
+      setReferredUsers(referredUsers);
+    }).catch(() => {});
+    fetchInvestorMachines(authToken).then(({ machines }) => setMachines(machines)).catch(() => {});
+    fetchInvestorDocuments(authToken).then(({ documents }) => setDocuments(documents)).catch(() => {});
+  }, [authToken, loadPortfolio, loadNotifications, loadSessions, loadTickets]);
+
   // Handlers
-  const handleUpdateUser = (updated: Partial<InvestorUser>) => {
-    setUser((prev) => ({ ...prev, ...updated }));
+  const handleRequestPayout = async (amountBtc: number, destinationWallet: string) => {
+    await requestPayoutApi(authToken, amountBtc, destinationWallet);
+    await loadPortfolio();
+    loadNotifications();
   };
 
-  const handleAddTransaction = (newTx: WalletTransaction) => {
-    setTransactions((prev) => [newTx, ...prev]);
-    // update metrics
-    setMetrics((prev) => ({
-      ...prev,
-      totalBtcAllocated: Math.max(0, prev.totalBtcAllocated + newTx.amountBtc),
-      totalPayoutsUsd: prev.totalPayoutsUsd + Math.abs(newTx.amountUsd),
-      totalPayoutsBtc: prev.totalPayoutsBtc + Math.abs(newTx.amountBtc)
-    }));
+  // Investors may edit their own contact/banking/payout details — KYC
+  // status, account status, and portfolio figures stay admin-managed.
+  const handleUpdateUser = async (updated: Partial<InvestorUser>) => {
+    await updateInvestorProfileApi(authToken, {
+      email: updated.email,
+      phone: updated.phone,
+      country: updated.country,
+      payoutBtcAddress: updated.payoutBtcAddress,
+      bankName: updated.bankName,
+      bankAccountHolder: updated.bankAccountHolder,
+      bankAccountNumber: updated.bankAccountNumber,
+      bankIban: updated.bankIban,
+      bankSwift: updated.bankSwift
+    });
+    await loadPortfolio();
   };
 
-  const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const handleMarkAllRead = async () => {
+    await markAllNotificationsReadApi(authToken);
+    loadNotifications();
   };
 
-  const handleToggleNotificationRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
-    );
+  const handleToggleNotificationRead = async (id: string, isRead: boolean) => {
+    await setNotificationReadApi(authToken, id, isRead);
+    loadNotifications();
   };
 
-  const handleAddTicket = (newTicket: SupportTicket) => {
-    setTickets((prev) => [newTicket, ...prev]);
+  const handleAddTicket = async (subject: string, category: string, message: string) => {
+    await createInvestorTicket(authToken, { subject, category, message });
+    loadTickets();
   };
 
-  const handleAddTicketMessage = (ticketId: string, messageText: string) => {
-    setTickets((prev) =>
-      prev.map((t) => {
-        if (t.id === ticketId) {
-          return {
-            ...t,
-            lastUpdated: 'Just now',
-            messages: [
-              ...t.messages,
-              {
-                id: `MSG-${Date.now()}`,
-                sender: 'Investor',
-                senderName: user.name,
-                text: messageText,
-                timestamp: '26 Aug 2026, 08:00 UTC'
-              }
-            ]
-          };
-        }
-        return t;
-      })
-    );
+  const handleAddTicketMessage = async (ticketId: string, messageText: string) => {
+    await addInvestorTicketMessage(authToken, ticketId, messageText);
+    loadTickets();
   };
 
-  const handleRevokeSession = (sessionId: string) => {
-    setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+  const handleRevokeSession = async (sessionId: string) => {
+    await revokeSessionApi(authToken, sessionId);
+    loadSessions();
   };
 
-  const unreadNotifs = notifications.filter((n) => !n.read).length;
+  const unreadNotifs = notifications.filter((n) => !n.isRead).length;
   const openTickets = tickets.filter((t) => t.status !== 'Resolved').length;
 
   const handleSelectTab = (tab: InvestorTab) => {
@@ -144,9 +194,29 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  if (isLoading || !user || !metrics) {
+    return (
+      <div className="min-h-screen bg-[#0B1120] text-gray-400 flex items-center justify-center font-mono text-xs">
+        {loadError ? (
+          <div className="text-center space-y-3">
+            <p className="text-rose-400">{loadError}</p>
+            <button
+              onClick={onLogout}
+              className="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 cursor-pointer"
+            >
+              Back to Login
+            </button>
+          </div>
+        ) : (
+          'Loading your portfolio...'
+        )}
+      </div>
+    );
+  }
+
   return (
     <div id="investor-portal-root" className="min-h-screen bg-[#0B1120] text-gray-100 flex flex-col">
-      
+
       {/* Top Navbar */}
       <InvestorNavbar
         user={user}
@@ -162,7 +232,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
 
       {/* Main Workspace Layout (Sidebar + Content) */}
       <div className="flex-1 flex flex-col lg:flex-row w-full relative">
-        
+
         {/* Desktop Sidebar */}
         <div className="hidden lg:block">
           <InvestorSidebar
@@ -229,6 +299,8 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
           {currentTab === 'mining-performance' && (
             <MiningPerformanceTab
               metrics={metrics}
+              earnings={earnings}
+              machines={machines}
             />
           )}
 
@@ -237,7 +309,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
               transactions={transactions}
               metrics={metrics}
               user={user}
-              onAddTransaction={handleAddTransaction}
+              onRequestPayout={handleRequestPayout}
             />
           )}
 
@@ -256,6 +328,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
           {currentTab === 'roi-performance' && (
             <RoiPerformanceTab
               metrics={metrics}
+              statements={statements}
             />
           )}
 
@@ -289,7 +362,6 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
           {currentTab === 'support' && (
             <SupportHelpdeskTab
               tickets={tickets}
-              user={user}
               onAddTicket={handleAddTicket}
               onAddMessage={handleAddTicketMessage}
             />
@@ -297,7 +369,8 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
 
           {currentTab === 'referrals' && (
             <ReferralPartnerTab
-              referrals={referrals}
+              referralCode={referralCode}
+              referredUsers={referredUsers}
             />
           )}
 
@@ -305,7 +378,9 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
             <SecurityCenterTab
               sessions={sessions}
               user={user}
+              authToken={authToken}
               onRevokeSession={handleRevokeSession}
+              onCredentialsUpdated={onCredentialsUpdated}
             />
           )}
         </main>

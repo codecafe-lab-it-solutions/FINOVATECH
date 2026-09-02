@@ -5,9 +5,8 @@ import {
   FileText, 
   Building2, 
   CreditCard, 
-  CheckCircle2, 
-  AlertCircle, 
-  Edit3, 
+  CheckCircle2,
+  Edit3,
   Lock, 
   Copy, 
   Check, 
@@ -21,7 +20,7 @@ import { InvestorUser } from '../../types';
 
 interface InvestorProfileTabProps {
   user: InvestorUser;
-  onUpdateUser: (updated: Partial<InvestorUser>) => void;
+  onUpdateUser: (updated: Partial<InvestorUser>) => Promise<void>;
 }
 
 export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
@@ -30,9 +29,6 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
 }) => {
   const [isEditingPayment, setIsEditingPayment] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [showOtpVerification, setShowOtpVerification] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
-  const [otpError, setOtpError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
   const [formData, setFormData] = useState({
@@ -50,22 +46,12 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
     setTimeout(() => setCopiedField(null), 2000);
   };
 
-  const handleInitiateUpdate = (e: React.FormEvent) => {
+  const handleSaveDetails = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowOtpVerification(true);
-    setOtpError('');
-  };
-
-  const handleVerifyOtpAndSave = () => {
-    if (otpCode.trim() === '1234' || otpCode.trim() === '123456' || otpCode.trim().length >= 4) {
-      onUpdateUser(formData);
-      setShowOtpVerification(false);
-      setIsEditingPayment(false);
-      setSuccessMsg('Payment details updated and verified successfully.');
-      setTimeout(() => setSuccessMsg(''), 4000);
-    } else {
-      setOtpError('Please enter a valid OTP code (e.g. 123456 for demo confirmation).');
-    }
+    await onUpdateUser(formData);
+    setIsEditingPayment(false);
+    setSuccessMsg('Payment details updated successfully.');
+    setTimeout(() => setSuccessMsg(''), 4000);
   };
 
   return (
@@ -229,11 +215,10 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
               )}
             </div>
 
-            {/* BTC Payout Whitelisted Address */}
+            {/* BTC Payout Address */}
             <div className="p-4 rounded-2xl bg-gray-950/80 border border-gray-800 space-y-2">
               <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-[#F7931A] font-bold">Whitelisted BTC Payout Address:</span>
-                <span className="text-emerald-400 text-[10px]">Active & Verified</span>
+                <span className="text-[#F7931A] font-bold">BTC Payout Address:</span>
               </div>
               <div className="p-3 rounded-xl bg-gray-900 border border-gray-800 font-mono text-xs text-gray-200 flex items-center justify-between break-all">
                 <span className="text-amber-400 select-all">{formData.payoutBtcAddress}</span>
@@ -273,10 +258,10 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleInitiateUpdate} className="space-y-3.5 text-xs font-mono">
-                
+              <form onSubmit={handleSaveDetails} className="space-y-3.5 text-xs font-mono">
+
                 <div>
-                  <label className="block text-gray-400 mb-1">Whitelisted BTC Address:</label>
+                  <label className="block text-gray-400 mb-1">BTC Payout Address:</label>
                   <input
                     type="text"
                     required
@@ -336,7 +321,7 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
                     className="flex-1 py-2.5 px-4 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Lock className="w-3.5 h-3.5" />
-                    <span>Proceed to 2FA Confirmation</span>
+                    <span>Save Changes</span>
                   </button>
                   <button
                     type="button"
@@ -352,7 +337,7 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
             <div className="p-3 rounded-xl bg-gray-950 border border-gray-800 text-[11px] font-mono text-gray-400 flex items-start gap-2">
               <Lock className="w-3.5 h-3.5 text-[#F7931A] shrink-0 mt-0.5" />
               <span>
-                All banking and payout changes trigger cryptographic 2FA verification and require a 24-hour security lock before new dispatches.
+                Banking and payout detail changes are saved directly to your account and take effect immediately.
               </span>
             </div>
 
@@ -361,60 +346,6 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
         </div>
 
       </div>
-
-      {/* 2FA OTP Confirmation Modal */}
-      {showOtpVerification && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white shadow-2xl space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
-              <ShieldCheck className="w-5 h-5 text-[#F7931A]" />
-              <span className="font-bold text-sm uppercase tracking-wider font-mono">
-                Confirm Security 2FA
-              </span>
-            </div>
-
-            <p className="text-xs text-gray-300 font-mono">
-              A 6-digit confirmation token was sent to <strong className="text-white">{user.phone}</strong> and <strong className="text-white">{user.email}</strong>.
-            </p>
-
-            {otpError && (
-              <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{otpError}</span>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs text-gray-400 font-mono mb-1">Enter 2FA Code (Demo: 123456):</label>
-              <input
-                type="text"
-                autoFocus
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value)}
-                placeholder="123456"
-                className="w-full px-4 py-3 rounded-xl bg-gray-950 border border-gray-700 text-white font-mono text-center tracking-widest text-lg focus:outline-hidden focus:border-[#F7931A]"
-              />
-            </div>
-
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={handleVerifyOtpAndSave}
-                className="flex-1 py-3 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono cursor-pointer"
-              >
-                Verify & Save Settlement Address
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowOtpVerification(false)}
-                className="px-4 py-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-xs font-mono text-gray-300 cursor-pointer"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
     </div>
   );

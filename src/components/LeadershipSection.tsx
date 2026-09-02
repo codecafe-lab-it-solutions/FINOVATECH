@@ -92,7 +92,7 @@ export const LeadershipSection: React.FC<LeadershipSectionProps> = ({ onNavigate
                     <User className="w-5 h-5 sm:w-6 sm:h-6" />
                   </div>
                   <span className="text-[9px] sm:text-[10px] font-mono font-bold tracking-widest text-gray-300 uppercase">
-                    FINOVATECH
+                    FINOVATECK
                   </span>
                 </div>
 
@@ -165,10 +165,10 @@ export const LeadershipSection: React.FC<LeadershipSectionProps> = ({ onNavigate
 
               <div className="space-y-3.5 text-base text-gray-600 leading-relaxed">
                 <p>
-                  FINOVATECH Mining Company operates under the institutional stewardship of <strong className="font-bold text-gray-900">Rayees Ahmad Bhat</strong>, Managing Director. The executive agenda focuses on developing secure, enterprise-grade technology infrastructure engineered for thermodynamic resilience and sovereign energy efficiency.
+                  FINOVATECK Mining Company operates under the institutional stewardship of <strong className="font-bold text-gray-900">Rayees Ahmad Bhat</strong>, Managing Director. The executive agenda focuses on developing secure, enterprise-grade technology infrastructure engineered for thermodynamic resilience and sovereign energy efficiency.
                 </p>
                 <p className="text-sm text-gray-500">
-                  Under this leadership, FINOVATECH prioritizes transparent capital stewardship, continuous telemetry verification, and rigorous adherence to institutional lifecycle standards from the Sultanate of Oman.
+                  Under this leadership, FINOVATECK prioritizes transparent capital stewardship, continuous telemetry verification, and rigorous adherence to institutional lifecycle standards from the Sultanate of Oman.
                 </p>
               </div>
             </div>

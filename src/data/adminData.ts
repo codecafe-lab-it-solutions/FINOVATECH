@@ -25,7 +25,7 @@ export const mockAdminUser: AdminUser = {
   id: 'ADM-001',
   name: 'Gaurav K. Sharma',
   username: 'Admin',
-  email: 'gaurav.sharma@finovatech.om',
+  email: 'gaurav.sharma@finovateck.om',
   role: 'Super Admin',
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
   twoFactorEnabled: true,
@@ -617,7 +617,7 @@ export const mockMiningPools: MiningPoolItem[] = [
   {
     id: 'POOL-01',
     poolName: 'Foundry USA Pool',
-    accountName: 'finovatech_mct01.worker_main',
+    accountName: 'finovateck_mct01.worker_main',
     hashratePH: 310.5,
     activeWorkers: 875,
     validSharesPercent: 99.92,
@@ -635,7 +635,7 @@ export const mockMiningPools: MiningPoolItem[] = [
   {
     id: 'POOL-02',
     poolName: 'AntPool Hydro VIP',
-    accountName: 'finovatech_sub02',
+    accountName: 'finovateck_sub02',
     hashratePH: 114.5,
     activeWorkers: 310,
     validSharesPercent: 99.88,
@@ -778,7 +778,7 @@ export const mockInvestorAllocations: InvestorAllocationRecord[] = [
 export const mockCompanyWallets: CompanyWalletItem[] = [
   {
     id: 'CW-01',
-    walletName: 'FINOVATECH Sovereign Cold Vault #1',
+    walletName: 'FINOVATECK Sovereign Cold Vault #1',
     type: 'Cold Vault',
     currency: 'BTC',
     address: 'bc1q9v8u7t6s5r4q3p2o1n0m9l8k7j6h5g4f3d2s1a',
@@ -796,7 +796,7 @@ export const mockCompanyWallets: CompanyWalletItem[] = [
     walletName: 'Investor Automated Hot Payout Pool',
     type: 'Hot Payout',
     currency: 'BTC',
-    address: 'bc1qhot99payout88finovatech77mct01xyz123abc456',
+    address: 'bc1qhot99payout88finovateck77mct01xyz123abc456',
     balance: 8.420,
     balanceUsd: 540985,
     incoming24h: 1.820,
@@ -1040,7 +1040,7 @@ export const mockKycRequests: KycVerificationRequest[] = [
 export const mockAdminDocuments: AdminDocumentItem[] = [
   {
     id: 'DOC-8801',
-    title: 'FINOVATECH Master Hashrate Agreement — Tariq Al-Said',
+    title: 'FINOVATECK Master Hashrate Agreement — Tariq Al-Said',
     category: 'Investment Agreement',
     investorId: 'INV-00124',
     investorName: 'Tariq Al-Said',
@@ -1266,7 +1266,7 @@ export const mockAdminAuditLogs: AdminAuditLogRow[] = [
 ];
 
 export const mockSystemSettings: SystemSettingsConfig = {
-  companyName: 'FINOVATECH Mining Company S.A.O.C',
+  companyName: 'FINOVATECK Mining Company S.A.O.C',
   registrationNumber: 'CR-1398201 / MOCI-OM',
   jurisdiction: 'Muscat, Sultanate of Oman',
   primaryCurrency: 'USD',
@@ -1499,7 +1499,7 @@ export const initialAdminDocuments = [
     title: 'Sovereign Mining Power Agreement (Muscat MCT-01)',
     documentType: 'PPA Grid Agreement',
     investorId: 'FM-CORP-ALL',
-    investorName: 'FINOVATECH Institutional',
+    investorName: 'FINOVATECK Institutional',
     fileSize: '4.2 MB',
     uploadedDate: '15 Jan 2025',
     fileHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
@@ -1691,7 +1691,7 @@ export const initialAdminAuditLogs = [
     targetId: 'LEDGER-2026-08-25',
     details: 'Auto-distributed 0.0685 BTC to 231 active investor wallets.',
     ipAddress: '10.240.0.1',
-    userAgent: 'FINOVATECH-Engine-Worker/2.4'
+    userAgent: 'FINOVATECK-Engine-Worker/2.4'
   }
 ];
 
@@ -1701,7 +1701,7 @@ export const initialAdminUsers = [
     id: 'ADM-002',
     name: 'Layla Al-Balushi',
     username: 'LaylaFinance',
-    email: 'layla.balushi@finovatech.om',
+    email: 'layla.balushi@finovateck.om',
     role: 'Finance Admin' as const,
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=250',
     twoFactorEnabled: true,
@@ -1713,7 +1713,7 @@ export const initialAdminUsers = [
     id: 'ADM-003',
     name: 'Sultan Al-Habsi',
     username: 'SultanOps',
-    email: 'sultan.habsi@finovatech.om',
+    email: 'sultan.habsi@finovateck.om',
     role: 'Mining Operations' as const,
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250',
     twoFactorEnabled: true,

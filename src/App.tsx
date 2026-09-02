@@ -14,7 +14,7 @@ import { OperatingFramework } from './components/OperatingFramework';
 import { OmanMuscatSection } from './components/OmanMuscatSection';
 import { LeadershipSection } from './components/LeadershipSection';
 import { OperationalTimeline } from './components/OperationalTimeline';
-import { WhyFinovatech } from './components/WhyFinovatech';
+import { WhyFinovateck } from './components/WhyFinovateck';
 import { CorporateTransparency } from './components/CorporateTransparency';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
@@ -30,7 +30,7 @@ import { LoginScreen } from './components/LoginScreen';
 import { InvestorPortal } from './components/investor/InvestorPortal';
 import { AdminPortal } from './components/admin/AdminPortal';
 
-const AUTH_TOKEN_KEY = 'finovatech_auth_token';
+const AUTH_TOKEN_KEY = 'finovateck_auth_token';
 
 export default function App() {
   const [currentRoute, setCurrentRoute] = useState<PageRoute>('home');
@@ -88,7 +88,7 @@ export default function App() {
     };
 
     // If there is any stale hash on initial fresh load, normalize to home
-    if (window.location.hash === '#about' && !sessionStorage.getItem('finovatech_navigated')) {
+    if (window.location.hash === '#about' && !sessionStorage.getItem('finovateck_navigated')) {
       window.location.hash = '';
       setCurrentRoute('home');
     } else {
@@ -100,7 +100,7 @@ export default function App() {
   }, [authReady, isInvestorLoggedIn, isAdminLoggedIn]);
 
   const handleNavigate = (route: PageRoute) => {
-    sessionStorage.setItem('finovatech_navigated', 'true');
+    sessionStorage.setItem('finovateck_navigated', 'true');
     if (route === 'portal' && !isInvestorLoggedIn) {
       setCurrentRoute('login');
       window.location.hash = 'login';
@@ -180,8 +180,10 @@ export default function App() {
     return (
       <InvestorPortal
         authUser={authUser}
+        authToken={authToken as string}
         onLogout={handleLogout}
         onNavigateWebsite={() => handleNavigate('home')}
+        onCredentialsUpdated={handleCredentialsUpdated}
       />
     );
   }
@@ -219,7 +221,7 @@ export default function App() {
             <OmanMuscatSection onNavigate={handleNavigate} />
             <LeadershipSection onNavigate={handleNavigate} />
             <OperationalTimeline onNavigate={handleNavigate} />
-            <WhyFinovatech onNavigate={handleNavigate} />
+            <WhyFinovateck onNavigate={handleNavigate} />
             <CorporateTransparency onNavigate={handleNavigate} />
             <ContactSection />
           </>

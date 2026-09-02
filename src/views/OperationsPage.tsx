@@ -2,7 +2,7 @@ import React from 'react';
 import { PageHeader } from '../components/PageHeader';
 import { OperatingFramework } from '../components/OperatingFramework';
 import { OperationalTimeline } from '../components/OperationalTimeline';
-import { WhyFinovatech } from '../components/WhyFinovatech';
+import { WhyFinovateck } from '../components/WhyFinovateck';
 import { PageRoute } from '../types';
 
 interface OperationsPageProps {
@@ -27,7 +27,7 @@ export const OperationsPage: React.FC<OperationsPageProps> = ({ onNavigate }) =>
       />
       <OperatingFramework onNavigate={onNavigate} />
       <OperationalTimeline onNavigate={onNavigate} />
-      <WhyFinovatech onNavigate={onNavigate} />
+      <WhyFinovateck onNavigate={onNavigate} />
     </div>
   );
 };

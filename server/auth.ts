@@ -1,11 +1,12 @@
 import jwt from 'jsonwebtoken';
 import type { UserRole } from './db';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'finovatech-dev-secret-change-me';
+const JWT_SECRET = process.env.JWT_SECRET || 'finovateck-dev-secret-change-me';
 const TOKEN_TTL = '7d';
 
 export interface TokenPayload {
   sub: string;
+  sid: string;
   username: string;
   role: UserRole;
   name: string;

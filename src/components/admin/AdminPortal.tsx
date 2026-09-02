@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AdminTab, AdminUser, AdminRole } from '../../types';
-import { AuthUser } from '../../lib/api';
+import { AuthUser, fetchAdminInvestors, fetchAdminPayouts } from '../../lib/api';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
 
@@ -33,20 +33,13 @@ import { AdminSettingsView } from './AdminSettingsView';
 import {
   initialAdminKpis,
   initialMiningFacilities,
-  initialAdminInvestors,
-  initialInvestmentPlans,
-  initialInvestmentTransactions,
   initialAsicMachines,
   initialMiningPools,
   initialBtcProductionLedger,
   initialInvestorAllocations,
   initialDailyCalculationRuns,
-  initialCompanyWallets,
-  initialAdminPayouts,
   initialAdminFinanceRecords,
   initialInvestorLiabilities,
-  initialKycSubmissions,
-  initialAdminDocuments,
   initialStatementBatches,
   initialSupportTickets,
   initialAdminNotifications,
@@ -93,20 +86,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   // Operational State
   const [kpis, setKpis] = useState(initialAdminKpis);
   const [facilities, setFacilities] = useState(initialMiningFacilities);
-  const [investors, setInvestors] = useState(initialAdminInvestors);
-  const [plans, setPlans] = useState(initialInvestmentPlans);
-  const [transactions, setTransactions] = useState(initialInvestmentTransactions);
   const [machines, setMachines] = useState(initialAsicMachines);
   const [pools, setPools] = useState(initialMiningPools);
   const [ledgerRows, setLedgerRows] = useState(initialBtcProductionLedger);
   const [allocations, setAllocations] = useState(initialInvestorAllocations);
   const [calcRuns, setCalcRuns] = useState(initialDailyCalculationRuns);
-  const [wallets, setWallets] = useState(initialCompanyWallets);
-  const [payouts, setPayouts] = useState(initialAdminPayouts);
   const [financeRecords, setFinanceRecords] = useState(initialAdminFinanceRecords);
   const [liabilities, setLiabilities] = useState(initialInvestorLiabilities);
-  const [kycSubmissions, setKycSubmissions] = useState(initialKycSubmissions);
-  const [documents, setDocuments] = useState(initialAdminDocuments);
   const [statements, setStatements] = useState(initialStatementBatches);
   const [tickets, setTickets] = useState(initialSupportTickets);
   const [notifications, setNotifications] = useState(initialAdminNotifications);
@@ -115,10 +101,20 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [adminUsers, setAdminUsers] = useState(initialAdminUsers);
   const [systemSettings, setSystemSettings] = useState(initialSystemSettings);
 
-  // Badge Counts
-  const pendingPayoutCount = payouts.filter((p) => p.status === 'Pending Approval').length;
-  const pendingKycCount = kycSubmissions.filter((s) => s.status === 'Submitted' || s.status === 'Under Review').length;
+  // Badge Counts — KYC and Payout counts are live from the database;
+  // Support tickets remain demo data (not part of today's real-data scope).
+  const [pendingPayoutCount, setPendingPayoutCount] = useState(0);
+  const [pendingKycCount, setPendingKycCount] = useState(0);
   const openTicketCount = tickets.filter((t) => t.status === 'Open' || t.status === 'In Progress').length;
+
+  useEffect(() => {
+    fetchAdminPayouts(authToken)
+      .then(({ payouts: list }) => setPendingPayoutCount(list.filter((p) => p.status === 'Requested').length))
+      .catch(() => {});
+    fetchAdminInvestors(authToken)
+      .then(({ investors: list }) => setPendingKycCount(list.filter((i) => i.kycStatus !== 'Verified').length))
+      .catch(() => {});
+  }, [authToken]);
 
   const handleChangeRole = (newRole: AdminRole) => {
     setCurrentAdminUser((prev) => ({
@@ -184,38 +180,15 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             )}
 
             {currentTab === 'all-investors' && (
-              <AdminInvestorsView
-                investors={investors}
-                onUpdateInvestor={(updated) => {
-                  setInvestors((prev) => prev.map((i) => i.id === updated.id ? updated : i));
-                }}
-              />
+              <AdminInvestorsView authToken={authToken} />
             )}
 
             {currentTab === 'investment-plans' && (
-              <AdminPlansView
-                plans={plans}
-                onSavePlan={(newOrUpdated) => {
-                  setPlans((prev) => {
-                    const exists = prev.some((p) => p.id === newOrUpdated.id);
-                    if (exists) {
-                      return prev.map((p) => (p.id === newOrUpdated.id ? newOrUpdated : p));
-                    }
-                    return [...prev, newOrUpdated];
-                  });
-                }}
-              />
+              <AdminPlansView authToken={authToken} />
             )}
 
             {currentTab === 'investment-transactions' && (
-              <AdminTransactionsView
-                transactions={transactions}
-                onApproveTransaction={(id) => {
-                  setTransactions((prev) =>
-                    prev.map((t) => (t.id === id ? { ...t, status: 'Active' } : t))
-                  );
-                }}
-              />
+              <AdminTransactionsView authToken={authToken} />
             )}
 
             {(currentTab === 'mining-overview' || currentTab === 'mining-farms') && (
@@ -259,21 +232,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             )}
 
             {currentTab === 'company-wallets' && (
-              <AdminWalletsView
-                wallets={wallets}
-                spotBtcPriceUsd={kpis.spotBtcPriceUsd}
-              />
+              <AdminWalletsView authToken={authToken} spotBtcPriceUsd={kpis.spotBtcPriceUsd} />
             )}
 
             {currentTab === 'payout-queue' && (
-              <AdminPayoutsView
-                payouts={payouts}
-                onApprovePayout={(id) => {
-                  setPayouts((prev) =>
-                    prev.map((p) => (p.id === id ? { ...p, status: 'Broadcasted' } : p))
-                  );
-                }}
-              />
+              <AdminPayoutsView authToken={authToken} />
             )}
 
             {currentTab === 'finance-overview' && (
@@ -285,18 +248,11 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             )}
 
             {currentTab === 'kyc-queue' && (
-              <AdminKycView
-                kycSubmissions={kycSubmissions}
-                onReviewKyc={(id, status) => {
-                  setKycSubmissions((prev) =>
-                    prev.map((s) => (s.id === id ? { ...s, status } : s))
-                  );
-                }}
-              />
+              <AdminKycView authToken={authToken} />
             )}
 
             {currentTab === 'all-documents' && (
-              <AdminDocumentsView documents={documents} />
+              <AdminDocumentsView authToken={authToken} />
             )}
 
             {currentTab === 'monthly-statements' && (
