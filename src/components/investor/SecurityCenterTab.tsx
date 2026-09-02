@@ -28,8 +28,6 @@ export const SecurityCenterTab: React.FC<SecurityCenterTabProps> = ({
   onRevokeSession,
   onCredentialsUpdated
 }) => {
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(true);
-
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -96,31 +94,13 @@ export const SecurityCenterTab: React.FC<SecurityCenterTabProps> = ({
             <div className="flex items-center justify-between border-b border-gray-800 pb-3">
               <div className="flex items-center gap-2">
                 <Smartphone className="w-4 h-4 text-[#F7931A]" />
-                <span className="text-sm font-bold uppercase tracking-wider">Two-Factor Authentication (2FA)</span>
+                <span className="text-sm font-bold uppercase tracking-wider">Login Security</span>
               </div>
-              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                twoFactorEnabled ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-gray-800 text-gray-400'
-              }`}>
-                {twoFactorEnabled ? 'Enabled' : 'Disabled'}
-              </span>
             </div>
             <p className="text-gray-400 font-sans text-xs">
-              Hardware tokens and Authenticator OTP are required for logins, withdrawals, and bank detail alterations.
+              Two-factor authentication isn't available yet. Your account is protected by a hashed password and
+              real, revocable login sessions — manage those on the right.
             </p>
-            <div className="p-3.5 rounded-2xl bg-gray-950 border border-gray-800 flex items-center justify-between">
-              <div>
-                <div className="text-white font-bold">Google Authenticator / SMS 2FA</div>
-                <div className="text-[11px] text-gray-500">Primary phone: {user.phone}</div>
-              </div>
-              <button
-                onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors ${
-                  twoFactorEnabled ? 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/30' : 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
-                }`}
-              >
-                {twoFactorEnabled ? 'Disable 2FA' : 'Enable 2FA'}
-              </button>
-            </div>
           </div>
 
           <div className="p-6 rounded-3xl bg-gray-900/90 border border-gray-800 text-white space-y-4">

@@ -238,7 +238,7 @@ export const FacilityReelsViewer: React.FC = () => {
               Muscat Mining Operations in Motion
             </h3>
             <p className="text-sm sm:text-base text-gray-400 mt-2 max-w-2xl">
-              Swipe or scroll horizontally through real operational footage from FINOVATECH’s containerized computing pods, ASIC clusters, and electrical infrastructure.
+              Swipe or scroll horizontally through real operational footage from FINOVATECK’s containerized computing pods, ASIC clusters, and electrical infrastructure.
             </p>
           </div>
 

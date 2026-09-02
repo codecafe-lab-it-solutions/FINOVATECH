@@ -31,14 +31,14 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate, showExte
 
             <div className="space-y-4 text-base sm:text-lg text-gray-600 leading-relaxed">
               <p>
-                <strong className="font-semibold text-gray-900">FINOVATECH Mining Company</strong> is a Muscat-based digital-assets and Bitcoin-mining enterprise focused on developing and operating high-density technology infrastructure supporting the global digital-asset economy.
+                <strong className="font-semibold text-gray-900">FINOVATECK Mining Company</strong> is a Muscat-based digital-assets and Bitcoin-mining enterprise focused on developing and operating high-density technology infrastructure supporting the global digital-asset economy.
               </p>
               <p>
                 Our approach combines computing infrastructure, operational discipline, and technology-driven execution to build resilient, sovereign digital-asset operations with strict engineering standards and transparent operational horizons.
               </p>
               {showExtended && (
                 <p className="text-gray-600">
-                  Operating under a defined four-year lease term from Muscat, FINOVATECH applies systematic facility management, thermal optimization, and institutional governance to ensure every Megawatt of computing power delivers resilient cryptographic integrity.
+                  Operating under a defined four-year lease term from Muscat, FINOVATECK applies systematic facility management, thermal optimization, and institutional governance to ensure every Megawatt of computing power delivers resilient cryptographic integrity.
                 </p>
               )}
             </div>

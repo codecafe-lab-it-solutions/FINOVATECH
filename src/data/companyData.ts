@@ -1,8 +1,8 @@
 import { BusinessCard, CorporateInfoRow, FrameworkNode, InfrastructurePillar, MiningStep, StatItem, TimelineItem, ValuePillar } from '../types';
 
 export const COMPANY_PROFILE = {
-  name: 'FINOVATECH Mining Company',
-  shortName: 'FINOVATECH',
+  name: 'FINOVATECK Mining Company',
+  shortName: 'FINOVATECK',
   subtitle: 'MINING COMPANY',
   establishedDate: '2 October 2025',
   headquarters: 'Muscat, Sultanate of Oman',
@@ -13,8 +13,8 @@ export const COMPANY_PROFILE = {
   businessModel: 'Digital-asset mining, technology infrastructure, mining-related services and strategic digital-asset operations',
   operatingTerm: 'Four years under current lease arrangement (2025–2029)',
   operatingTermDetail: 'Operations are planned under the current lease arrangement for four years, after which operations are scheduled to close.',
-  seoTitle: 'FINOVATECH Mining Company | Bitcoin Mining & Digital Asset Infrastructure',
-  seoDescription: 'FINOVATECH Mining Company is a Muscat-based digital-asset and Bitcoin-mining company focused on technology infrastructure, mining operations and strategic digital-asset capabilities.'
+  seoTitle: 'FINOVATECK Mining Company | Bitcoin Mining & Digital Asset Infrastructure',
+  seoDescription: 'FINOVATECK Mining Company is a Muscat-based digital-asset and Bitcoin-mining company focused on technology infrastructure, mining operations and strategic digital-asset capabilities.'
 };
 
 export const HERO_STATS: StatItem[] = [
@@ -289,7 +289,7 @@ export const OPERATING_FRAMEWORK: FrameworkNode[] = [
 export const TIMELINE_ITEMS: TimelineItem[] = [
   {
     date: '02 OCT 2025',
-    title: 'FINOVATECH Established',
+    title: 'FINOVATECK Established',
     description: 'Company established in Muscat, Sultanate of Oman with a focus on digital-asset infrastructure.',
     status: 'completed',
     details: 'Incorporation and strategic planning for institutional digital infrastructure in the Sultanate of Oman under Managing Director Rayees Ahmad Bhat.'
@@ -317,7 +317,7 @@ export const TIMELINE_ITEMS: TimelineItem[] = [
   }
 ];
 
-export const WHY_FINOVATECH: ValuePillar[] = [
+export const WHY_FINOVATECK: ValuePillar[] = [
   {
     title: 'Technology First',
     description: 'Infrastructure and computing capabilities at the core of operations.',
@@ -345,7 +345,7 @@ export const WHY_FINOVATECH: ValuePillar[] = [
 ];
 
 export const CORPORATE_TRANSPARENCY_DATA: CorporateInfoRow[] = [
-  { label: 'Company Name', value: 'FINOVATECH Mining Company' },
+  { label: 'Company Name', value: 'FINOVATECK Mining Company' },
   { label: 'Established', value: '2 October 2025' },
   { label: 'Headquarters', value: 'Muscat, Sultanate of Oman' },
   { label: 'Industry', value: 'Digital Assets, Bitcoin Mining & Blockchain Infrastructure' },
@@ -359,19 +359,19 @@ export const CORPORATE_TRANSPARENCY_DATA: CorporateInfoRow[] = [
 
 export const FAQ_ITEMS = [
   {
-    question: 'What is the primary business focus of FINOVATECH?',
-    answer: 'FINOVATECH Mining Company focuses on the physical and technology infrastructure behind digital assets—specifically high-performance Bitcoin mining, industrial computing systems, energy management, and specialized cooling operations from Muscat, Oman.'
+    question: 'What is the primary business focus of FINOVATECK?',
+    answer: 'FINOVATECK Mining Company focuses on the physical and technology infrastructure behind digital assets—specifically high-performance Bitcoin mining, industrial computing systems, energy management, and specialized cooling operations from Muscat, Oman.'
   },
   {
-    question: 'Is FINOVATECH an investment fund, exchange, or retail crypto platform?',
-    answer: 'No. FINOVATECH is strictly an infrastructure and technology company. We do not provide crypto trading services, retail investment accounts, or financial yield products.'
+    question: 'Is FINOVATECK an investment fund, exchange, or retail crypto platform?',
+    answer: 'No. FINOVATECK is strictly an infrastructure and technology company. We do not provide crypto trading services, retail investment accounts, or financial yield products.'
   },
   {
-    question: 'What is the planned operating timeframe for FINOVATECH?',
-    answer: 'FINOVATECH operates under a structured four-year lease arrangement established on 2 October 2025, after which operations are scheduled to conclude in accordance with corporate planning.'
+    question: 'What is the planned operating timeframe for FINOVATECK?',
+    answer: 'FINOVATECK operates under a structured four-year lease arrangement established on 2 October 2025, after which operations are scheduled to conclude in accordance with corporate planning.'
   },
   {
-    question: 'Why is FINOVATECH headquartered in Muscat, Sultanate of Oman?',
+    question: 'Why is FINOVATECK headquartered in Muscat, Sultanate of Oman?',
     answer: 'Muscat provides strategic geographic positioning bridging Middle Eastern technology initiatives with global digital asset networks, supported by modern commercial infrastructure and stable utility partnerships.'
   }
 ];

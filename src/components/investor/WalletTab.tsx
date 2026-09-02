@@ -338,7 +338,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 mb-1">Destination Bitcoin Address (Whitelisted):</label>
+                  <label className="block text-gray-400 mb-1">Destination Bitcoin Address:</label>
                   <input
                     type="text"
                     required
@@ -356,7 +356,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                   type="submit"
                   className="w-full py-3 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs cursor-pointer"
                 >
-                  Proceed to 2FA Authentication →
+                  Review & Confirm →
                 </button>
               </form>
             )}

@@ -164,13 +164,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         <div className="p-4 border-b border-gray-800/80 bg-[#070B14]/80 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
-              src="/finovatech_favicon.svg"
-              alt="FINOVATECH"
+              src="/finovateck_favicon.svg"
+              alt="FINOVATECK"
               className="w-9 h-9 rounded-xl shadow-md shrink-0"
             />
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-sm text-white tracking-tight">FINOVATECH</span>
+                <span className="font-extrabold text-sm text-white tracking-tight">FINOVATECK</span>
                 <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 font-bold border border-red-500/30">
                   ADMIN
                 </span>

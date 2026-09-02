@@ -46,7 +46,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               <span>EXECUTIVE CONTROL CENTER • SULTANATE OF OMAN</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Finovatech Mining Operations & Finance
+              Finovateck Mining Operations & Finance
             </h2>
             <p className="text-sm text-gray-400 mt-1 max-w-2xl">
               {kpis.totalMiners > 0

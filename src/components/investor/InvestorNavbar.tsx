@@ -62,14 +62,14 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
 
             <div className="flex items-center gap-2.5">
               <img
-                src="/finovatech_favicon.svg"
-                alt="FINOVATECH"
+                src="/finovateck_favicon.svg"
+                alt="FINOVATECK"
                 className="w-8 h-8 rounded-xl shadow-md shrink-0"
               />
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-extrabold tracking-tight text-white">
-                    FINOVATECH
+                    FINOVATECK
                   </span>
                   <span className="px-1.5 py-0.5 rounded bg-[#F7931A]/20 text-[#F7931A] text-[9px] font-mono font-bold uppercase tracking-wider">
                     INVESTOR PORTAL

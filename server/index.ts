@@ -917,13 +917,13 @@ async function start() {
     await initSchema();
     await seedIfEmpty();
   } catch (err) {
-    console.error('[finovatech-api] Could not connect to MySQL. Is the MySQL server running, and did you run server/scripts/setup-mysql.sql against it?');
+    console.error('[finovateck-api] Could not connect to MySQL. Is the MySQL server running, and did you run server/scripts/setup-mysql.sql against it?');
     console.error(err);
     process.exit(1);
   }
 
   app.listen(PORT, () => {
-    console.log(`[finovatech-api] listening on http://localhost:${PORT}${isProduction ? ' (serving built frontend + API)' : ''}`);
+    console.log(`[finovateck-api] listening on http://localhost:${PORT}${isProduction ? ' (serving built frontend + API)' : ''}`);
   });
 }
 

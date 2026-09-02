@@ -270,7 +270,7 @@ export const AdminRolesView: React.FC<AdminRolesViewProps> = ({
                   required
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder="salim@finovatechmining.om"
+                  placeholder="salim@finovateckmining.om"
                   className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white font-mono"
                 />
               </div>

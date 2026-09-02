@@ -174,7 +174,7 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
           <div className="p-4 rounded-xl bg-gray-950/70 border border-gray-800 space-y-1.5">
             <div className="text-[#F7931A] font-bold">Article 4.1 — Hashrate Guarantee & Redundancy</div>
             <p className="text-gray-300 leading-relaxed font-sans text-xs">
-              FINOVATECH guarantees a minimum fleet availability of 98.0% across the 4-year term. Hot-swap replacement units in Muscat inventory are deployed within 2 hours if any individual ASIC board falls below nominal tolerance.
+              FINOVATECK guarantees a minimum fleet availability of 98.0% across the 4-year term. Hot-swap replacement units in Muscat inventory are deployed within 2 hours if any individual ASIC board falls below nominal tolerance.
             </p>
           </div>
 
@@ -231,7 +231,7 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
             <div className="p-6 overflow-y-auto space-y-6 text-xs text-gray-300 font-mono leading-relaxed bg-gray-900/90">
               <div className="p-4 rounded-2xl bg-gray-950 border border-gray-800 flex items-center justify-between">
                 <div>
-                  <div className="text-white font-bold">PARTY A (Operator): FINOVATECH Mining Company S.A.O.C</div>
+                  <div className="text-white font-bold">PARTY A (Operator): FINOVATECK Mining Company S.A.O.C</div>
                   <div className="text-gray-400">Registered Office: Muscat, Sultanate of Oman (CR-1049281)</div>
                 </div>
                 <div className="text-right">

@@ -3,7 +3,6 @@ import {
   Lock,
   User,
   ArrowRight,
-  ShieldCheck,
   Eye,
   EyeOff,
   AlertCircle,
@@ -66,7 +65,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
   return (
-    <div id="finovatech-login-screen" className="min-h-screen bg-[#070B14] text-white flex flex-col justify-between pt-8 pb-10 px-4 sm:px-6 relative overflow-hidden font-sans">
+    <div id="finovateck-login-screen" className="min-h-screen bg-[#070B14] text-white flex flex-col justify-between pt-8 pb-10 px-4 sm:px-6 relative overflow-hidden font-sans">
 
       {/* Background ambient lighting */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#F7931A]/10 rounded-full blur-3xl pointer-events-none" />
@@ -79,13 +78,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           className="flex items-center gap-3 group cursor-pointer focus:outline-hidden"
         >
           <img
-            src="/finovatech_favicon.svg"
-            alt="FINOVATECH"
+            src="/finovateck_favicon.svg"
+            alt="FINOVATECK"
             className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl shadow-md shrink-0"
           />
           <div className="text-left">
             <span className="text-sm sm:text-base font-extrabold tracking-tight text-white group-hover:text-[#F7931A] transition-colors block font-mono">
-              FINOVATECH
+              FINOVATECK
             </span>
             <span className="text-[9px] sm:text-[10px] font-mono text-gray-400 uppercase tracking-wider block">
               MINING COMPANY • SULTANATE OF OMAN
@@ -108,9 +107,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-900 border border-gray-800 shadow-md text-[11px] font-mono text-gray-300">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>SECURE CRYPTOGRAPHIC GATEWAY</span>
-            <span className="text-gray-600">|</span>
-            <span className="text-[#F7931A]">MCT-01 256-BIT SSL</span>
+            <span>SECURE LOGIN</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-3">
             {mode === 'register' ? 'Create Account' : 'Login'}
@@ -246,7 +243,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               </div>
             )}
 
-            {/* Remember Me & 2FA Note */}
+            {/* Remember Me */}
             <div className="flex items-center justify-between text-xs pt-1">
               <label className="flex items-center gap-2 cursor-pointer text-gray-400 hover:text-gray-200">
                 <input
@@ -257,9 +254,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 />
                 <span>Remember session</span>
               </label>
-              <span className="text-[11px] text-emerald-400 font-mono flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5" /> Hardware 2FA Ready
-              </span>
             </div>
 
             {/* Submit Button */}
@@ -316,7 +310,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           <div className="mt-6 pt-5 border-t border-gray-800/80 text-center">
             <div className="text-[11px] text-gray-500 flex items-center justify-center gap-1.5 font-mono">
               <Building2 className="w-3.5 h-3.5 text-gray-400" />
-              <span>FINOVATECH Mining Company S.A.O.C • Muscat</span>
+              <span>FINOVATECK Mining Company S.A.O.C • Muscat</span>
             </div>
           </div>
 
@@ -326,7 +320,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
       {/* Footer Info */}
       <div className="w-full max-w-5xl mx-auto text-center text-xs text-gray-500 font-mono z-10">
-        Protected by hardware enclave isolation & SHA-256 telemetry verification.
+        Passwords are hashed and sessions are secured with signed tokens.
       </div>
 
     </div>

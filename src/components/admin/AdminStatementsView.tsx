@@ -164,7 +164,7 @@ export const AdminStatementsView: React.FC<AdminStatementsViewProps> = ({ statem
           <div className="w-full max-w-xl bg-white text-gray-900 rounded-3xl shadow-2xl p-8 space-y-6">
             <div className="flex items-start justify-between border-b border-gray-200 pb-4">
               <div>
-                <div className="text-xl font-black text-[#F7931A] font-mono">FINOVATECH MINING</div>
+                <div className="text-xl font-black text-[#F7931A] font-mono">FINOVATECK MINING</div>
                 <div className="text-xs text-gray-500 font-mono">Sultanate of Oman • Institutional Tier</div>
               </div>
               <div className="text-right">

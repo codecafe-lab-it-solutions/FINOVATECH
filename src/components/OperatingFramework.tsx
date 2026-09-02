@@ -26,7 +26,7 @@ export const OperatingFramework: React.FC<OperatingFrameworkProps> = ({ onNaviga
             Our Operating Framework
           </h2>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-            Bitcoin mining is an integrated system of physical architecture, thermodynamic balance, electrical engineering, and disciplined governance—orchestrated centrally by FINOVATECH.
+            Bitcoin mining is an integrated system of physical architecture, thermodynamic balance, electrical engineering, and disciplined governance—orchestrated centrally by FINOVATECK.
           </p>
         </div>
 
@@ -88,7 +88,7 @@ export const OperatingFramework: React.FC<OperatingFrameworkProps> = ({ onNaviga
                   <div className={`mt-6 pt-4 border-t flex items-center justify-between text-[11px] font-mono ${
                     isHovered ? 'border-gray-800 text-gray-400' : 'border-gray-200 text-gray-400'
                   }`}>
-                    <span>FINOVATECH ORCHESTRATION</span>
+                    <span>FINOVATECK ORCHESTRATION</span>
                     <span className="text-[#F7931A]">✓ ACTIVE</span>
                   </div>
                 </div>
@@ -104,7 +104,7 @@ export const OperatingFramework: React.FC<OperatingFrameworkProps> = ({ onNaviga
               </div>
               <div>
                 <div className="text-sm font-bold text-white tracking-wide">
-                  CENTRALIZED FINOVATECH INTEGRATION
+                  CENTRALIZED FINOVATECK INTEGRATION
                 </div>
                 <div className="text-xs text-gray-400 mt-0.5">
                   Synchronizing high-density computing, power distribution, and thermal equilibrium as a unified operational discipline.

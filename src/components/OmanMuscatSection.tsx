@@ -23,7 +23,7 @@ export const OmanMuscatSection: React.FC<OmanMuscatSectionProps> = ({ onNavigate
             Operating from Muscat. Connected to a Global Digital Economy.
           </h2>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-            Headquartered in Muscat, Sultanate of Oman, FINOVATECH operates from a strategically positioned market connecting the Middle East with global technology and digital-asset ecosystems.
+            Headquartered in Muscat, Sultanate of Oman, FINOVATECK operates from a strategically positioned market connecting the Middle East with global technology and digital-asset ecosystems.
           </p>
         </div>
 
@@ -144,7 +144,7 @@ export const OmanMuscatSection: React.FC<OmanMuscatSectionProps> = ({ onNavigate
                     MUSCAT, OMAN
                   </text>
                   <text x="270" y="220" fill="#F7931A" fontSize="9" fontFamily="monospace" textAnchor="middle">
-                    FINOVATECH HQ
+                    FINOVATECK HQ
                   </text>
                 </svg>
 

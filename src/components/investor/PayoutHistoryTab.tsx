@@ -45,7 +45,7 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts }) =
             Disbursed Payouts & Settlement History
           </h2>
           <p className="text-xs text-gray-400 font-mono mt-0.5">
-            Cryptographically signed on-chain distributions to investor whitelisted addresses
+            Real payout records reviewed and approved by an administrator
           </p>
         </div>
 

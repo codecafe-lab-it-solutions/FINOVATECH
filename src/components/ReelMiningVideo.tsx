@@ -15,7 +15,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { MiningPodReelCanvas } from './MiningPodReelCanvas';
-import finovatechMiningVideo from '../assets/finoatech_mining.mp4';
+import finovateckMiningVideo from '../assets/finoatech_mining.mp4';
 
 interface ReelMiningVideoProps {
   className?: string;
@@ -24,9 +24,9 @@ interface ReelMiningVideoProps {
 const REEL_VIDEOS = [
   {
     id: 'asic-racks',
-    title: 'FINOVATECH MCT-01 Mining Array',
+    title: 'FINOVATECK MCT-01 Mining Array',
     subtitle: 'ASIC Silicon Cluster • 112 TH/s',
-    videoUrl: finovatechMiningVideo || '/finoatech_mining.mp4',
+    videoUrl: finovateckMiningVideo || '/finoatech_mining.mp4',
     location: 'Muscat Site 01',
     hashrate: '112.4 TH/s',
     power: '3.24 kW/unit',
@@ -313,7 +313,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
           </p>
 
           <div className="text-[10px] font-mono text-[#F7931A] flex items-center gap-2 pt-0.5">
-            <span>#FINOVATECH</span>
+            <span>#FINOVATECK</span>
             <span>#BitcoinMining</span>
             <span>#OmanInfrastructure</span>
           </div>

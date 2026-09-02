@@ -99,7 +99,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 
           <div>
             <div className="flex items-center gap-2 text-[11px] font-mono text-gray-400">
-              <span>FINOVATECH CONTROL</span>
+              <span>FINOVATECK CONTROL</span>
               <span>/</span>
               <span className="text-[#F7931A] font-semibold uppercase">{currentTab.replace('-', ' ')}</span>
             </div>

@@ -3,9 +3,9 @@ import mysql from 'mysql2/promise';
 export const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 3306,
-  user: process.env.DB_USER || 'finovatech_app',
+  user: process.env.DB_USER || 'finovateck_app',
   password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'finovatech',
+  database: process.env.DB_NAME || 'finovateck',
   waitForConnections: true,
   connectionLimit: 10,
   // Return DATETIME columns as plain strings instead of JS Date objects.

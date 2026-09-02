@@ -24,7 +24,7 @@ export const OperationalTimeline: React.FC<OperationalTimelineProps> = ({ onNavi
             Operational Timeline & Lifecycle
           </h2>
           <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-            FINOVATECH executes with transparent roadmaps and defined operational horizons, adhering to scheduled lease commitments and high-standard infrastructure lifecycle management.
+            FINOVATECK executes with transparent roadmaps and defined operational horizons, adhering to scheduled lease commitments and high-standard infrastructure lifecycle management.
           </p>
         </div>
 

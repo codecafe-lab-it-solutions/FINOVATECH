@@ -4,7 +4,7 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { PageRoute } from '../types';
-import finovatechMiningVideo from '../assets/finoatech_mining.mp4';
+import finovateckMiningVideo from '../assets/finoatech_mining.mp4';
 
 interface HeroProps {
   onNavigate: (route: PageRoute) => void;
@@ -39,10 +39,10 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
       {/* 1. BACKGROUND REAL MINING VIDEO LAYER */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         
-        {/* FINOVATECH Authentic Mining Video Background */}
+        {/* FINOVATECK Authentic Mining Video Background */}
         <video
           ref={videoRef}
-          src={finovatechMiningVideo || '/finoatech_mining.mp4'}
+          src={finovateckMiningVideo || '/finoatech_mining.mp4'}
           autoPlay
           muted
           loop
@@ -95,7 +95,7 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
 
         {/* Supporting Narrative */}
         <p className="text-xs sm:text-base lg:text-lg text-gray-300 leading-relaxed max-w-2xl mx-auto font-normal drop-shadow-md mb-6 sm:mb-8">
-          FINOVATECH Mining Company operates high-density, containerized computing infrastructure engineered for thermal stability and sovereign energy efficiency from Muscat, Sultanate of Oman.
+          FINOVATECK Mining Company operates high-density, containerized computing infrastructure engineered for thermal stability and sovereign energy efficiency from Muscat, Sultanate of Oman.
         </p>
 
         {/* CTA Action Buttons */}
@@ -114,7 +114,7 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
             onClick={() => onNavigate('contact')}
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-gray-900/90 hover:bg-gray-800 border border-gray-700/90 hover:border-gray-500 text-white text-sm sm:text-base font-semibold tracking-wide transition-all shadow-lg backdrop-blur-md cursor-pointer min-h-[48px]"
           >
-            <span>Contact FINOVATECH</span>
+            <span>Contact FINOVATECK</span>
             <ArrowUpRight className="w-4 h-4 text-gray-400" />
           </button>
         </div>
