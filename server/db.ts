@@ -112,6 +112,13 @@ export async function seedIfEmpty(): Promise<void> {
   });
 }
 
+export async function deleteInvestor(userId: string): Promise<void> {
+  // Scoped to investor accounts only — cascades to their profile, transactions,
+  // payouts, notifications, sessions, and tickets via the FK ON DELETE CASCADE
+  // constraints (documents/machines are unassigned via ON DELETE SET NULL).
+  await pool.query("DELETE FROM users WHERE id = ? AND role = 'investor'", [userId]);
+}
+
 export async function findUserByUsername(username: string): Promise<StoredUser | undefined> {
   const [rows] = await pool.query<UserRow[]>('SELECT * FROM users WHERE username = ?', [username.trim()]);
   return rows[0] ? toStoredUser(rows[0]) : undefined;

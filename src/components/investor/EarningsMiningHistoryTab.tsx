@@ -66,7 +66,7 @@ export const EarningsMiningHistoryTab: React.FC<EarningsMiningHistoryTabProps> =
               <tr className="bg-gray-950/60 text-gray-400 font-mono text-[11px] uppercase tracking-wider border-b border-gray-800">
                 <th className="py-3.5 px-4">Date</th>
                 <th className="py-3.5 px-3 text-right">BTC Mined</th>
-                <th className="py-3.5 px-3 text-right">USD Value</th>
+                <th className="py-3.5 px-3 text-right">USDT Value</th>
                 <th className="py-3.5 px-3">Status</th>
               </tr>
             </thead>

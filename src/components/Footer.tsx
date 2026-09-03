@@ -34,7 +34,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <div className="flex items-center gap-3">
               <img
                 src="/finovateck_favicon.svg"
-                alt="Finovateck Mining Company"
+                alt="FINOVATECK Mining Company"
                 className="w-9 h-9 rounded-xl shadow-xs shrink-0"
               />
               <div>

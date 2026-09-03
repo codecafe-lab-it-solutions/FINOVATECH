@@ -1,9 +1,6 @@
 import { ApiInvestorProfile, ApiPayout, ApiWalletTransaction } from './api';
 import { InvestorOverviewMetrics, InvestorUser, PayoutRecord, WalletTransaction } from '../types';
 
-const CURRENT_BTC_PRICE_USD = 64280;
-const NETWORK_DIFFICULTY = '84.42 T';
-
 export function profileToUser(p: ApiInvestorProfile): InvestorUser {
   return {
     id: p.userId,
@@ -29,7 +26,7 @@ export function profileToUser(p: ApiInvestorProfile): InvestorUser {
   };
 }
 
-export function profileToMetrics(p: ApiInvestorProfile): InvestorOverviewMetrics {
+export function profileToMetrics(p: ApiInvestorProfile, btcPriceUsd: number, networkDifficultyT: number): InvestorOverviewMetrics {
   const totalPayoutsBtc = 0; // computed from transactions by the caller when needed
   return {
     totalInvestmentUsd: p.totalInvestmentUsd,
@@ -47,10 +44,10 @@ export function profileToMetrics(p: ApiInvestorProfile): InvestorOverviewMetrics
     nextExpectedPayoutDate: p.totalBtcAllocated > 0 ? 'Next scheduled cycle' : 'N/A',
     investmentStartDate: p.startDate || 'N/A',
     contractEndDate: p.maturityDate || 'N/A',
-    currentBtcPriceUsd: CURRENT_BTC_PRICE_USD,
-    networkDifficulty: NETWORK_DIFFICULTY,
-    miningRevenuePerDayUsd: 0,
-    miningRevenuePerDayBtc: 0,
+    currentBtcPriceUsd: btcPriceUsd,
+    networkDifficulty: networkDifficultyT > 0 ? `${networkDifficultyT} T` : 'N/A',
+    miningRevenuePerDayUsd: 0, // filled in from today's Mining Credit transactions by the caller
+    miningRevenuePerDayBtc: 0, // filled in from today's Mining Credit transactions by the caller
     yourMiningSharePercent: p.miningSharePercent
   };
 }
@@ -86,13 +83,13 @@ function mapPayoutStatus(status: ApiPayout['status']): PayoutRecord['status'] {
   }
 }
 
-export function payoutToRecord(p: ApiPayout): PayoutRecord {
+export function payoutToRecord(p: ApiPayout, btcPriceUsd: number): PayoutRecord {
   return {
     id: p.id,
     payoutId: p.id.slice(0, 8).toUpperCase(),
     date: p.requestedAt,
     amountBtc: p.amountBtc,
-    amountUsd: p.amountBtc * CURRENT_BTC_PRICE_USD,
+    amountUsd: p.amountBtc * btcPriceUsd,
     currency: 'BTC',
     destinationWallet: p.destinationWallet,
     txid: '',

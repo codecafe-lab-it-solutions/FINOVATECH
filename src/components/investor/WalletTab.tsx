@@ -129,7 +129,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             {availableBtc} BTC
           </div>
           <div className="text-[11px] text-gray-400 font-mono mt-0.5">
-            ≈ ${(availableBtc * btcPriceUsd).toLocaleString(undefined, { maximumFractionDigits: 2 })} USD
+            ≈ ${(availableBtc * btcPriceUsd).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDT
           </div>
         </div>
 
@@ -143,7 +143,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             {pendingBtc} BTC
           </div>
           <div className="text-[11px] text-gray-400 font-mono mt-0.5">
-            ≈ ${(pendingBtc * btcPriceUsd).toFixed(2)} USD
+            ≈ ${(pendingBtc * btcPriceUsd).toFixed(2)} USDT
           </div>
         </div>
 
@@ -157,7 +157,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             {totalEarnedBtc} BTC
           </div>
           <div className="text-[11px] text-gray-400 font-mono mt-0.5">
-            ≈ ${(totalEarnedBtc * btcPriceUsd).toFixed(2)} USD
+            ≈ ${(totalEarnedBtc * btcPriceUsd).toFixed(2)} USDT
           </div>
         </div>
 
@@ -171,7 +171,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             {totalWithdrawnBtc} BTC
           </div>
           <div className="text-[11px] text-gray-400 font-mono mt-0.5">
-            ≈ ${(totalWithdrawnBtc * btcPriceUsd).toFixed(2)} USD
+            ≈ ${(totalWithdrawnBtc * btcPriceUsd).toFixed(2)} USDT
           </div>
         </div>
 
@@ -185,7 +185,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             ${btcPriceUsd.toLocaleString()}
           </div>
           <div className="text-[11px] text-gray-400 font-mono mt-0.5">
-            Spot Price (USD/USDT)
+            Spot Price (USDT)
           </div>
         </div>
 
@@ -212,7 +212,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                 <th className="pb-3 px-3">Date / Time (UTC)</th>
                 <th className="pb-3 px-3">Type</th>
                 <th className="pb-3 px-3">Amount (BTC)</th>
-                <th className="pb-3 px-3">Amount (USD)</th>
+                <th className="pb-3 px-3">Amount (USDT)</th>
                 <th className="pb-3 px-3">Status</th>
                 <th className="pb-3 px-3 text-right">Blockchain TXID</th>
               </tr>
@@ -333,12 +333,12 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                     className="w-full px-3 py-2.5 rounded-xl bg-gray-950 border border-gray-700 text-white focus:outline-hidden focus:border-[#F7931A]"
                   />
                   <div className="text-[11px] text-gray-400 mt-1">
-                    ≈ ${(parseFloat(withdrawAmount || '0') * btcPriceUsd).toFixed(2)} USD
+                    ≈ ${(parseFloat(withdrawAmount || '0') * btcPriceUsd).toFixed(2)} USDT
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 mb-1">Destination Bitcoin Address:</label>
+                  <label className="block text-gray-400 mb-1">Destination USDT Address:</label>
                   <input
                     type="text"
                     required

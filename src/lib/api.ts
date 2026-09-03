@@ -20,6 +20,18 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return data as T;
 }
 
+export interface BtcMarketData {
+  usd: number;
+  change24hPercent: number;
+  difficultyT: number;
+  updatedAt: string;
+}
+
+export async function fetchBtcMarketData(): Promise<BtcMarketData> {
+  const res = await fetch('/api/market/btc-price');
+  return handleResponse<BtcMarketData>(res);
+}
+
 export async function loginRequest(username: string, password: string): Promise<AuthResponse> {
   const res = await fetch('/api/auth/login', {
     method: 'POST',
@@ -193,6 +205,14 @@ export async function updateAdminInvestorProfile(
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
     body: JSON.stringify(updates)
+  });
+  return handleResponse(res);
+}
+
+export async function deleteAdminInvestor(token: string, investorUserId: string): Promise<{ ok: true }> {
+  const res = await fetch(`/api/admin/investors/${investorUserId}`, {
+    method: 'DELETE',
+    headers: authHeaders(token)
   });
   return handleResponse(res);
 }

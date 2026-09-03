@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AdminTab, AdminUser, AdminRole } from '../../types';
-import { AuthUser, fetchAdminInvestors, fetchAdminPayouts } from '../../lib/api';
+import { AuthUser, fetchAdminInvestors, fetchAdminPayouts, fetchAdminMachines, fetchAdminAllTransactions, fetchBtcMarketData } from '../../lib/api';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
 
@@ -85,7 +85,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
   // Operational State
   const [kpis, setKpis] = useState(initialAdminKpis);
-  const [facilities, setFacilities] = useState(initialMiningFacilities);
+  // No real mining-facility telemetry exists yet, so this stays empty rather
+  // than showing the fabricated Muscat/Salalah demo sites.
+  const [facilities, setFacilities] = useState<typeof initialMiningFacilities>([]);
   const [machines, setMachines] = useState(initialAsicMachines);
   const [pools, setPools] = useState(initialMiningPools);
   const [ledgerRows, setLedgerRows] = useState(initialBtcProductionLedger);
@@ -107,12 +109,53 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [pendingKycCount, setPendingKycCount] = useState(0);
   const openTicketCount = tickets.filter((t) => t.status === 'Open' || t.status === 'In Progress').length;
 
+  // Dashboard KPIs derived from real investor/payout/machine/transaction data.
+  // Monthly OPEX (and therefore Net Monthly Revenue) has no real cost-tracking
+  // source anywhere in the app yet, so those two stay at the honest zeroed
+  // defaults from initialAdminKpis rather than being fabricated.
   useEffect(() => {
-    fetchAdminPayouts(authToken)
-      .then(({ payouts: list }) => setPendingPayoutCount(list.filter((p) => p.status === 'Requested').length))
-      .catch(() => {});
-    fetchAdminInvestors(authToken)
-      .then(({ investors: list }) => setPendingKycCount(list.filter((i) => i.kycStatus !== 'Verified').length))
+    Promise.all([
+      fetchAdminInvestors(authToken),
+      fetchAdminPayouts(authToken),
+      fetchAdminMachines(authToken),
+      fetchAdminAllTransactions(authToken),
+      fetchBtcMarketData().catch(() => null)
+    ])
+      .then(([{ investors: investorList }, { payouts: payoutList }, { machines: machineList }, { transactions: txList }, market]) => {
+        setPendingKycCount(investorList.filter((i) => i.kycStatus !== 'Verified').length);
+        setPendingPayoutCount(payoutList.filter((p) => p.status === 'Requested').length);
+
+        const currentYearMonth = new Date().toISOString().slice(0, 7);
+        const monthlyRevenueUsd = txList
+          .filter((t) => t.type === 'Mining Credit' && t.createdAt.startsWith(currentYearMonth))
+          .reduce((sum, t) => sum + t.amountUsd, 0);
+
+        setKpis((prev) => ({
+          ...prev,
+          totalInvestors: investorList.length,
+          activeInvestors: investorList.filter((i) => i.accountStatus === 'Active').length,
+          totalInvestmentUsd: investorList.reduce((sum, i) => sum + i.totalInvestmentUsd, 0),
+          totalBtcAllocated: investorList.reduce((sum, i) => sum + i.totalBtcAllocated, 0),
+          totalBtcMined: investorList.reduce((sum, i) => sum + i.btcMined, 0),
+          totalBtcPaidOut: payoutList
+            .filter((p) => p.status === 'Completed')
+            .reduce((sum, p) => sum + p.amountBtc, 0),
+          pendingPayoutBtc: payoutList
+            .filter((p) => p.status === 'Requested')
+            .reduce((sum, p) => sum + p.amountBtc, 0),
+          totalMiners: machineList.length,
+          minersOnline: machineList.filter((m) => m.status === 'Online').length,
+          miningHashratePH: machineList.reduce((sum, m) => sum + m.hashrateTh, 0) / 1000,
+          miningUptimePercent: machineList.length
+            ? Math.round(machineList.reduce((sum, m) => sum + m.uptimePercent, 0) / machineList.length)
+            : 0,
+          monthlyRevenueUsd,
+          // monthlyCostUsd has no real tracking source yet, so it stays 0 —
+          // net profit is therefore just revenue until OPEX tracking exists.
+          netProfitUsd: monthlyRevenueUsd - prev.monthlyCostUsd,
+          spotBtcPriceUsd: market?.usd ?? prev.spotBtcPriceUsd
+        }));
+      })
       .catch(() => {});
   }, [authToken]);
 
@@ -175,6 +218,8 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               <AdminDashboardView
                 kpis={kpis}
                 facilities={facilities}
+                pendingPayoutCount={pendingPayoutCount}
+                pendingKycCount={pendingKycCount}
                 onNavigateTab={(tab) => setCurrentTab(tab)}
               />
             )}

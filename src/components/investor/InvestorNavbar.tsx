@@ -15,7 +15,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { InvestorUser, InvestorTab } from '../../types';
-import { ApiNotification } from '../../lib/api';
+import { ApiNotification, BtcMarketData } from '../../lib/api';
 
 interface InvestorNavbarProps {
   user: InvestorUser;
@@ -27,6 +27,7 @@ interface InvestorNavbarProps {
   onNavigateWebsite: () => void;
   onToggleMobileSidebar: () => void;
   isMobileSidebarOpen: boolean;
+  btcMarket: BtcMarketData | null;
 }
 
 export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
@@ -38,7 +39,8 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
   onLogout,
   onNavigateWebsite,
   onToggleMobileSidebar,
-  isMobileSidebarOpen
+  isMobileSidebarOpen,
+  btcMarket
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -82,18 +84,27 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
             </div>
           </div>
 
-          {/* Center: Live Bitcoin Telemetry Badge */}
+          {/* Center: Live Bitcoin Price Badge */}
           <div className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-gray-900/90 border border-gray-800 text-xs font-mono">
             <div className="flex items-center gap-1.5 text-amber-400 font-bold">
               <span className="w-2 h-2 rounded-full bg-[#F7931A] animate-pulse" />
-              <span>BTC/USD: $64,280</span>
+              <span>BTC/USDT: {btcMarket ? `$${btcMarket.usd.toLocaleString()}` : 'Loading...'}</span>
             </div>
-            <span className="text-gray-600">|</span>
-            <span className="text-emerald-400 flex items-center gap-0.5">
-              <TrendingUp className="w-3 h-3" /> +3.42% (24h)
-            </span>
-            <span className="text-gray-600">|</span>
-            <span className="text-gray-400">Diff: 84.42 T</span>
+            {btcMarket && (
+              <>
+                <span className="text-gray-600">|</span>
+                <span className={`flex items-center gap-0.5 ${btcMarket.change24hPercent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <TrendingUp className={`w-3 h-3 ${btcMarket.change24hPercent < 0 ? 'rotate-180' : ''}`} />
+                  {btcMarket.change24hPercent >= 0 ? '+' : ''}{btcMarket.change24hPercent}% (24h)
+                </span>
+                {btcMarket.difficultyT > 0 && (
+                  <>
+                    <span className="text-gray-600">|</span>
+                    <span className="text-gray-400">Diff: {btcMarket.difficultyT} T</span>
+                  </>
+                )}
+              </>
+            )}
           </div>
 
           {/* Right: Actions & User Dropdown */}
