@@ -38,28 +38,33 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800/90 border border-gray-700 text-xs font-mono">
-              {metrics.totalBtcAllocated > 0 ? (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-gray-300">ALLOCATION ACTIVE:</span>
-                  <span className="text-[#F7931A] font-bold">{metrics.totalBtcAllocated} BTC DEDICATED</span>
-                </>
-              ) : (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-gray-500" />
-                  <span className="text-gray-400">NO ACTIVE ALLOCATION YET</span>
-                </>
-              )}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800/90 border border-gray-700 text-xs font-mono">
+                {metrics.totalBtcAllocated > 0 ? (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-gray-300">ALLOCATION ACTIVE:</span>
+                    <span className="text-[#F7931A] font-bold">{metrics.totalBtcAllocated} BTC DEDICATED</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="w-2 h-2 rounded-full bg-gray-500" />
+                    <span className="text-gray-400">NO ACTIVE ALLOCATION YET</span>
+                  </>
+                )}
+              </div>
+              <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-xs font-mono ${
+                user.accountStatus === 'Active'
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+              }`}>
+                <span className={`w-2 h-2 rounded-full ${user.accountStatus === 'Active' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                <span className="font-bold">ACCOUNT: {user.accountStatus?.toUpperCase()}</span>
+              </div>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               Welcome back, {user.name}
             </h1>
-            <p className="text-xs sm:text-sm text-gray-400 font-mono">
-              {metrics.totalBtcAllocated > 0
-                ? `Contract #${user.agreementNumber} • Active Term: ${user.startDate} – ${user.maturityDate}`
-                : 'No active investment contract yet — an allocation will appear here once your account is funded.'}
-            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
@@ -122,7 +127,7 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
             {metrics.totalBtcAllocated} BTC
           </div>
           <div className="text-[11px] text-gray-400 font-mono mt-1">
-            ≈ ${(metrics.totalBtcAllocated * metrics.currentBtcPriceUsd).toLocaleString(undefined, { maximumFractionDigits: 0 })} USD
+            ≈ ${(metrics.totalBtcAllocated * metrics.currentBtcPriceUsd).toLocaleString(undefined, { maximumFractionDigits: 0 })} USDT
           </div>
         </div>
 
@@ -226,7 +231,7 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
             </div>
             <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
               <div className="text-gray-400 text-[11px]">Daily Mining Revenue</div>
-              <div className="text-emerald-400 font-bold text-sm mt-0.5">${metrics.miningRevenuePerDayUsd} / day</div>
+              <div className="text-emerald-400 font-bold text-sm mt-0.5">${metrics.miningRevenuePerDayUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })} / day</div>
             </div>
             <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
               <div className="text-gray-400 text-[11px]">Network Difficulty</div>

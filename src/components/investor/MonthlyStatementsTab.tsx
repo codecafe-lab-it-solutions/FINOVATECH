@@ -16,7 +16,7 @@ function monthLabel(month: string): string {
 
 export const MonthlyStatementsTab: React.FC<MonthlyStatementsTabProps> = ({ statements, user }) => {
   const handleExportCsv = () => {
-    const header = 'Month,Mining Credits (BTC),Mining Credits (USD),Payouts (BTC),Payouts (USD),Net (USD),Transactions\n';
+    const header = 'Month,Mining Credits (BTC),Mining Credits (USDT),Payouts (BTC),Payouts (USDT),Net (USDT),Transactions\n';
     const rows = statements
       .map((s) => `${s.month},${s.miningCreditsBtc},${s.miningCreditsUsd},${s.payoutsBtc},${s.payoutsUsd},${s.netUsd},${s.transactionCount}`)
       .join('\n');

@@ -7,7 +7,8 @@ import {
   Plus,
   Wallet,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  Trash2
 } from 'lucide-react';
 import {
   ApiInvestorProfile,
@@ -16,7 +17,8 @@ import {
   fetchAdminInvestors,
   fetchAdminInvestorDetail,
   updateAdminInvestorProfile,
-  addAdminInvestorTransaction
+  addAdminInvestorTransaction,
+  deleteAdminInvestor
 } from '../../lib/api';
 
 interface AdminInvestorsViewProps {
@@ -42,10 +44,14 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
   const [saveError, setSaveError] = useState('');
 
   const [newTxType, setNewTxType] = useState('Adjustment');
-  const [newTxBtc, setNewTxBtc] = useState('0');
-  const [newTxUsd, setNewTxUsd] = useState('0');
+  const [newTxBtc, setNewTxBtc] = useState('');
+  const [newTxUsd, setNewTxUsd] = useState('');
   const [newTxNote, setNewTxNote] = useState('');
   const [isAddingTx, setIsAddingTx] = useState(false);
+
+  const [deleteTarget, setDeleteTarget] = useState<ApiInvestorProfile | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   const loadInvestors = useCallback(async () => {
     setIsLoadingList(true);
@@ -87,9 +93,27 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
     setDetailProfile(null);
   };
 
+  const handleDeleteInvestor = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    setDeleteError('');
+    try {
+      await deleteAdminInvestor(authToken, deleteTarget.userId);
+      setInvestors((prev) => prev.filter((i) => i.userId !== deleteTarget.userId));
+      if (selectedId === deleteTarget.userId) closeModal();
+      setDeleteTarget(null);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'Could not delete investor.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleField = (key: keyof ProfileFormState, value: string | number) => {
     setFormState((prev) => ({ ...prev, [key]: value }));
   };
+
+  const NUMERIC_FIELDS = ['miningSharePercent', 'totalInvestmentUsd', 'currentPortfolioValueUsd', 'totalBtcAllocated', 'btcMined'] as const;
 
   const handleSaveProfile = async () => {
     if (!selectedId) return;
@@ -97,7 +121,13 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
     setSaveError('');
     setSaveMessage('');
     try {
-      const { profile } = await updateAdminInvestorProfile(authToken, selectedId, formState);
+      const payload: ProfileFormState = { ...formState };
+      for (const key of NUMERIC_FIELDS) {
+        const raw: unknown = payload[key];
+        const num = Number(raw);
+        payload[key] = raw === '' || raw === null || raw === undefined || Number.isNaN(num) ? 0 : num;
+      }
+      const { profile } = await updateAdminInvestorProfile(authToken, selectedId, payload);
       setDetailProfile(profile);
       setFormState(profile);
       setInvestors((prev) => prev.map((i) => (i.userId === profile.userId ? profile : i)));
@@ -122,8 +152,8 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
         note: newTxNote
       });
       setTransactions((prev) => [transaction, ...prev]);
-      setNewTxBtc('0');
-      setNewTxUsd('0');
+      setNewTxBtc('');
+      setNewTxUsd('');
       setNewTxNote('');
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Could not add transaction.');
@@ -211,15 +241,28 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                   <td className="py-3.5 px-3 text-right font-semibold text-[#F7931A]">{inv.totalBtcAllocated} BTC</td>
                   <td className="py-3.5 px-3 text-right font-bold text-emerald-400">${inv.currentPortfolioValueUsd.toLocaleString()}</td>
                   <td className="py-3.5 px-4 text-center">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openInvestor(inv.userId);
-                      }}
-                      className="px-3 py-1 rounded-lg bg-gray-800 hover:bg-[#F7931A] hover:text-gray-950 text-gray-300 text-[11px] font-mono transition-colors cursor-pointer"
-                    >
-                      Manage
-                    </button>
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openInvestor(inv.userId);
+                        }}
+                        className="px-3 py-1 rounded-lg bg-gray-800 hover:bg-[#F7931A] hover:text-gray-950 text-gray-300 text-[11px] font-mono transition-colors cursor-pointer"
+                      >
+                        Manage
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteError('');
+                          setDeleteTarget(inv);
+                        }}
+                        title="Delete investor"
+                        className="p-1.5 rounded-lg bg-gray-800 hover:bg-rose-500/20 text-gray-400 hover:text-rose-400 transition-colors cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -312,32 +355,32 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                       </label>
                       <label className="block">
                         <span className="text-gray-400 text-[10px] uppercase block mb-1">Mining Share %</span>
-                        <input type="number" step="0.001" value={formState.miningSharePercent ?? 0}
-                          onChange={(e) => handleField('miningSharePercent', Number(e.target.value))}
+                        <input type="text" inputMode="decimal" value={formState.miningSharePercent ?? ''}
+                          onChange={(e) => handleField('miningSharePercent', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
                       </label>
                       <label className="block">
                         <span className="text-gray-400 text-[10px] uppercase block mb-1">Total Investment (USD)</span>
-                        <input type="number" value={formState.totalInvestmentUsd ?? 0}
-                          onChange={(e) => handleField('totalInvestmentUsd', Number(e.target.value))}
+                        <input type="text" inputMode="decimal" value={formState.totalInvestmentUsd ?? ''}
+                          onChange={(e) => handleField('totalInvestmentUsd', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
                       </label>
                       <label className="block">
                         <span className="text-gray-400 text-[10px] uppercase block mb-1">Portfolio Value (USD)</span>
-                        <input type="number" value={formState.currentPortfolioValueUsd ?? 0}
-                          onChange={(e) => handleField('currentPortfolioValueUsd', Number(e.target.value))}
+                        <input type="text" inputMode="decimal" value={formState.currentPortfolioValueUsd ?? ''}
+                          onChange={(e) => handleField('currentPortfolioValueUsd', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
                       </label>
                       <label className="block">
                         <span className="text-gray-400 text-[10px] uppercase block mb-1">Total BTC Allocated</span>
-                        <input type="number" step="0.00000001" value={formState.totalBtcAllocated ?? 0}
-                          onChange={(e) => handleField('totalBtcAllocated', Number(e.target.value))}
+                        <input type="text" inputMode="decimal" value={formState.totalBtcAllocated ?? ''}
+                          onChange={(e) => handleField('totalBtcAllocated', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
                       </label>
                       <label className="block">
                         <span className="text-gray-400 text-[10px] uppercase block mb-1">BTC Mined</span>
-                        <input type="number" step="0.00000001" value={formState.btcMined ?? 0}
-                          onChange={(e) => handleField('btcMined', Number(e.target.value))}
+                        <input type="text" inputMode="decimal" value={formState.btcMined ?? ''}
+                          onChange={(e) => handleField('btcMined', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
                       </label>
                     </div>
@@ -377,10 +420,10 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                         <option>Deposit</option>
                         <option>Referral Commission</option>
                       </select>
-                      <input type="number" step="0.00000001" placeholder="BTC" value={newTxBtc}
+                      <input type="text" inputMode="decimal" placeholder="BTC" value={newTxBtc}
                         onChange={(e) => setNewTxBtc(e.target.value)}
                         className="px-2 py-2 rounded-lg bg-gray-950 border border-gray-800 text-white text-[11px]" />
-                      <input type="number" placeholder="USD" value={newTxUsd}
+                      <input type="text" inputMode="decimal" placeholder="USD" value={newTxUsd}
                         onChange={(e) => setNewTxUsd(e.target.value)}
                         className="px-2 py-2 rounded-lg bg-gray-950 border border-gray-800 text-white text-[11px]" />
                       <button
@@ -418,6 +461,48 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                   </div>
                 </>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-[#0B1120] border border-rose-500/30 rounded-3xl shadow-2xl p-6 space-y-4 text-xs font-mono">
+            <div className="flex items-center gap-2 text-rose-400">
+              <Trash2 className="w-5 h-5" />
+              <span className="font-bold text-sm uppercase tracking-wider">Delete Investor</span>
+            </div>
+
+            <p className="text-gray-300 font-sans text-xs leading-relaxed">
+              This permanently deletes <strong className="text-white">{deleteTarget.name}</strong> ({deleteTarget.username}) and all of their data —
+              profile, transaction history, payout requests, notifications, and sessions. This cannot be undone.
+            </p>
+
+            {deleteError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0" /><span>{deleteError}</span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                onClick={handleDeleteInvestor}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {isDeleting ? <RotateCw className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                <span>{isDeleting ? 'Deleting...' : 'Delete Permanently'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                disabled={isDeleting}
+                className="py-2.5 px-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>

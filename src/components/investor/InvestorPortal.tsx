@@ -38,6 +38,7 @@ import {
   fetchInvestorDocuments,
   requestPayoutApi,
   updateInvestorProfileApi,
+  fetchBtcMarketData,
   ApiEarningRow,
   ApiMonthlyStatement,
   ApiNotification,
@@ -45,7 +46,8 @@ import {
   ApiTicket,
   ApiReferredInvestor,
   ApiMachine,
-  ApiDocument
+  ApiDocument,
+  BtcMarketData
 } from '../../lib/api';
 import { profileToUser, profileToMetrics, transactionToWallet, payoutToRecord } from '../../lib/investorMappers';
 
@@ -81,26 +83,35 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
   const [referredUsers, setReferredUsers] = useState<ApiReferredInvestor[]>([]);
   const [machines, setMachines] = useState<ApiMachine[]>([]);
   const [documents, setDocuments] = useState<ApiDocument[]>([]);
+  const [btcMarket, setBtcMarket] = useState<BtcMarketData | null>(null);
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const loadPortfolio = useCallback(async () => {
     try {
-      const [{ profile }, { transactions: txs }, { payouts: pos }] = await Promise.all([
+      const [{ profile }, { transactions: txs }, { payouts: pos }, market] = await Promise.all([
         fetchInvestorProfile(authToken),
         fetchInvestorTransactions(authToken),
-        fetchInvestorPayouts(authToken)
+        fetchInvestorPayouts(authToken),
+        fetchBtcMarketData().catch(() => null)
       ]);
 
-      const mappedMetrics = profileToMetrics(profile);
+      const btcPriceUsd = market?.usd ?? 0;
+      const mappedMetrics = profileToMetrics(profile, btcPriceUsd, market?.difficultyT ?? 0);
       const completedPayouts = pos.filter((p) => p.status === 'Completed');
       mappedMetrics.totalPayoutsBtc = completedPayouts.reduce((sum, p) => sum + p.amountBtc, 0);
       mappedMetrics.totalPayoutsUsd = mappedMetrics.totalPayoutsBtc * mappedMetrics.currentBtcPriceUsd;
 
+      const today = new Date().toISOString().slice(0, 10);
+      const todaysMiningCredits = txs.filter((t) => t.type === 'Mining Credit' && t.createdAt.startsWith(today));
+      mappedMetrics.miningRevenuePerDayBtc = todaysMiningCredits.reduce((sum, t) => sum + t.amountBtc, 0);
+      mappedMetrics.miningRevenuePerDayUsd = todaysMiningCredits.reduce((sum, t) => sum + t.amountUsd, 0);
+
+      if (market) setBtcMarket(market);
       setUser(profileToUser(profile));
       setMetrics(mappedMetrics);
       setTransactions(txs.map(transactionToWallet));
-      setPayouts(pos.map(payoutToRecord));
+      setPayouts(pos.map((p) => payoutToRecord(p, btcPriceUsd)));
       setLoadError('');
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : 'Could not load your portfolio.');
@@ -135,6 +146,14 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
     fetchInvestorMachines(authToken).then(({ machines }) => setMachines(machines)).catch(() => {});
     fetchInvestorDocuments(authToken).then(({ documents }) => setDocuments(documents)).catch(() => {});
   }, [authToken, loadPortfolio, loadNotifications, loadSessions, loadTickets]);
+
+  // Keeps the navbar's live BTC ticker fresh between full portfolio reloads.
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchBtcMarketData().then(setBtcMarket).catch(() => {});
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Handlers
   const handleRequestPayout = async (amountBtc: number, destinationWallet: string) => {
@@ -228,6 +247,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
         onNavigateWebsite={onNavigateWebsite}
         onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         isMobileSidebarOpen={isMobileSidebarOpen}
+        btcMarket={btcMarket}
       />
 
       {/* Main Workspace Layout (Sidebar + Content) */}

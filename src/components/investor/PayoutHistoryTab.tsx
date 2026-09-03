@@ -53,7 +53,7 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts }) =
           <div className="p-2.5 px-4 rounded-2xl bg-gray-950/80 border border-gray-800 text-right">
             <div className="text-[10px] text-gray-400 font-mono">LIFETIME DISBURSED</div>
             <div className="text-sm font-bold text-emerald-400 font-mono mt-0.5">
-              ${totalPayoutsUsd.toFixed(2)} USD ({totalPayoutsBtc.toFixed(4)} BTC)
+              ${totalPayoutsUsd.toFixed(2)} USDT ({totalPayoutsBtc.toFixed(4)} BTC)
             </div>
           </div>
         </div>
@@ -106,7 +106,7 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts }) =
                 <th className="pb-3 px-3">Payout ID</th>
                 <th className="pb-3 px-3">Date</th>
                 <th className="pb-3 px-3">Amount (BTC)</th>
-                <th className="pb-3 px-3">Value (USD)</th>
+                <th className="pb-3 px-3">Value (USDT)</th>
                 <th className="pb-3 px-3">Destination Wallet</th>
                 <th className="pb-3 px-3">Status</th>
                 <th className="pb-3 px-3 text-right">Transaction</th>

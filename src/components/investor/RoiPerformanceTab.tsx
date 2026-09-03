@@ -84,7 +84,7 @@ export const RoiPerformanceTab: React.FC<RoiPerformanceTabProps> = ({ metrics, s
       <div className="p-6 rounded-3xl bg-gray-900/90 border border-gray-800 text-white space-y-4">
         <div className="flex items-center gap-2 border-b border-gray-800 pb-4">
           <TrendingUp className="w-4 h-4 text-[#F7931A]" />
-          <span className="text-sm font-bold uppercase tracking-wider font-mono">Cumulative Value Trajectory ($ USD)</span>
+          <span className="text-sm font-bold uppercase tracking-wider font-mono">Cumulative Value Trajectory ($ USDT)</span>
         </div>
         <div className="h-72 w-full pt-2">
           {chartData.length > 0 ? (

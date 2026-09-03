@@ -28,6 +28,7 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
   onUpdateUser
 }) => {
   const [isEditingPayment, setIsEditingPayment] = useState(false);
+  const [isEditingContact, setIsEditingContact] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -38,6 +39,12 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
     bankAccountNumber: user.bankAccountNumber,
     bankIban: user.bankIban,
     bankSwift: user.bankSwift
+  });
+
+  const [contactData, setContactData] = useState({
+    email: user.email,
+    phone: user.phone,
+    country: user.country
   });
 
   const handleCopy = (text: string, label: string) => {
@@ -51,6 +58,14 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
     await onUpdateUser(formData);
     setIsEditingPayment(false);
     setSuccessMsg('Payment details updated successfully.');
+    setTimeout(() => setSuccessMsg(''), 4000);
+  };
+
+  const handleSaveContact = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await onUpdateUser(contactData);
+    setIsEditingContact(false);
+    setSuccessMsg('Contact details updated successfully.');
     setTimeout(() => setSuccessMsg(''), 4000);
   };
 
@@ -74,9 +89,15 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono flex items-center gap-1.5 font-bold">
+          <div className={`px-3.5 py-1.5 rounded-full border text-xs font-mono flex items-center gap-1.5 font-bold ${
+            user.kycStatus === 'Verified'
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+              : user.kycStatus === 'Action Required'
+                ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                : 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+          }`}>
             <ShieldCheck className="w-4 h-4" />
-            <span>KYC Verified S.A.O.C</span>
+            <span>KYC {user.kycStatus}</span>
           </div>
           <div className="px-3.5 py-1.5 rounded-full bg-gray-800 border border-gray-700 text-gray-300 text-xs font-mono">
             {user.accountStatus} Account
@@ -105,7 +126,18 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
                   Basic Investor Information
                 </span>
               </div>
-              <span className="text-[11px] text-gray-400 font-mono">Read-Only KYC</span>
+              {!isEditingContact && (
+                <button
+                  onClick={() => {
+                    setContactData({ email: user.email, phone: user.phone, country: user.country });
+                    setIsEditingContact(true);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs font-mono text-gray-200 border border-gray-700 transition-colors cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-[#F7931A]" />
+                  <span>Edit Contact Info</span>
+                </button>
+              )}
             </div>
 
             <div className="space-y-3 text-xs font-mono">
@@ -127,25 +159,81 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gray-950/70 border border-gray-800">
-                <span className="text-gray-400">Registered Email:</span>
-                <span className="text-white font-bold">{user.email}</span>
-              </div>
+              {!isEditingContact ? (
+                <>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-gray-950/70 border border-gray-800">
+                    <span className="text-gray-400">Registered Email:</span>
+                    <span className="text-white font-bold">{user.email || 'Not provided'}</span>
+                  </div>
 
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gray-950/70 border border-gray-800">
-                <span className="text-gray-400">Phone Number:</span>
-                <span className="text-white font-bold">{user.phone}</span>
-              </div>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-gray-950/70 border border-gray-800">
+                    <span className="text-gray-400">Phone Number:</span>
+                    <span className="text-white font-bold">{user.phone || 'Not provided'}</span>
+                  </div>
 
-              <div className="flex items-center justify-between p-3 rounded-xl bg-gray-950/70 border border-gray-800">
-                <span className="text-gray-400">Jurisdiction / Country:</span>
-                <span className="text-white font-bold">{user.country}</span>
-              </div>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-gray-950/70 border border-gray-800">
+                    <span className="text-gray-400">Jurisdiction / Country:</span>
+                    <span className="text-white font-bold">{user.country || 'Not provided'}</span>
+                  </div>
+                </>
+              ) : (
+                <form onSubmit={handleSaveContact} className="space-y-3">
+                  <div>
+                    <label className="block text-gray-400 mb-1">Registered Email:</label>
+                    <input
+                      type="email"
+                      value={contactData.email}
+                      onChange={(e) => setContactData({ ...contactData, email: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-700 text-white focus:outline-hidden focus:border-[#F7931A]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 mb-1">Phone Number:</label>
+                    <input
+                      type="text"
+                      value={contactData.phone}
+                      onChange={(e) => setContactData({ ...contactData, phone: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-700 text-white focus:outline-hidden focus:border-[#F7931A]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 mb-1">Jurisdiction / Country:</label>
+                    <input
+                      type="text"
+                      value={contactData.country}
+                      onChange={(e) => setContactData({ ...contactData, country: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-700 text-white focus:outline-hidden focus:border-[#F7931A]"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="submit"
+                      className="flex-1 py-2.5 px-4 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Save Changes</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditingContact(false)}
+                      className="py-2.5 px-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
 
               <div className="flex items-center justify-between p-3 rounded-xl bg-gray-950/70 border border-gray-800">
                 <span className="text-gray-400">Account Verification:</span>
-                <span className="text-emerald-400 font-bold flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Tier 3 Institutional Verified
+                <span className={`font-bold flex items-center gap-1 ${
+                  user.kycStatus === 'Verified'
+                    ? 'text-emerald-400'
+                    : user.kycStatus === 'Action Required'
+                      ? 'text-rose-400'
+                      : 'text-amber-400'
+                }`}>
+                  <ShieldCheck className="w-3.5 h-3.5" /> KYC {user.kycStatus}
                 </span>
               </div>
             </div>
@@ -215,10 +303,10 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
               )}
             </div>
 
-            {/* BTC Payout Address */}
+            {/* USDT Payout Address */}
             <div className="p-4 rounded-2xl bg-gray-950/80 border border-gray-800 space-y-2">
               <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-[#F7931A] font-bold">BTC Payout Address:</span>
+                <span className="text-[#F7931A] font-bold">USDT Payout Address:</span>
               </div>
               <div className="p-3 rounded-xl bg-gray-900 border border-gray-800 font-mono text-xs text-gray-200 flex items-center justify-between break-all">
                 <span className="text-amber-400 select-all">{formData.payoutBtcAddress}</span>
@@ -230,7 +318,7 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
                 </button>
               </div>
               <div className="text-[11px] text-gray-400 font-mono">
-                Automated weekly Bitcoin mining dividends are disbursed directly to this address.
+                Automated weekly mining dividends are disbursed directly to this USDT address.
               </div>
             </div>
 
@@ -261,7 +349,7 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
               <form onSubmit={handleSaveDetails} className="space-y-3.5 text-xs font-mono">
 
                 <div>
-                  <label className="block text-gray-400 mb-1">BTC Payout Address:</label>
+                  <label className="block text-gray-400 mb-1">USDT Payout Address:</label>
                   <input
                     type="text"
                     required

@@ -90,7 +90,7 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
           <div className="space-y-1.5 pt-1">
             <div className="flex justify-between text-gray-400">
               <span>Investment Amount:</span>
-              <span className="text-white font-bold">${metrics.totalInvestmentUsd.toLocaleString()} USD</span>
+              <span className="text-white font-bold">${metrics.totalInvestmentUsd.toLocaleString()} USDT</span>
             </div>
             <div className="flex justify-between text-gray-400">
               <span>Execution Date:</span>

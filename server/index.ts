@@ -3,7 +3,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import express from 'express';
 import bcrypt from 'bcryptjs';
-import { createUser, findUserById, findUserByUsername, seedIfEmpty, updateCredentials } from './db';
+import { createUser, findUserById, findUserByUsername, seedIfEmpty, updateCredentials, deleteInvestor } from './db';
 import { initSchema } from './database';
 import { signToken, verifyToken, TokenPayload } from './auth';
 import { createSession, isSessionRevoked, listSessionsForUser, revokeSession } from './sessions';
@@ -51,6 +51,7 @@ import {
   listEarnings,
   listMonthlyStatements
 } from './investorExtras';
+import { getBtcMarketData } from './market';
 
 const app = express();
 app.use(express.json());
@@ -115,6 +116,17 @@ async function issueSessionToken(user: { id: string; username: string; role: 'in
   const sid = await createSession(user.id, clientDevice(req), clientIp(req));
   return signToken({ sub: user.id, sid, username: user.username, role: user.role, name: user.name });
 }
+
+// Public — live BTC/USD price + 24h change + network difficulty, cached
+// server-side for 60s so we don't hammer the upstream API on every request.
+app.get('/api/market/btc-price', async (req, res) => {
+  try {
+    res.json(await getBtcMarketData());
+  } catch (err) {
+    console.error('Fetch BTC market data failed:', err);
+    res.status(502).json({ error: 'Could not fetch live market data.' });
+  }
+});
 
 app.post('/api/auth/register', async (req, res) => {
   const { username, password, name, referredByCode } = req.body ?? {};
@@ -564,6 +576,20 @@ app.put('/api/admin/investors/:id', async (req, res) => {
     if (handleAuthError(err, res)) return;
     console.error('Update investor profile failed:', err);
     res.status(500).json({ error: 'Could not update investor.' });
+  }
+});
+
+app.delete('/api/admin/investors/:id', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    const profile = await getProfile(req.params.id);
+    if (!profile) return res.status(404).json({ error: 'Investor not found.' });
+    await deleteInvestor(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Delete investor failed:', err);
+    res.status(500).json({ error: 'Could not delete investor.' });
   }
 });
 

@@ -22,6 +22,8 @@ import { AdminDashboardKpis, MiningFacilityItem, AdminTab } from '../../types';
 interface AdminDashboardViewProps {
   kpis: AdminDashboardKpis;
   facilities: MiningFacilityItem[];
+  pendingPayoutCount: number;
+  pendingKycCount: number;
   onNavigateTab: (tab: AdminTab) => void;
   onOpenPayoutModal?: () => void;
 }
@@ -29,6 +31,8 @@ interface AdminDashboardViewProps {
 export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
   kpis,
   facilities,
+  pendingPayoutCount,
+  pendingKycCount,
   onNavigateTab,
   onOpenPayoutModal
 }) => {
@@ -46,7 +50,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               <span>EXECUTIVE CONTROL CENTER • SULTANATE OF OMAN</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Finovateck Mining Operations & Finance
+              FINOVATECK Mining Operations & Finance
             </h2>
             <p className="text-sm text-gray-400 mt-1 max-w-2xl">
               {kpis.totalMiners > 0
@@ -135,8 +139,8 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             <div className="text-xl sm:text-2xl font-extrabold text-white font-mono">
               {kpis.totalBtcPaidOut.toFixed(2)} BTC
             </div>
-            <div className="text-[11px] text-emerald-400 font-mono mt-1">
-              100% On-Time SLA
+            <div className="text-[11px] text-gray-400 font-mono mt-1">
+              {kpis.totalBtcPaidOut > 0 ? 'Completed payouts' : 'No payouts completed yet'}
             </div>
           </div>
 
@@ -150,7 +154,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               {kpis.pendingPayoutBtc.toFixed(2)} BTC
             </div>
             <div className="text-[11px] text-gray-400 font-mono mt-1">
-              Next Batch: Today 14:00
+              {pendingPayoutCount > 0 ? `${pendingPayoutCount} request${pendingPayoutCount === 1 ? '' : 's'} awaiting approval` : 'No requests pending'}
             </div>
           </div>
 
@@ -161,10 +165,10 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               <Zap className="w-4 h-4 text-[#F7931A]" />
             </div>
             <div className="text-xl sm:text-2xl font-extrabold text-white font-mono">
-              {kpis.miningHashratePH} PH/s
+              {kpis.miningHashratePH.toFixed(2)} PH/s
             </div>
-            <div className="text-[11px] text-emerald-400 font-mono mt-1">
-              Peak: 432.4 PH/s
+            <div className="text-[11px] text-gray-400 font-mono mt-1">
+              {kpis.totalMiners} machine{kpis.totalMiners === 1 ? '' : 's'} on fleet
             </div>
           </div>
 
@@ -192,7 +196,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               {kpis.miningUptimePercent}%
             </div>
             <div className="text-[11px] text-gray-400 font-mono mt-1">
-              Immersion Protected
+              Average across fleet
             </div>
           </div>
 
@@ -205,8 +209,8 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             <div className="text-xl sm:text-2xl font-extrabold text-white font-mono">
               ${kpis.monthlyRevenueUsd.toLocaleString()}
             </div>
-            <div className="text-[11px] text-emerald-400 font-mono mt-1">
-              +14.2% MoM
+            <div className="text-[11px] text-gray-400 font-mono mt-1">
+              From Mining Credit transactions this month
             </div>
           </div>
 
@@ -219,8 +223,8 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             <div className="text-xl sm:text-2xl font-extrabold text-white font-mono">
               ${kpis.monthlyCostUsd.toLocaleString()}
             </div>
-            <div className="text-[11px] text-gray-400 font-mono mt-1">
-              Tariff: $0.042/kWh
+            <div className="text-[11px] text-gray-500 font-mono mt-1">
+              Not tracked yet
             </div>
           </div>
 
@@ -228,7 +232,9 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors col-span-2 sm:col-span-1 lg:col-span-2">
             <div className="flex items-center justify-between text-gray-400 mb-2">
               <span className="text-xs font-medium">Net Monthly Revenue</span>
-              <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[10px] font-mono font-bold">50.2% MARGIN</span>
+              {kpis.monthlyCostUsd === 0 && (
+                <span className="px-2 py-0.5 rounded bg-gray-800 text-gray-400 text-[10px] font-mono font-bold">OPEX NOT TRACKED</span>
+              )}
             </div>
             <div className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">
               ${kpis.netProfitUsd.toLocaleString()}
@@ -255,6 +261,12 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             <ChevronRight className="w-3 h-3" />
           </button>
         </div>
+
+        {facilities.length === 0 && (
+          <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 text-center text-sm text-gray-500">
+            No mining facilities on record yet.
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {facilities.map((fac) => (
@@ -324,12 +336,16 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             <span className="text-xs font-mono font-bold uppercase text-gray-400 flex items-center gap-2">
               <Clock className="w-4 h-4 text-amber-400" /> Pending Payout Queue
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono text-[10px] font-bold">
-              2 Pending
+            <span className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-bold ${
+              pendingPayoutCount > 0 ? 'bg-rose-500/20 text-rose-300' : 'bg-gray-800 text-gray-400'
+            }`}>
+              {pendingPayoutCount} Pending
             </span>
           </div>
           <p className="text-xs text-gray-300">
-            Total 1.82 BTC in scheduled withdrawals awaiting final multi-sig confirmation.
+            {pendingPayoutCount > 0
+              ? `Total ${kpis.pendingPayoutBtc.toFixed(4)} BTC across ${pendingPayoutCount} withdrawal request${pendingPayoutCount === 1 ? '' : 's'} awaiting review.`
+              : 'No pending withdrawal requests.'}
           </p>
           <button
             onClick={() => onNavigateTab('payout-queue')}
@@ -346,12 +362,16 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             <span className="text-xs font-mono font-bold uppercase text-gray-400 flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-blue-400" /> Compliance & KYC Queue
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold">
-              2 Submissions
+            <span className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-bold ${
+              pendingKycCount > 0 ? 'bg-amber-500/20 text-amber-300' : 'bg-gray-800 text-gray-400'
+            }`}>
+              {pendingKycCount} Pending
             </span>
           </div>
           <p className="text-xs text-gray-300">
-            Marcus Vance & Elena Rostova passport & utility bills submitted for verification.
+            {pendingKycCount > 0
+              ? `${pendingKycCount} investor account${pendingKycCount === 1 ? '' : 's'} awaiting KYC verification.`
+              : 'No investor accounts awaiting KYC verification.'}
           </p>
           <button
             onClick={() => onNavigateTab('kyc-queue')}
@@ -368,12 +388,12 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             <span className="text-xs font-mono font-bold uppercase text-gray-400 flex items-center gap-2">
               <FileText className="w-4 h-4 text-emerald-400" /> Monthly Statements
             </span>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-bold">
-              August 2026 Ready
+            <span className="px-2 py-0.5 rounded-full bg-gray-800 text-gray-300 font-mono text-[10px] font-bold">
+              {kpis.totalInvestors} Investor{kpis.totalInvestors === 1 ? '' : 's'}
             </span>
           </div>
           <p className="text-xs text-gray-300">
-            Batch statement reconciliation ready for all 248 registered investor accounts.
+            Generate statements for registered investor accounts from their real transaction history.
           </p>
           <button
             onClick={() => onNavigateTab('monthly-statements')}
