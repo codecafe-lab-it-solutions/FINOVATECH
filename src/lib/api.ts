@@ -45,14 +45,33 @@ export async function registerRequest(
   username: string,
   password: string,
   name: string,
+  email: string,
   referredByCode?: string
 ): Promise<AuthResponse> {
   const res = await fetch('/api/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password, name, referredByCode })
+    body: JSON.stringify({ username, password, name, email, referredByCode })
   });
   return handleResponse<AuthResponse>(res);
+}
+
+export async function forgotPasswordRequest(email: string): Promise<{ ok: true; message: string }> {
+  const res = await fetch('/api/auth/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+  return handleResponse(res);
+}
+
+export async function resetPasswordRequest(email: string, otp: string, newPassword: string): Promise<{ ok: true }> {
+  const res = await fetch('/api/auth/reset-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, otp, newPassword })
+  });
+  return handleResponse(res);
 }
 
 export async function fetchCurrentUser(token: string): Promise<{ user: AuthUser }> {
@@ -95,6 +114,7 @@ export interface ApiInvestorProfile {
   referralCode: string;
   referrerName: string;
   payoutBtcAddress: string;
+  payoutNetwork: string;
   bankName: string;
   bankAccountHolder: string;
   bankAccountNumber: string;
@@ -117,6 +137,7 @@ export interface ApiWalletTransaction {
   amountUsd: number;
   status: string;
   note: string;
+  network: string;
   createdAt: string;
 }
 
@@ -126,6 +147,7 @@ export interface ApiPayout {
   investorName?: string;
   amountBtc: number;
   destinationWallet: string;
+  network: string;
   status: 'Requested' | 'Processing' | 'Completed' | 'Rejected';
   requestedAt: string;
   processedAt: string | null;
@@ -146,7 +168,7 @@ export async function updateInvestorProfileApi(
   updates: Partial<
     Pick<
       ApiInvestorProfile,
-      'email' | 'phone' | 'country' | 'payoutBtcAddress' | 'bankName' | 'bankAccountHolder' | 'bankAccountNumber' | 'bankIban' | 'bankSwift'
+      'email' | 'phone' | 'country' | 'payoutBtcAddress' | 'payoutNetwork' | 'bankName' | 'bankAccountHolder' | 'bankAccountNumber' | 'bankIban' | 'bankSwift'
     >
   >
 ): Promise<{ profile: ApiInvestorProfile }> {
@@ -168,15 +190,25 @@ export async function fetchInvestorPayouts(token: string): Promise<{ payouts: Ap
   return handleResponse(res);
 }
 
+export async function requestPayoutOtpApi(token: string): Promise<{ ok: true; message: string }> {
+  const res = await fetch('/api/investor/payouts/request-otp', {
+    method: 'POST',
+    headers: authHeaders(token)
+  });
+  return handleResponse(res);
+}
+
 export async function requestPayoutApi(
   token: string,
   amountBtc: number,
-  destinationWallet: string
+  destinationWallet: string,
+  otp: string,
+  network?: string
 ): Promise<{ payout: ApiPayout }> {
   const res = await fetch('/api/investor/payouts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
-    body: JSON.stringify({ amountBtc, destinationWallet })
+    body: JSON.stringify({ amountBtc, destinationWallet, otp, network })
   });
   return handleResponse(res);
 }
@@ -220,7 +252,7 @@ export async function deleteAdminInvestor(token: string, investorUserId: string)
 export async function addAdminInvestorTransaction(
   token: string,
   investorUserId: string,
-  tx: { type: string; amountBtc: number; amountUsd: number; status?: string; note?: string }
+  tx: { type: string; amountBtc: number; amountUsd: number; status?: string; note?: string; network?: string }
 ): Promise<{ transaction: ApiWalletTransaction }> {
   const res = await fetch(`/api/admin/investors/${investorUserId}/transactions`, {
     method: 'POST',
@@ -391,6 +423,7 @@ export interface ApiTransactionWithInvestor {
   amountUsd: number;
   status: string;
   note: string;
+  network: string;
   createdAt: string;
 }
 

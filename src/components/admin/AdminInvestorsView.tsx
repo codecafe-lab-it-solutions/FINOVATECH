@@ -46,6 +46,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
   const [newTxType, setNewTxType] = useState('Adjustment');
   const [newTxBtc, setNewTxBtc] = useState('');
   const [newTxUsd, setNewTxUsd] = useState('');
+  const [newTxNetwork, setNewTxNetwork] = useState('TRC20');
   const [newTxNote, setNewTxNote] = useState('');
   const [isAddingTx, setIsAddingTx] = useState(false);
 
@@ -147,8 +148,9 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
     try {
       const { transaction } = await addAdminInvestorTransaction(authToken, selectedId, {
         type: newTxType,
-        amountBtc: Number(newTxBtc),
-        amountUsd: Number(newTxUsd),
+        amountBtc: Number(newTxBtc) || 0,
+        amountUsd: Number(newTxUsd) || 0,
+        network: newTxNetwork,
         note: newTxNote
       });
       setTransactions((prev) => [transaction, ...prev]);
@@ -404,7 +406,9 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                       {transactions.length === 0 && <div className="text-gray-500">No transactions yet.</div>}
                       {transactions.map((t) => (
                         <div key={t.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-950 border border-gray-800">
-                          <span className="text-gray-300">{t.type}</span>
+                          <span className="text-gray-300">
+                            {t.type}{t.network ? <span className="text-gray-500"> · {t.network}</span> : ''}
+                          </span>
                           <span className={t.amountBtc >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
                             {t.amountBtc >= 0 ? '+' : ''}{t.amountBtc} BTC
                           </span>
@@ -434,6 +438,12 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                         <Plus className="w-3.5 h-3.5" /> Add
                       </button>
                     </div>
+                    <select value={newTxNetwork} onChange={(e) => setNewTxNetwork(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-800 text-white text-[11px]">
+                      <option value="TRC20">USDT Network: TRC20 (Tron)</option>
+                      <option value="ERC20">USDT Network: ERC20 (Ethereum)</option>
+                      <option value="BEP20">USDT Network: BEP20 (BNB Smart Chain)</option>
+                    </select>
                     <input
                       type="text"
                       placeholder="Note (optional)"
@@ -449,7 +459,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                     {payouts.length === 0 && <div className="text-gray-500">No payout requests yet.</div>}
                     {payouts.map((p) => (
                       <div key={p.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-950 border border-gray-800">
-                        <span className="text-gray-300">{p.amountBtc} BTC → {p.destinationWallet.slice(0, 14)}...</span>
+                        <span className="text-gray-300">{p.amountBtc} BTC → {p.destinationWallet.slice(0, 14)}... {p.network ? `(${p.network})` : ''}</span>
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
                           p.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-300' :
                           p.status === 'Rejected' ? 'bg-rose-500/20 text-rose-300' :

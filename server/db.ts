@@ -162,6 +162,7 @@ export async function createUser(params: {
   password: string;
   name: string;
   role: UserRole;
+  email?: string;
   referredByCode?: string;
 }): Promise<StoredUser> {
   const id = crypto.randomUUID();
@@ -183,6 +184,9 @@ export async function createUser(params: {
 
   if (params.role === 'investor') {
     await ensureProfile(id);
+    if (params.email) {
+      await updateProfile(id, { email: params.email.trim() });
+    }
     const generatedCode = `FINO-${username.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)}`;
     await setReferralCode(id, generatedCode);
     if (params.referredByCode) {

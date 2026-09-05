@@ -21,8 +21,9 @@ export const AdminTransactionsView: React.FC<AdminTransactionsViewProps> = ({ au
 
   const [showCreate, setShowCreate] = useState(false);
   const [selectedInvestorId, setSelectedInvestorId] = useState('');
-  const [depositUsd, setDepositUsd] = useState('0');
-  const [depositBtc, setDepositBtc] = useState('0');
+  const [depositUsd, setDepositUsd] = useState('');
+  const [depositBtc, setDepositBtc] = useState('');
+  const [depositNetwork, setDepositNetwork] = useState('TRC20');
   const [depositNote, setDepositNote] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -59,13 +60,15 @@ export const AdminTransactionsView: React.FC<AdminTransactionsViewProps> = ({ au
     try {
       await addAdminInvestorTransaction(authToken, selectedInvestorId, {
         type: 'Deposit',
-        amountBtc: Number(depositBtc),
-        amountUsd: Number(depositUsd),
+        amountBtc: Number(depositBtc) || 0,
+        amountUsd: Number(depositUsd) || 0,
+        network: depositNetwork,
         note: depositNote
       });
       setShowCreate(false);
-      setDepositUsd('0');
-      setDepositBtc('0');
+      setDepositUsd('');
+      setDepositBtc('');
+      setDepositNetwork('TRC20');
       setDepositNote('');
       await load();
     } catch (err) {
@@ -126,6 +129,7 @@ export const AdminTransactionsView: React.FC<AdminTransactionsViewProps> = ({ au
                 <th className="py-3.5 px-3">Type</th>
                 <th className="py-3.5 px-3 text-right">BTC</th>
                 <th className="py-3.5 px-3 text-right">USD</th>
+                <th className="py-3.5 px-3">Network</th>
                 <th className="py-3.5 px-3">Status</th>
               </tr>
             </thead>
@@ -139,13 +143,14 @@ export const AdminTransactionsView: React.FC<AdminTransactionsViewProps> = ({ au
                     {t.amountBtc >= 0 ? '+' : ''}{t.amountBtc} BTC
                   </td>
                   <td className="py-3 px-3 text-right text-gray-300">${t.amountUsd.toLocaleString()}</td>
+                  <td className="py-3 px-3 text-gray-400">{t.network || '—'}</td>
                   <td className="py-3 px-3">
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-800 text-gray-300">{t.status}</span>
                   </td>
                 </tr>
               ))}
               {!isLoading && filtered.length === 0 && (
-                <tr><td colSpan={6} className="py-8 text-center text-gray-500 font-mono">No transactions found.</td></tr>
+                <tr><td colSpan={7} className="py-8 text-center text-gray-500 font-mono">No transactions found.</td></tr>
               )}
             </tbody>
           </table>
@@ -169,15 +174,24 @@ export const AdminTransactionsView: React.FC<AdminTransactionsViewProps> = ({ au
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
                 <span className="text-gray-400 text-[10px] uppercase block mb-1">Amount (USD)</span>
-                <input type="number" value={depositUsd} onChange={(e) => setDepositUsd(e.target.value)}
+                <input type="text" inputMode="decimal" value={depositUsd} onChange={(e) => setDepositUsd(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
               </label>
               <label className="block">
                 <span className="text-gray-400 text-[10px] uppercase block mb-1">Amount (BTC, optional)</span>
-                <input type="number" step="0.00000001" value={depositBtc} onChange={(e) => setDepositBtc(e.target.value)}
+                <input type="text" inputMode="decimal" value={depositBtc} onChange={(e) => setDepositBtc(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
               </label>
             </div>
+            <label className="block">
+              <span className="text-gray-400 text-[10px] uppercase block mb-1">USDT Network</span>
+              <select value={depositNetwork} onChange={(e) => setDepositNetwork(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white">
+                <option value="TRC20">TRC20 (Tron)</option>
+                <option value="ERC20">ERC20 (Ethereum)</option>
+                <option value="BEP20">BEP20 (BNB Smart Chain)</option>
+              </select>
+            </label>
             <input placeholder="Note (e.g. bank wire reference)" value={depositNote} onChange={(e) => setDepositNote(e.target.value)}
               className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
             <p className="text-[10px] text-gray-500">This records the deposit in the wallet ledger. Update the investor's Total Investment figure separately in Investor Management if needed.</p>

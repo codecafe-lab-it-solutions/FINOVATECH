@@ -263,6 +263,7 @@ export interface TransactionWithInvestor {
   amountUsd: number;
   status: string;
   note: string;
+  network: string;
   createdAt: string;
 }
 
@@ -275,6 +276,7 @@ interface TxJoinRow extends RowDataPacket {
   amount_usd: string;
   status: string;
   note: string;
+  network: string;
   created_at: string;
 }
 
@@ -293,6 +295,7 @@ export async function listAllTransactions(): Promise<TransactionWithInvestor[]> 
     amountUsd: Number(r.amount_usd),
     status: r.status,
     note: r.note,
+    network: r.network,
     createdAt: r.created_at
   }));
 }
