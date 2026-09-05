@@ -42,7 +42,6 @@ import {
   initialInvestorLiabilities,
   initialStatementBatches,
   initialSupportTickets,
-  initialAdminNotifications,
   initialAdminReports,
   initialAdminAuditLogs,
   initialAdminUsers,
@@ -97,7 +96,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [liabilities, setLiabilities] = useState(initialInvestorLiabilities);
   const [statements, setStatements] = useState(initialStatementBatches);
   const [tickets, setTickets] = useState(initialSupportTickets);
-  const [notifications, setNotifications] = useState(initialAdminNotifications);
   const [reports, setReports] = useState(initialAdminReports);
   const [auditLogs, setAuditLogs] = useState(initialAdminAuditLogs);
   const [adminUsers, setAdminUsers] = useState(initialAdminUsers);
@@ -309,7 +307,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             )}
 
             {currentTab === 'notifications-center' && (
-              <AdminCommunicationView notifications={notifications} />
+              <AdminCommunicationView authToken={authToken} />
             )}
 
             {currentTab === 'reports-financial' && (
