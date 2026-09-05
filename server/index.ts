@@ -17,8 +17,11 @@ import {
   listAllPayouts,
   createPayoutRequest,
   updatePayoutStatus,
+  findUserIdByEmail,
   ProfileUpdate
 } from './investors';
+import { createOtpForUser, verifyAndConsumeOtp } from './passwordReset';
+import { sendWelcomeEmail, sendOtpEmail, sendWithdrawalOtpEmail, sendDepositEmail } from './mailer';
 import {
   listPlans,
   createPlan,
@@ -128,8 +131,10 @@ app.get('/api/market/btc-price', async (req, res) => {
   }
 });
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 app.post('/api/auth/register', async (req, res) => {
-  const { username, password, name, referredByCode } = req.body ?? {};
+  const { username, password, name, email, referredByCode } = req.body ?? {};
 
   if (typeof username !== 'string' || typeof password !== 'string' || typeof name !== 'string') {
     return res.status(400).json({ error: 'Username, password, and full name are required.' });
@@ -143,6 +148,9 @@ app.post('/api/auth/register', async (req, res) => {
   if (name.trim().length < 2) {
     return res.status(400).json({ error: 'Full name is required.' });
   }
+  if (typeof email !== 'string' || !EMAIL_PATTERN.test(email.trim())) {
+    return res.status(400).json({ error: 'A valid email address is required.' });
+  }
 
   try {
     // Self-service registration always creates an investor account.
@@ -151,17 +159,77 @@ app.post('/api/auth/register', async (req, res) => {
       username,
       password,
       name,
+      email,
       role: 'investor',
       referredByCode: typeof referredByCode === 'string' && referredByCode.trim() ? referredByCode : undefined
     });
     const token = await issueSessionToken(user, req);
     res.status(201).json({ token, user: publicUser(user) });
+
+    // Fire-and-forget — a slow or failing mail provider shouldn't block or
+    // fail the registration itself.
+    sendWelcomeEmail(email.trim(), name.trim(), user.username).catch((err) => {
+      console.error('Send welcome email failed:', err);
+    });
   } catch (err) {
     if (err instanceof Error && err.message === 'USERNAME_TAKEN') {
       return res.status(409).json({ error: 'That username is already taken.' });
     }
     console.error('Registration failed:', err);
     res.status(500).json({ error: 'Registration failed. Please try again.' });
+  }
+});
+
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body ?? {};
+  if (typeof email !== 'string' || !EMAIL_PATTERN.test(email.trim())) {
+    return res.status(400).json({ error: 'A valid email address is required.' });
+  }
+
+  try {
+    const userId = await findUserIdByEmail(email.trim());
+    if (userId) {
+      const user = await findUserById(userId);
+      const otp = await createOtpForUser(userId);
+      if (user) {
+        sendOtpEmail(email.trim(), user.name, otp).catch((err) => {
+          console.error('Send OTP email failed:', err);
+        });
+      }
+    }
+    // Same response whether or not the email is registered, so this endpoint
+    // can't be used to discover which emails have accounts.
+    res.json({ ok: true, message: 'If that email is registered, a reset code has been sent to it.' });
+  } catch (err) {
+    console.error('Forgot password failed:', err);
+    res.status(500).json({ error: 'Could not process request. Please try again.' });
+  }
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  const { email, otp, newPassword } = req.body ?? {};
+  if (typeof email !== 'string' || !EMAIL_PATTERN.test(email.trim())) {
+    return res.status(400).json({ error: 'A valid email address is required.' });
+  }
+  if (typeof otp !== 'string' || !otp.trim()) {
+    return res.status(400).json({ error: 'Reset code is required.' });
+  }
+  if (typeof newPassword !== 'string' || newPassword.length < 5) {
+    return res.status(400).json({ error: 'New password must be at least 5 characters.' });
+  }
+
+  try {
+    const userId = await findUserIdByEmail(email.trim());
+    const valid = userId ? await verifyAndConsumeOtp(userId, otp.trim()) : false;
+    if (!userId || !valid) {
+      return res.status(400).json({ error: 'Invalid or expired reset code.' });
+    }
+
+    await updateCredentials(userId, { password: newPassword });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('Reset password failed:', err);
+    res.status(500).json({ error: 'Could not reset password. Please try again.' });
   }
 });
 
@@ -262,13 +330,14 @@ app.patch('/api/investor/profile', async (req, res) => {
     const payload = await requireRole(req, 'investor');
     // Investors may only edit their own contact/banking/payout details —
     // KYC status, account status, and portfolio figures stay admin-managed.
-    const { email, phone, country, payoutBtcAddress, bankName, bankAccountHolder, bankAccountNumber, bankIban, bankSwift } =
+    const { email, phone, country, payoutBtcAddress, payoutNetwork, bankName, bankAccountHolder, bankAccountNumber, bankIban, bankSwift } =
       req.body ?? {};
     const profile = await updateProfile(payload.sub, {
       email,
       phone,
       country,
       payoutBtcAddress,
+      payoutNetwork,
       bankName,
       bankAccountHolder,
       bankAccountNumber,
@@ -307,16 +376,42 @@ app.get('/api/investor/payouts', async (req, res) => {
   }
 });
 
+app.post('/api/investor/payouts/request-otp', async (req, res) => {
+  try {
+    const payload = await requireRole(req, 'investor');
+    const profile = await getProfile(payload.sub);
+    if (!profile) {
+      return res.status(404).json({ error: 'Investor profile not found.' });
+    }
+    if (!profile.email) {
+      return res.status(400).json({ error: 'Add an email address to your profile before requesting a withdrawal.' });
+    }
+
+    const otp = await createOtpForUser(payload.sub);
+    sendWithdrawalOtpEmail(profile.email, profile.name, otp).catch((err) => {
+      console.error('Send withdrawal OTP email failed:', err);
+    });
+    res.json({ ok: true, message: `A confirmation code has been sent to ${profile.email}.` });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Request payout OTP failed:', err);
+    res.status(500).json({ error: 'Could not send confirmation code. Please try again.' });
+  }
+});
+
 app.post('/api/investor/payouts', async (req, res) => {
   try {
     const payload = await requireRole(req, 'investor');
-    const { amountBtc, destinationWallet } = req.body ?? {};
+    const { amountBtc, destinationWallet, otp, network } = req.body ?? {};
 
     if (typeof amountBtc !== 'number' || amountBtc <= 0) {
       return res.status(400).json({ error: 'Enter a valid BTC amount.' });
     }
     if (typeof destinationWallet !== 'string' || destinationWallet.trim().length < 6) {
       return res.status(400).json({ error: 'Enter a valid destination wallet address.' });
+    }
+    if (typeof otp !== 'string' || !otp.trim()) {
+      return res.status(400).json({ error: 'Enter the confirmation code sent to your email.' });
     }
 
     const profile = await getProfile(payload.sub);
@@ -327,10 +422,16 @@ app.post('/api/investor/payouts', async (req, res) => {
       return res.status(400).json({ error: 'Requested amount exceeds your allocated BTC balance.' });
     }
 
+    const otpValid = await verifyAndConsumeOtp(payload.sub, otp.trim());
+    if (!otpValid) {
+      return res.status(400).json({ error: 'Invalid or expired confirmation code.' });
+    }
+
     const payout = await createPayoutRequest({
       investorUserId: payload.sub,
       amountBtc,
-      destinationWallet: destinationWallet.trim()
+      destinationWallet: destinationWallet.trim(),
+      network: typeof network === 'string' && network.trim() ? network.trim() : profile.payoutNetwork
     });
     await createNotification(
       payload.sub,
@@ -596,7 +697,7 @@ app.delete('/api/admin/investors/:id', async (req, res) => {
 app.post('/api/admin/investors/:id/transactions', async (req, res) => {
   try {
     await requireRole(req, 'admin');
-    const { type, amountBtc, amountUsd, status, note } = req.body ?? {};
+    const { type, amountBtc, amountUsd, status, note, network } = req.body ?? {};
 
     if (typeof type !== 'string' || !type.trim()) {
       return res.status(400).json({ error: 'Transaction type is required.' });
@@ -611,9 +712,19 @@ app.post('/api/admin/investors/:id/transactions', async (req, res) => {
       amountBtc,
       amountUsd,
       status: typeof status === 'string' ? status : undefined,
-      note: typeof note === 'string' ? note : undefined
+      note: typeof note === 'string' ? note : undefined,
+      network: typeof network === 'string' ? network : undefined
     });
     res.status(201).json({ transaction });
+
+    if (transaction.type === 'Deposit') {
+      const profile = await getProfile(req.params.id);
+      if (profile?.email) {
+        sendDepositEmail(profile.email, profile.name, transaction.amountBtc, transaction.amountUsd, transaction.network).catch((err) => {
+          console.error('Send deposit email failed:', err);
+        });
+      }
+    }
   } catch (err) {
     if (handleAuthError(err, res)) return;
     console.error('Add transaction failed:', err);

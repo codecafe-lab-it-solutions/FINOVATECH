@@ -306,6 +306,7 @@ export interface InvestorUser {
   referralCode: string;
   referrerName: string;
   payoutBtcAddress: string;
+  payoutNetwork: string;
   bankName: string;
   bankAccountHolder: string;
   bankAccountNumber: string;
@@ -344,6 +345,7 @@ export interface WalletTransaction {
   txid: string;
   explorerUrl: string;
   destination?: string;
+  network: string;
 }
 
 export interface MiningEarningsRow {
@@ -369,6 +371,7 @@ export interface PayoutRecord {
   amountUsd: number;
   currency: 'BTC' | 'USDT';
   destinationWallet: string;
+  network: string;
   txid: string;
   explorerUrl: string;
   status: 'Successful' | 'Pending' | 'Processing' | 'Failed';

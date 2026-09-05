@@ -34,6 +34,7 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
 
   const [formData, setFormData] = useState({
     payoutBtcAddress: user.payoutBtcAddress,
+    payoutNetwork: user.payoutNetwork,
     bankName: user.bankName,
     bankAccountHolder: user.bankAccountHolder,
     bankAccountNumber: user.bankAccountNumber,
@@ -307,6 +308,9 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
             <div className="p-4 rounded-2xl bg-gray-950/80 border border-gray-800 space-y-2">
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-[#F7931A] font-bold">USDT Payout Address:</span>
+                <span className="px-2 py-0.5 rounded-md bg-gray-800 border border-gray-700 text-gray-300 text-[10px] font-bold">
+                  {formData.payoutNetwork} Network
+                </span>
               </div>
               <div className="p-3 rounded-xl bg-gray-900 border border-gray-800 font-mono text-xs text-gray-200 flex items-center justify-between break-all">
                 <span className="text-amber-400 select-all">{formData.payoutBtcAddress}</span>
@@ -318,7 +322,7 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
                 </button>
               </div>
               <div className="text-[11px] text-gray-400 font-mono">
-                Automated weekly mining dividends are disbursed directly to this USDT address.
+                Automated weekly mining dividends are disbursed directly to this USDT address on the {formData.payoutNetwork} network. Sending to the wrong network can permanently lose funds — double-check before saving.
               </div>
             </div>
 
@@ -347,6 +351,19 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
               </div>
             ) : (
               <form onSubmit={handleSaveDetails} className="space-y-3.5 text-xs font-mono">
+
+                <div>
+                  <label className="block text-gray-400 mb-1">USDT Network:</label>
+                  <select
+                    value={formData.payoutNetwork}
+                    onChange={(e) => setFormData({ ...formData, payoutNetwork: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-700 text-white focus:outline-hidden focus:border-[#F7931A]"
+                  >
+                    <option value="TRC20">TRC20 (Tron)</option>
+                    <option value="ERC20">ERC20 (Ethereum)</option>
+                    <option value="BEP20">BEP20 (BNB Smart Chain)</option>
+                  </select>
+                </div>
 
                 <div>
                   <label className="block text-gray-400 mb-1">USDT Payout Address:</label>

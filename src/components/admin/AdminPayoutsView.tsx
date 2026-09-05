@@ -138,6 +138,7 @@ export const AdminPayoutsView: React.FC<AdminPayoutsViewProps> = ({ authToken })
                 <th className="py-3.5 px-3">Investor</th>
                 <th className="py-3.5 px-3 text-right">Amount (BTC)</th>
                 <th className="py-3.5 px-3">Destination Wallet</th>
+                <th className="py-3.5 px-3">Network</th>
                 <th className="py-3.5 px-3">Status</th>
                 <th className="py-3.5 px-4 text-center">Action</th>
               </tr>
@@ -157,6 +158,10 @@ export const AdminPayoutsView: React.FC<AdminPayoutsViewProps> = ({ authToken })
                     <div className="text-gray-300 truncate max-w-[220px] select-all font-mono text-[11px]">
                       {p.destinationWallet}
                     </div>
+                  </td>
+
+                  <td className="py-3.5 px-3 text-gray-400 text-[11px] font-bold">
+                    {p.network || '—'}
                   </td>
 
                   <td className="py-3.5 px-3">
@@ -199,7 +204,7 @@ export const AdminPayoutsView: React.FC<AdminPayoutsViewProps> = ({ authToken })
               ))}
               {!isLoading && filteredPayouts.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-500 font-mono">No payout requests found.</td>
+                  <td colSpan={7} className="py-8 text-center text-gray-500 font-mono">No payout requests found.</td>
                 </tr>
               )}
             </tbody>

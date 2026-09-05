@@ -20,13 +20,15 @@ interface WalletTabProps {
   transactions: WalletTransaction[];
   metrics: InvestorOverviewMetrics;
   user: InvestorUser;
-  onRequestPayout: (amountBtc: number, destinationWallet: string) => Promise<void>;
+  onRequestPayoutOtp: () => Promise<{ ok: true; message: string }>;
+  onRequestPayout: (amountBtc: number, destinationWallet: string, otp: string, network: string) => Promise<void>;
 }
 
 export const WalletTab: React.FC<WalletTabProps> = ({
   transactions,
   metrics,
   user,
+  onRequestPayoutOtp,
   onRequestPayout
 }) => {
   const [copiedTx, setCopiedTx] = useState<string | null>(null);
@@ -34,6 +36,8 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   const [withdrawStep, setWithdrawStep] = useState<1 | 2 | 3>(1);
   const [withdrawAmount, setWithdrawAmount] = useState('0.005');
   const [destinationAddress, setDestinationAddress] = useState(user.payoutBtcAddress);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpMessage, setOtpMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
@@ -53,19 +57,32 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   const handleStartWithdraw = () => {
     setWithdrawStep(1);
     setDestinationAddress(user.payoutBtcAddress);
+    setOtpCode('');
+    setOtpMessage('');
+    setWithdrawError(null);
     setShowWithdrawModal(true);
   };
 
-  const handleStep1Next = (e: React.FormEvent) => {
+  const handleStep1Next = async (e: React.FormEvent) => {
     e.preventDefault();
-    setWithdrawStep(2);
+    setWithdrawError(null);
+    setIsProcessing(true);
+    try {
+      const { message } = await onRequestPayoutOtp();
+      setOtpMessage(message);
+      setWithdrawStep(2);
+    } catch (err) {
+      setWithdrawError(err instanceof Error ? err.message : 'Could not send confirmation code.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleConfirmOtp = async () => {
     setIsProcessing(true);
     setWithdrawError(null);
     try {
-      await onRequestPayout(parseFloat(withdrawAmount), destinationAddress);
+      await onRequestPayout(parseFloat(withdrawAmount), destinationAddress, otpCode.trim(), user.payoutNetwork);
       setWithdrawStep(3);
       setWithdrawSuccess(`Payout request for ${withdrawAmount} BTC submitted and is awaiting admin approval.`);
     } catch (err) {
@@ -213,6 +230,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                 <th className="pb-3 px-3">Type</th>
                 <th className="pb-3 px-3">Amount (BTC)</th>
                 <th className="pb-3 px-3">Amount (USDT)</th>
+                <th className="pb-3 px-3">Network</th>
                 <th className="pb-3 px-3">Status</th>
                 <th className="pb-3 px-3 text-right">Blockchain TXID</th>
               </tr>
@@ -239,6 +257,9 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                   </td>
                   <td className="py-3 px-3 text-gray-300 whitespace-nowrap">
                     {tx.amountUsd >= 0 ? `+$${tx.amountUsd.toFixed(2)}` : `-$${Math.abs(tx.amountUsd).toFixed(2)}`}
+                  </td>
+                  <td className="py-3 px-3 text-gray-400 whitespace-nowrap">
+                    {tx.network || '—'}
                   </td>
                   <td className="py-3 px-3 whitespace-nowrap">
                     <span className={`flex items-center gap-1 font-semibold ${
@@ -338,7 +359,10 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 mb-1">Destination USDT Address:</label>
+                  <div className="flex justify-between text-gray-400 mb-1">
+                    <span>Destination USDT Address:</span>
+                    <span className="text-[#F7931A] font-bold">{user.payoutNetwork} Network</span>
+                  </div>
                   <input
                     type="text"
                     required
@@ -346,6 +370,9 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                     onChange={(e) => setDestinationAddress(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl bg-gray-950 border border-gray-700 text-white focus:outline-hidden focus:border-[#F7931A]"
                   />
+                  <div className="text-[11px] text-gray-500 mt-1">
+                    Sent on the {user.payoutNetwork} network, matching your saved payout address in Investor Profile. Change the network there before withdrawing if this is wrong.
+                  </div>
                 </div>
 
                 <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px]">
@@ -354,9 +381,10 @@ export const WalletTab: React.FC<WalletTabProps> = ({
 
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs cursor-pointer"
+                  disabled={isProcessing}
+                  className="w-full py-3 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs cursor-pointer disabled:opacity-50"
                 >
-                  Review & Confirm →
+                  {isProcessing ? 'Sending Confirmation Code...' : 'Review & Confirm →'}
                 </button>
               </form>
             )}
@@ -364,10 +392,6 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             {/* Step 2: Confirm */}
             {withdrawStep === 2 && (
               <div className="space-y-4 text-xs font-mono">
-                <p className="text-gray-300">
-                  Confirm your payout request before it's submitted for admin review.
-                </p>
-
                 <div className="p-4 rounded-xl bg-gray-950 border border-gray-700 space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Amount:</span>
@@ -377,6 +401,29 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                     <span className="text-gray-400 shrink-0">Destination:</span>
                     <span className="text-amber-200/90 break-all text-right">{destinationAddress}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Network:</span>
+                    <span className="text-white font-bold">{user.payoutNetwork}</span>
+                  </div>
+                </div>
+
+                {otpMessage && (
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[11px]">
+                    {otpMessage}
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-gray-400 mb-1">Confirmation Code:</label>
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value)}
+                    placeholder="6-digit code"
+                    className="w-full px-3 py-2.5 rounded-xl bg-gray-950 border border-gray-700 text-white text-center tracking-[0.3em] focus:outline-hidden focus:border-[#F7931A]"
+                  />
                 </div>
 
                 {withdrawError && (
@@ -388,7 +435,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
 
                 <button
                   type="button"
-                  disabled={isProcessing}
+                  disabled={isProcessing || !otpCode.trim()}
                   onClick={handleConfirmOtp}
                   className="w-full py-3 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                 >

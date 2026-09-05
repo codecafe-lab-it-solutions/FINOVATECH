@@ -18,6 +18,7 @@ export interface InvestorProfile {
   referralCode: string;
   referrerName: string;
   payoutBtcAddress: string;
+  payoutNetwork: string;
   bankName: string;
   bankAccountHolder: string;
   bankAccountNumber: string;
@@ -40,6 +41,7 @@ export interface WalletTransactionRecord {
   amountUsd: number;
   status: string;
   note: string;
+  network: string;
   createdAt: string;
 }
 
@@ -49,6 +51,7 @@ export interface PayoutRecordRow {
   investorName?: string;
   amountBtc: number;
   destinationWallet: string;
+  network: string;
   status: 'Requested' | 'Processing' | 'Completed' | 'Rejected';
   requestedAt: string;
   processedAt: string | null;
@@ -71,6 +74,7 @@ interface ProfileRow extends RowDataPacket {
   referral_code: string;
   referrer_name: string;
   payout_btc_address: string;
+  payout_network: string;
   bank_name: string;
   bank_account_holder: string;
   bank_account_number: string;
@@ -102,6 +106,7 @@ function toProfile(row: ProfileRow): InvestorProfile {
     referralCode: row.referral_code,
     referrerName: row.referrer_name,
     payoutBtcAddress: row.payout_btc_address,
+    payoutNetwork: row.payout_network,
     bankName: row.bank_name,
     bankAccountHolder: row.bank_account_holder,
     bankAccountNumber: row.bank_account_number,
@@ -145,6 +150,14 @@ export async function getProfile(userId: string): Promise<InvestorProfile | unde
   return rows[0] ? toProfile(rows[0]) : undefined;
 }
 
+export async function findUserIdByEmail(email: string): Promise<string | undefined> {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    'SELECT u.id AS id FROM users u JOIN investor_profiles p ON p.user_id = u.id WHERE p.email = ?',
+    [email.trim()]
+  );
+  return rows[0]?.id as string | undefined;
+}
+
 export async function listInvestorProfiles(): Promise<InvestorProfile[]> {
   const [rows] = await pool.query<ProfileRow[]>(`${PROFILE_SELECT} WHERE u.role = 'investor' ORDER BY p.updated_at DESC`);
   return rows.map(toProfile);
@@ -162,6 +175,7 @@ export interface ProfileUpdate {
   maturityDate?: string;
   referrerName?: string;
   payoutBtcAddress?: string;
+  payoutNetwork?: string;
   bankName?: string;
   bankAccountHolder?: string;
   bankAccountNumber?: string;
@@ -187,6 +201,7 @@ const UPDATABLE_COLUMNS: Record<keyof ProfileUpdate, string> = {
   maturityDate: 'maturity_date',
   referrerName: 'referrer_name',
   payoutBtcAddress: 'payout_btc_address',
+  payoutNetwork: 'payout_network',
   bankName: 'bank_name',
   bankAccountHolder: 'bank_account_holder',
   bankAccountNumber: 'bank_account_number',
@@ -231,6 +246,7 @@ interface TxRow extends RowDataPacket {
   amount_usd: string;
   status: string;
   note: string;
+  network: string;
   created_at: string;
 }
 
@@ -243,6 +259,7 @@ function toTransaction(row: TxRow): WalletTransactionRecord {
     amountUsd: Number(row.amount_usd),
     status: row.status,
     note: row.note,
+    network: row.network,
     createdAt: row.created_at
   };
 }
@@ -262,15 +279,17 @@ export async function addTransaction(params: {
   amountUsd: number;
   status?: string;
   note?: string;
+  network?: string;
 }): Promise<WalletTransactionRecord> {
   const id = crypto.randomUUID();
   const createdAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
   const status = params.status || 'Completed';
   const note = params.note || '';
+  const network = params.network || '';
 
   await pool.query(
-    'INSERT INTO wallet_transactions (id, investor_user_id, type, amount_btc, amount_usd, status, note, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [id, params.investorUserId, params.type, params.amountBtc, params.amountUsd, status, note, createdAt]
+    'INSERT INTO wallet_transactions (id, investor_user_id, type, amount_btc, amount_usd, status, note, network, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, params.investorUserId, params.type, params.amountBtc, params.amountUsd, status, note, network, createdAt]
   );
 
   return {
@@ -281,6 +300,7 @@ export async function addTransaction(params: {
     amountUsd: params.amountUsd,
     status,
     note,
+    network,
     createdAt
   };
 }
@@ -291,6 +311,7 @@ interface PayoutRow extends RowDataPacket {
   investor_name?: string;
   amount_btc: string;
   destination_wallet: string;
+  network: string;
   status: PayoutRecordRow['status'];
   requested_at: string;
   processed_at: string | null;
@@ -304,6 +325,7 @@ function toPayout(row: PayoutRow): PayoutRecordRow {
     investorName: row.investor_name,
     amountBtc: Number(row.amount_btc),
     destinationWallet: row.destination_wallet,
+    network: row.network,
     status: row.status,
     requestedAt: row.requested_at,
     processedAt: row.processed_at,
@@ -332,13 +354,15 @@ export async function createPayoutRequest(params: {
   investorUserId: string;
   amountBtc: number;
   destinationWallet: string;
+  network?: string;
 }): Promise<PayoutRecordRow> {
   const id = crypto.randomUUID();
   const requestedAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  const network = params.network || '';
 
   await pool.query(
-    'INSERT INTO payouts (id, investor_user_id, amount_btc, destination_wallet, status, requested_at, notes) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [id, params.investorUserId, params.amountBtc, params.destinationWallet, 'Requested', requestedAt, '']
+    'INSERT INTO payouts (id, investor_user_id, amount_btc, destination_wallet, network, status, requested_at, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, params.investorUserId, params.amountBtc, params.destinationWallet, network, 'Requested', requestedAt, '']
   );
 
   return {
@@ -346,6 +370,7 @@ export async function createPayoutRequest(params: {
     investorUserId: params.investorUserId,
     amountBtc: params.amountBtc,
     destinationWallet: params.destinationWallet,
+    network,
     status: 'Requested',
     requestedAt,
     processedAt: null,

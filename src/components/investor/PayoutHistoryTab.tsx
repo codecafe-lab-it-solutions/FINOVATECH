@@ -108,6 +108,7 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts }) =
                 <th className="pb-3 px-3">Amount (BTC)</th>
                 <th className="pb-3 px-3">Value (USDT)</th>
                 <th className="pb-3 px-3">Destination Wallet</th>
+                <th className="pb-3 px-3">Network</th>
                 <th className="pb-3 px-3">Status</th>
                 <th className="pb-3 px-3 text-right">Transaction</th>
               </tr>
@@ -124,9 +125,18 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts }) =
                       {row.destinationWallet.slice(0, 8)}...{row.destinationWallet.slice(-6)}
                     </span>
                   </td>
+                  <td className="py-3.5 px-3 text-gray-400 whitespace-nowrap">
+                    {row.network || '—'}
+                  </td>
                   <td className="py-3.5 px-3 whitespace-nowrap">
-                    <span className="inline-flex items-center gap-1 text-emerald-400 text-[10px] font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                      <CheckCircle2 className="w-3 h-3" />
+                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded border ${
+                      row.status === 'Successful'
+                        ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                        : row.status === 'Failed'
+                          ? 'text-rose-400 bg-rose-500/10 border-rose-500/20'
+                          : 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                    }`}>
+                      {row.status === 'Successful' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                       <span>{row.status}</span>
                     </span>
                   </td>

@@ -18,6 +18,7 @@ export function profileToUser(p: ApiInvestorProfile): InvestorUser {
     referralCode: p.referralCode || `FINO-${p.username.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)}`,
     referrerName: p.referrerName || 'N/A',
     payoutBtcAddress: p.payoutBtcAddress || 'Not set',
+    payoutNetwork: p.payoutNetwork || 'TRC20',
     bankName: p.bankName || 'Not set',
     bankAccountHolder: p.bankAccountHolder || 'Not set',
     bankAccountNumber: p.bankAccountNumber || 'Not set',
@@ -66,7 +67,8 @@ export function transactionToWallet(t: ApiWalletTransaction): WalletTransaction 
     status: t.status === 'Completed' || t.status === 'Pending' || t.status === 'Processing' ? t.status : 'Completed',
     txid: '',
     explorerUrl: '',
-    destination: undefined
+    destination: undefined,
+    network: t.network || ''
   };
 }
 
@@ -92,6 +94,7 @@ export function payoutToRecord(p: ApiPayout, btcPriceUsd: number): PayoutRecord 
     amountUsd: p.amountBtc * btcPriceUsd,
     currency: 'BTC',
     destinationWallet: p.destinationWallet,
+    network: p.network || '',
     txid: '',
     explorerUrl: '',
     status: mapPayoutStatus(p.status),
