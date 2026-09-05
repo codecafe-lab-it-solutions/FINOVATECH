@@ -1,7 +1,9 @@
 import 'dotenv/config';
 import path from 'node:path';
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import express from 'express';
+import multer from 'multer';
 import bcrypt from 'bcryptjs';
 import { createUser, findUserById, findUserByUsername, seedIfEmpty, updateCredentials, deleteInvestor } from './db';
 import { initSchema } from './database';
@@ -56,6 +58,16 @@ import {
   listMonthlyStatements
 } from './investorExtras';
 import { getBtcMarketData } from './market';
+import {
+  listDepositAddresses,
+  getActiveDepositAddressForInvestor,
+  createDepositAddress,
+  createDepositRequest,
+  listDepositRequestsForInvestor,
+  listAllDepositRequests,
+  getDepositRequest,
+  updateDepositRequestStatus
+} from './deposits';
 
 const app = express();
 app.use(express.json());
@@ -65,6 +77,23 @@ app.use(express.json());
 // to point a reverse proxy at.
 const DIST_DIR = path.resolve(process.cwd(), 'dist');
 const isProduction = process.env.NODE_ENV === 'production';
+
+// Deposit proof screenshots — stored on disk, served only through the
+// auth-gated /api/deposit-proof/:id route below, never as a public static dir.
+const DEPOSIT_PROOFS_DIR = path.resolve(process.cwd(), 'server', 'uploads', 'deposit-proofs');
+fs.mkdirSync(DEPOSIT_PROOFS_DIR, { recursive: true });
+
+const uploadDepositProof = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, DEPOSIT_PROOFS_DIR),
+    filename: (req, file, cb) => cb(null, `${crypto.randomUUID()}${path.extname(file.originalname) || '.png'}`)
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (/^image\/(png|jpe?g|webp)$/.test(file.mimetype)) cb(null, true);
+    else cb(new Error('Only PNG, JPG, or WEBP images are allowed.'));
+  }
+});
 
 const PORT = process.env.API_PORT ? Number(process.env.API_PORT) : 8787;
 
@@ -445,6 +474,200 @@ app.post('/api/investor/payouts', async (req, res) => {
     if (handleAuthError(err, res)) return;
     console.error('Create payout request failed:', err);
     res.status(500).json({ error: 'Could not submit payout request.' });
+  }
+});
+
+// --- Investor self-service deposits ---
+
+app.get('/api/investor/deposit-address', async (req, res) => {
+  try {
+    const payload = await requireRole(req, 'investor');
+    const address = await getActiveDepositAddressForInvestor(payload.sub);
+    if (!address) {
+      return res.status(404).json({ error: 'No deposit address is currently available for your account. Contact support.' });
+    }
+    res.json({ address: { address: address.address, network: address.network } });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Fetch deposit address failed:', err);
+    res.status(500).json({ error: 'Could not load deposit address.' });
+  }
+});
+
+app.post('/api/investor/deposit-requests', uploadDepositProof.single('proof'), async (req, res) => {
+  try {
+    const payload = await requireRole(req, 'investor');
+    const { amountUsd } = req.body ?? {};
+    const amount = Number(amountUsd);
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Enter a valid deposit amount.' });
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'Attach a screenshot of your payment.' });
+    }
+
+    const address = await getActiveDepositAddressForInvestor(payload.sub);
+    if (!address) {
+      return res.status(400).json({ error: 'No deposit address is currently available for your account.' });
+    }
+
+    const request = await createDepositRequest({
+      investorUserId: payload.sub,
+      amountUsd: amount,
+      depositAddress: address.address,
+      network: address.network,
+      proofFilename: req.file.filename
+    });
+
+    res.status(201).json({ request });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Create deposit request failed:', err);
+    res.status(500).json({ error: 'Could not submit deposit request.' });
+  }
+});
+
+app.get('/api/investor/deposit-requests', async (req, res) => {
+  try {
+    const payload = await requireRole(req, 'investor');
+    const requests = await listDepositRequestsForInvestor(payload.sub);
+    res.json({ requests });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('List deposit requests failed:', err);
+    res.status(500).json({ error: 'Could not load deposit requests.' });
+  }
+});
+
+app.get('/api/deposit-proof/:requestId', async (req, res) => {
+  try {
+    const payload = await requireAuth(req);
+    const request = await getDepositRequest(req.params.requestId);
+    if (!request) return res.status(404).json({ error: 'Not found.' });
+    if (payload.role !== 'admin' && payload.sub !== request.investorUserId) {
+      return res.status(403).json({ error: 'You do not have permission to view this.' });
+    }
+    const filePath = path.join(DEPOSIT_PROOFS_DIR, request.proofFilename);
+    if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'File not found.' });
+    res.sendFile(filePath);
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Serve deposit proof failed:', err);
+    res.status(500).json({ error: 'Could not load proof image.' });
+  }
+});
+
+// --- Admin: deposit address configuration & deposit request review ---
+
+app.get('/api/admin/deposit-addresses', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    const addresses = await listDepositAddresses();
+    res.json({ addresses });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('List deposit addresses failed:', err);
+    res.status(500).json({ error: 'Could not load deposit addresses.' });
+  }
+});
+
+app.post('/api/admin/deposit-addresses', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    const { address, network, visibility, visibleInvestorIds } = req.body ?? {};
+
+    if (typeof address !== 'string' || !address.trim()) {
+      return res.status(400).json({ error: 'Deposit address is required.' });
+    }
+    if (typeof network !== 'string' || !network.trim()) {
+      return res.status(400).json({ error: 'Network is required.' });
+    }
+    if (visibility !== 'All' && visibility !== 'Specific') {
+      return res.status(400).json({ error: 'Invalid visibility.' });
+    }
+    if (visibility === 'Specific' && (!Array.isArray(visibleInvestorIds) || visibleInvestorIds.length === 0)) {
+      return res.status(400).json({ error: 'Select at least one investor for specific visibility.' });
+    }
+
+    const created = await createDepositAddress({
+      address: address.trim(),
+      network: network.trim(),
+      visibility,
+      visibleInvestorIds: visibility === 'Specific' ? visibleInvestorIds : undefined
+    });
+    res.status(201).json({ address: created });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Create deposit address failed:', err);
+    res.status(500).json({ error: 'Could not save deposit address.' });
+  }
+});
+
+app.get('/api/admin/deposit-requests', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    const requests = await listAllDepositRequests();
+    res.json({ requests });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('List all deposit requests failed:', err);
+    res.status(500).json({ error: 'Could not load deposit requests.' });
+  }
+});
+
+app.patch('/api/admin/deposit-requests/:id', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    const { status, adminNote } = req.body ?? {};
+
+    if (status !== 'Approved' && status !== 'Rejected') {
+      return res.status(400).json({ error: 'Status must be Approved or Rejected.' });
+    }
+
+    const existing = await getDepositRequest(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Deposit request not found.' });
+    if (existing.status !== 'Pending') {
+      return res.status(400).json({ error: 'This request has already been reviewed.' });
+    }
+
+    const updated = await updateDepositRequestStatus(req.params.id, status, typeof adminNote === 'string' ? adminNote : undefined);
+
+    if (status === 'Approved') {
+      await addTransaction({
+        investorUserId: updated.investorUserId,
+        type: 'Deposit',
+        amountBtc: 0,
+        amountUsd: updated.amountUsd,
+        network: updated.network,
+        note: `Self-service deposit ${updated.referenceNumber}`
+      });
+      const profile = await getProfile(updated.investorUserId);
+      if (profile?.email) {
+        sendDepositEmail(profile.email, profile.name, 0, updated.amountUsd, updated.network).catch((err) => {
+          console.error('Send deposit email failed:', err);
+        });
+      }
+      await createNotification(
+        updated.investorUserId,
+        'Deposit Approved',
+        `Your deposit request ${updated.referenceNumber} for $${updated.amountUsd.toLocaleString()} has been approved and added to your transaction history.`,
+        'deposit'
+      );
+    } else {
+      await createNotification(
+        updated.investorUserId,
+        'Deposit Rejected',
+        `Your deposit request ${updated.referenceNumber} was rejected.${adminNote ? ` Reason: ${adminNote}` : ''}`,
+        'deposit'
+      );
+    }
+
+    res.json({ request: updated });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Update deposit request failed:', err);
+    res.status(500).json({ error: 'Could not update deposit request.' });
   }
 });
 

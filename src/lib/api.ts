@@ -213,6 +213,106 @@ export async function requestPayoutApi(
   return handleResponse(res);
 }
 
+// --- Investor self-service deposits ---
+
+export interface ApiDepositRequest {
+  id: string;
+  investorUserId: string;
+  investorName?: string;
+  referenceNumber: string;
+  amountUsd: number;
+  depositAddress: string;
+  network: string;
+  proofFilename: string;
+  status: 'Pending' | 'Approved' | 'Rejected';
+  adminNote: string;
+  createdAt: string;
+  reviewedAt: string | null;
+}
+
+export async function fetchInvestorDepositAddress(
+  token: string
+): Promise<{ address: { address: string; network: string } }> {
+  const res = await fetch('/api/investor/deposit-address', { headers: authHeaders(token) });
+  return handleResponse(res);
+}
+
+export async function submitDepositRequest(
+  token: string,
+  amountUsd: number,
+  proofFile: File
+): Promise<{ request: ApiDepositRequest }> {
+  const formData = new FormData();
+  formData.append('amountUsd', String(amountUsd));
+  formData.append('proof', proofFile);
+  const res = await fetch('/api/investor/deposit-requests', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: formData
+  });
+  return handleResponse(res);
+}
+
+export async function fetchInvestorDepositRequests(token: string): Promise<{ requests: ApiDepositRequest[] }> {
+  const res = await fetch('/api/investor/deposit-requests', { headers: authHeaders(token) });
+  return handleResponse(res);
+}
+
+export async function fetchDepositProofUrl(token: string, requestId: string): Promise<string> {
+  const res = await fetch(`/api/deposit-proof/${requestId}`, { headers: authHeaders(token) });
+  if (!res.ok) throw new ApiError('Could not load proof image.');
+  const blob = await res.blob();
+  return URL.createObjectURL(blob);
+}
+
+// --- Admin: deposit address configuration & review ---
+
+export interface ApiDepositAddress {
+  id: string;
+  address: string;
+  network: string;
+  isActive: boolean;
+  visibility: 'All' | 'Specific';
+  visibleInvestorIds: string[];
+  createdAt: string;
+}
+
+export async function fetchAdminDepositAddresses(token: string): Promise<{ addresses: ApiDepositAddress[] }> {
+  const res = await fetch('/api/admin/deposit-addresses', { headers: authHeaders(token) });
+  return handleResponse(res);
+}
+
+export async function createAdminDepositAddress(
+  token: string,
+  payload: { address: string; network: string; visibility: 'All' | 'Specific'; visibleInvestorIds?: string[] }
+): Promise<{ address: ApiDepositAddress }> {
+  const res = await fetch('/api/admin/deposit-addresses', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+    body: JSON.stringify(payload)
+  });
+  return handleResponse(res);
+}
+
+export async function fetchAdminDepositRequests(token: string): Promise<{ requests: ApiDepositRequest[] }> {
+  const res = await fetch('/api/admin/deposit-requests', { headers: authHeaders(token) });
+  return handleResponse(res);
+}
+
+export async function updateAdminDepositRequestStatus(
+  token: string,
+  requestId: string,
+  status: 'Approved' | 'Rejected',
+  adminNote?: string
+): Promise<{ request: ApiDepositRequest }> {
+  const res = await fetch(`/api/admin/deposit-requests/${requestId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+    body: JSON.stringify({ status, adminNote })
+  });
+  return handleResponse(res);
+}
+
 // --- Admin management of investors ---
 
 export async function fetchAdminInvestors(token: string): Promise<{ investors: ApiInvestorProfile[] }> {

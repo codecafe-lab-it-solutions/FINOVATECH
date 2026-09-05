@@ -18,6 +18,7 @@ export type AdminTab =
   | 'investor-allocations'
   | 'investments-list'
   | 'investment-transactions'
+  | 'deposit-requests'
   | 'contracts-documents'
   | 'mining-overview'
   | 'mining-farms'

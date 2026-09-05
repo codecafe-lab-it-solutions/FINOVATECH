@@ -40,6 +40,9 @@ import {
   requestPayoutOtpApi,
   updateInvestorProfileApi,
   fetchBtcMarketData,
+  fetchInvestorDepositAddress,
+  submitDepositRequest,
+  fetchInvestorDepositRequests,
   ApiEarningRow,
   ApiMonthlyStatement,
   ApiNotification,
@@ -48,6 +51,7 @@ import {
   ApiReferredInvestor,
   ApiMachine,
   ApiDocument,
+  ApiDepositRequest,
   BtcMarketData
 } from '../../lib/api';
 import { profileToUser, profileToMetrics, transactionToWallet, payoutToRecord } from '../../lib/investorMappers';
@@ -84,6 +88,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
   const [referredUsers, setReferredUsers] = useState<ApiReferredInvestor[]>([]);
   const [machines, setMachines] = useState<ApiMachine[]>([]);
   const [documents, setDocuments] = useState<ApiDocument[]>([]);
+  const [depositRequests, setDepositRequests] = useState<ApiDepositRequest[]>([]);
   const [btcMarket, setBtcMarket] = useState<BtcMarketData | null>(null);
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -133,11 +138,16 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
     fetchInvestorTickets(authToken).then(({ tickets }) => setTickets(tickets)).catch(() => {});
   }, [authToken]);
 
+  const loadDepositRequests = useCallback(() => {
+    return fetchInvestorDepositRequests(authToken).then(({ requests }) => setDepositRequests(requests)).catch(() => {});
+  }, [authToken]);
+
   useEffect(() => {
     loadPortfolio();
     loadNotifications();
     loadSessions();
     loadTickets();
+    loadDepositRequests();
     fetchInvestorEarnings(authToken).then(({ earnings }) => setEarnings(earnings)).catch(() => {});
     fetchInvestorStatements(authToken).then(({ statements }) => setStatements(statements)).catch(() => {});
     fetchInvestorReferrals(authToken).then(({ referralCode, referredUsers }) => {
@@ -146,7 +156,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
     }).catch(() => {});
     fetchInvestorMachines(authToken).then(({ machines }) => setMachines(machines)).catch(() => {});
     fetchInvestorDocuments(authToken).then(({ documents }) => setDocuments(documents)).catch(() => {});
-  }, [authToken, loadPortfolio, loadNotifications, loadSessions, loadTickets]);
+  }, [authToken, loadPortfolio, loadNotifications, loadSessions, loadTickets, loadDepositRequests]);
 
   // Keeps the navbar's live BTC ticker fresh between full portfolio reloads.
   useEffect(() => {
@@ -165,6 +175,17 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
     await requestPayoutApi(authToken, amountBtc, destinationWallet, otp, network);
     await loadPortfolio();
     loadNotifications();
+  };
+
+  const handleFetchDepositAddress = async () => {
+    const { address } = await fetchInvestorDepositAddress(authToken);
+    return address;
+  };
+
+  const handleSubmitDeposit = async (amountUsd: number, proofFile: File) => {
+    const { request } = await submitDepositRequest(authToken, amountUsd, proofFile);
+    await loadDepositRequests();
+    return { referenceNumber: request.referenceNumber };
   };
 
   // Investors may edit their own contact/banking/payout details — KYC
@@ -335,8 +356,11 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
               transactions={transactions}
               metrics={metrics}
               user={user}
+              depositRequests={depositRequests}
               onRequestPayoutOtp={handleRequestPayoutOtp}
               onRequestPayout={handleRequestPayout}
+              onFetchDepositAddress={handleFetchDepositAddress}
+              onSubmitDeposit={handleSubmitDeposit}
             />
           )}
 

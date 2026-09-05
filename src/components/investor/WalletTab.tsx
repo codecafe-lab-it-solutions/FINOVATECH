@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  Wallet, 
-  ArrowUpRight, 
-  ArrowDownLeft, 
+import {
+  Wallet,
+  ArrowUpRight,
+  ArrowDownLeft,
   ExternalLink,
   CheckCircle2,
   Clock,
@@ -12,24 +12,33 @@ import {
   Coins,
   Send,
   X,
-  RefreshCw
+  RefreshCw,
+  ArrowDownToLine,
+  Upload
 } from 'lucide-react';
 import { WalletTransaction, InvestorOverviewMetrics, InvestorUser } from '../../types';
+import { ApiDepositRequest } from '../../lib/api';
 
 interface WalletTabProps {
   transactions: WalletTransaction[];
   metrics: InvestorOverviewMetrics;
   user: InvestorUser;
+  depositRequests: ApiDepositRequest[];
   onRequestPayoutOtp: () => Promise<{ ok: true; message: string }>;
   onRequestPayout: (amountBtc: number, destinationWallet: string, otp: string, network: string) => Promise<void>;
+  onFetchDepositAddress: () => Promise<{ address: string; network: string }>;
+  onSubmitDeposit: (amountUsd: number, proofFile: File) => Promise<{ referenceNumber: string }>;
 }
 
 export const WalletTab: React.FC<WalletTabProps> = ({
   transactions,
   metrics,
   user,
+  depositRequests,
   onRequestPayoutOtp,
-  onRequestPayout
+  onRequestPayout,
+  onFetchDepositAddress,
+  onSubmitDeposit
 }) => {
   const [copiedTx, setCopiedTx] = useState<string | null>(null);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -41,6 +50,16 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
+
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [depositStep, setDepositStep] = useState<1 | 2 | 3>(1);
+  const [depositAmount, setDepositAmount] = useState('');
+  const [depositAddressInfo, setDepositAddressInfo] = useState<{ address: string; network: string } | null>(null);
+  const [depositProofFile, setDepositProofFile] = useState<File | null>(null);
+  const [depositReference, setDepositReference] = useState('');
+  const [isDepositing, setIsDepositing] = useState(false);
+  const [depositError, setDepositError] = useState<string | null>(null);
+  const [copiedDepositAddress, setCopiedDepositAddress] = useState(false);
 
   const availableBtc = metrics.totalBtcAllocated;
   const pendingBtc = metrics.btcPendingAccrued;
@@ -92,6 +111,56 @@ export const WalletTab: React.FC<WalletTabProps> = ({
     }
   };
 
+  const handleStartDeposit = async () => {
+    setDepositStep(1);
+    setDepositAmount('');
+    setDepositProofFile(null);
+    setDepositReference('');
+    setDepositError(null);
+    setShowDepositModal(true);
+    try {
+      const address = await onFetchDepositAddress();
+      setDepositAddressInfo(address);
+    } catch (err) {
+      setDepositError(err instanceof Error ? err.message : 'Could not load deposit address.');
+    }
+  };
+
+  const handleDepositStep1Next = (e: React.FormEvent) => {
+    e.preventDefault();
+    setDepositError(null);
+    if (!parseFloat(depositAmount) || parseFloat(depositAmount) <= 0) {
+      setDepositError('Enter a valid deposit amount.');
+      return;
+    }
+    setDepositStep(2);
+  };
+
+  const handleSubmitDeposit = async () => {
+    if (!depositProofFile) {
+      setDepositError('Attach a screenshot of your payment.');
+      return;
+    }
+    setIsDepositing(true);
+    setDepositError(null);
+    try {
+      const { referenceNumber } = await onSubmitDeposit(parseFloat(depositAmount), depositProofFile);
+      setDepositReference(referenceNumber);
+      setDepositStep(3);
+    } catch (err) {
+      setDepositError(err instanceof Error ? err.message : 'Could not submit deposit request.');
+    } finally {
+      setIsDepositing(false);
+    }
+  };
+
+  const handleCopyDepositAddress = () => {
+    if (!depositAddressInfo) return;
+    navigator.clipboard.writeText(depositAddressInfo.address);
+    setCopiedDepositAddress(true);
+    setTimeout(() => setCopiedDepositAddress(false), 2000);
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in">
       
@@ -111,6 +180,13 @@ export const WalletTab: React.FC<WalletTabProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={handleStartDeposit}
+            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs font-mono flex items-center gap-2 cursor-pointer transition-all shadow-md"
+          >
+            <ArrowDownToLine className="w-3.5 h-3.5" />
+            <span>Deposit</span>
+          </button>
           <button
             onClick={handleStartWithdraw}
             className="px-4 py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono flex items-center gap-2 cursor-pointer transition-all shadow-md"
@@ -300,6 +376,202 @@ export const WalletTab: React.FC<WalletTabProps> = ({
           </table>
         </div>
       </div>
+
+      {/* Deposit Request History */}
+      {depositRequests.length > 0 && (
+        <div className="p-6 rounded-3xl bg-gray-900/90 border border-gray-800 text-white space-y-4">
+          <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
+            <ArrowDownToLine className="w-4 h-4 text-emerald-400" />
+            <span className="text-sm font-bold uppercase tracking-wider font-mono">
+              Deposit Requests
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs font-mono">
+              <thead>
+                <tr className="border-b border-gray-800 text-gray-400 uppercase text-[10px]">
+                  <th className="pb-3 px-3">Reference</th>
+                  <th className="pb-3 px-3">Amount (USD)</th>
+                  <th className="pb-3 px-3">Network</th>
+                  <th className="pb-3 px-3">Status</th>
+                  <th className="pb-3 px-3">Submitted</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-800/60">
+                {depositRequests.map((r) => (
+                  <tr key={r.id} className="hover:bg-gray-800/40">
+                    <td className="py-3 px-3 text-[#F7931A] font-bold whitespace-nowrap">{r.referenceNumber}</td>
+                    <td className="py-3 px-3 text-white whitespace-nowrap">${r.amountUsd.toLocaleString()}</td>
+                    <td className="py-3 px-3 text-gray-400 whitespace-nowrap">{r.network}</td>
+                    <td className="py-3 px-3 whitespace-nowrap">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        r.status === 'Approved' ? 'bg-emerald-500/20 text-emerald-300' :
+                        r.status === 'Rejected' ? 'bg-rose-500/20 text-rose-300' :
+                        'bg-amber-500/20 text-amber-300'
+                      }`}>{r.status}</span>
+                    </td>
+                    <td className="py-3 px-3 text-gray-400 whitespace-nowrap">{r.createdAt}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Multi-Step Deposit Modal */}
+      {showDepositModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="w-full max-w-lg p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white shadow-2xl space-y-5 animate-in zoom-in-95">
+
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+              <div className="flex items-center gap-2">
+                <ArrowDownToLine className="w-5 h-5 text-emerald-400" />
+                <span className="font-bold text-sm uppercase tracking-wider font-mono">
+                  Deposit USDT
+                </span>
+              </div>
+              <button
+                onClick={() => setShowDepositModal(false)}
+                className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Step Indicators */}
+            <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono">
+              <div className={`p-2 rounded-lg ${depositStep === 1 ? 'bg-emerald-600 text-white font-bold' : 'bg-gray-800 text-gray-400'}`}>
+                1. Amount & Address
+              </div>
+              <div className={`p-2 rounded-lg ${depositStep === 2 ? 'bg-emerald-600 text-white font-bold' : 'bg-gray-800 text-gray-400'}`}>
+                2. Attach Proof
+              </div>
+              <div className={`p-2 rounded-lg ${depositStep === 3 ? 'bg-emerald-600 text-white font-bold' : 'bg-gray-800 text-gray-400'}`}>
+                3. Submitted
+              </div>
+            </div>
+
+            {depositError && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{depositError}</span>
+              </div>
+            )}
+
+            {/* Step 1: Amount + Address */}
+            {depositStep === 1 && (
+              <form onSubmit={handleDepositStep1Next} className="space-y-4 text-xs font-mono">
+                {depositAddressInfo ? (
+                  <div className="p-4 rounded-xl bg-gray-950 border border-gray-700 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-400">Send USDT to:</span>
+                      <span className="text-emerald-400 font-bold">{depositAddressInfo.network} Network</span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-gray-900 border border-gray-800">
+                      <span className="text-amber-400 select-all break-all">{depositAddressInfo.address}</span>
+                      <button type="button" onClick={handleCopyDepositAddress} className="text-gray-400 hover:text-white cursor-pointer shrink-0">
+                        {copiedDepositAddress ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl bg-gray-950 border border-gray-700 text-gray-500 text-center">
+                    Loading deposit address...
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-gray-400 mb-1">Amount You're Depositing (USD):</label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    required
+                    value={depositAmount}
+                    onChange={(e) => setDepositAmount(e.target.value)}
+                    placeholder="e.g. 500"
+                    className="w-full px-3 py-2.5 rounded-xl bg-gray-950 border border-gray-700 text-white focus:outline-hidden focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px]">
+                  Send this amount to the address above from your own wallet first, then continue to attach proof of payment.
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!depositAddressInfo}
+                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs cursor-pointer disabled:opacity-50"
+                >
+                  I've Sent The Payment →
+                </button>
+              </form>
+            )}
+
+            {/* Step 2: Attach Proof */}
+            {depositStep === 2 && (
+              <div className="space-y-4 text-xs font-mono">
+                <p className="text-gray-300">
+                  Attach a screenshot of your payment confirmation for <strong className="text-white">${depositAmount}</strong>.
+                </p>
+
+                <label className="flex flex-col items-center justify-center gap-2 p-6 rounded-xl bg-gray-950 border-2 border-dashed border-gray-700 hover:border-emerald-500 cursor-pointer transition-colors">
+                  <Upload className="w-6 h-6 text-gray-500" />
+                  <span className="text-gray-400 text-center">
+                    {depositProofFile ? depositProofFile.name : 'Click to select a screenshot (PNG, JPG, or WEBP)'}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    onChange={(e) => setDepositProofFile(e.target.files?.[0] ?? null)}
+                  />
+                </label>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDepositStep(1)}
+                    className="py-2.5 px-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 cursor-pointer"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isDepositing || !depositProofFile}
+                    onClick={handleSubmitDeposit}
+                    className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {isDepositing ? 'Submitting...' : 'Submit Deposit Request'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Success */}
+            {depositStep === 3 && (
+              <div className="text-center space-y-3 py-2 text-xs font-mono">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <h4 className="text-base font-bold text-white">Deposit Request Submitted</h4>
+                <p className="text-gray-300">
+                  Your reference number is <strong className="text-emerald-400">{depositReference}</strong>. It's now awaiting admin review — you'll see it credited to your account once approved.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowDepositModal(false)}
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs cursor-pointer mt-2"
+                >
+                  Return to Wallet
+                </button>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
 
       {/* Multi-Step Withdrawal Modal */}
       {showWithdrawModal && (
