@@ -120,11 +120,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     },
     {
       title: 'CRM & COMMUNICATIONS',
-      hidden: true,
       items: [
-        { id: 'support-crm', label: 'Support / CRM Tickets', icon: Headphones, badge: openTicketCount, badgeColor: 'bg-blue-500 text-white' },
+        { id: 'support-crm', label: 'Support / CRM Tickets', icon: Headphones, badge: openTicketCount, badgeColor: 'bg-blue-500 text-white', hidden: true },
         { id: 'notifications-center', label: 'Communication Center', icon: Bell },
-        { id: 'reports-financial', label: 'Reports & Analytics', icon: PieChart }
+        { id: 'reports-financial', label: 'Reports & Analytics', icon: PieChart, hidden: true }
       ]
     },
     {

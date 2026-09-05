@@ -21,7 +21,8 @@ import {
   ProfileUpdate
 } from './investors';
 import { createOtpForUser, verifyAndConsumeOtp } from './passwordReset';
-import { sendWelcomeEmail, sendOtpEmail, sendWithdrawalOtpEmail, sendDepositEmail } from './mailer';
+import { sendWelcomeEmail, sendOtpEmail, sendWithdrawalOtpEmail, sendDepositEmail, sendAnnouncementEmail } from './mailer';
+import { recordBroadcast, listBroadcasts } from './broadcasts';
 import {
   listPlans,
   createPlan,
@@ -623,6 +624,82 @@ app.get('/api/investor/documents', async (req, res) => {
     if (handleAuthError(err, res)) return;
     console.error('Fetch investor documents failed:', err);
     res.status(500).json({ error: 'Could not load documents.' });
+  }
+});
+
+// --- Admin broadcast / communication center ---
+
+app.post('/api/admin/broadcast', async (req, res) => {
+  try {
+    const payload = await requireRole(req, 'admin');
+    const { title, message, recipientType, recipientIds, sendEmail } = req.body ?? {};
+
+    if (typeof title !== 'string' || !title.trim()) {
+      return res.status(400).json({ error: 'Title is required.' });
+    }
+    if (typeof message !== 'string' || !message.trim()) {
+      return res.status(400).json({ error: 'Message is required.' });
+    }
+    if (recipientType !== 'All' && recipientType !== 'Specific') {
+      return res.status(400).json({ error: 'Invalid recipient type.' });
+    }
+
+    const allInvestors = await listInvestorProfiles();
+    let targets = allInvestors;
+    if (recipientType === 'Specific') {
+      if (!Array.isArray(recipientIds) || recipientIds.length === 0) {
+        return res.status(400).json({ error: 'Select at least one investor.' });
+      }
+      const idSet = new Set(recipientIds);
+      targets = allInvestors.filter((inv) => idSet.has(inv.userId));
+    }
+    if (targets.length === 0) {
+      return res.status(400).json({ error: 'No matching investors to notify.' });
+    }
+
+    const trimmedTitle = title.trim();
+    const trimmedMessage = message.trim();
+
+    for (const inv of targets) {
+      await createNotification(inv.userId, trimmedTitle, trimmedMessage, 'announcement');
+    }
+
+    if (sendEmail) {
+      for (const inv of targets) {
+        if (inv.email) {
+          sendAnnouncementEmail(inv.email, inv.name, trimmedTitle, trimmedMessage).catch((err) => {
+            console.error('Send broadcast email failed:', err);
+          });
+        }
+      }
+    }
+
+    const broadcast = await recordBroadcast({
+      title: trimmedTitle,
+      message: trimmedMessage,
+      recipientType,
+      recipientCount: targets.length,
+      emailSent: !!sendEmail,
+      sentBy: payload.name
+    });
+
+    res.status(201).json({ broadcast });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Broadcast failed:', err);
+    res.status(500).json({ error: 'Could not send broadcast.' });
+  }
+});
+
+app.get('/api/admin/broadcasts', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    const broadcasts = await listBroadcasts();
+    res.json({ broadcasts });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('List broadcasts failed:', err);
+    res.status(500).json({ error: 'Could not load broadcasts.' });
   }
 });
 

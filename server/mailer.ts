@@ -79,6 +79,26 @@ export async function sendWithdrawalOtpEmail(to: string, name: string, otp: stri
   );
 }
 
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\n/g, '<br>');
+}
+
+export async function sendAnnouncementEmail(to: string, name: string, title: string, message: string): Promise<void> {
+  await sendMail(
+    to,
+    title,
+    WRAPPER(
+      escapeHtml(title),
+      `<p>Hi ${name},</p>
+       <div style="color: #374151;">${escapeHtml(message)}</div>`
+    )
+  );
+}
+
 export async function sendDepositEmail(
   to: string,
   name: string,

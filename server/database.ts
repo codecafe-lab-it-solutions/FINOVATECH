@@ -239,6 +239,21 @@ export async function initSchema(): Promise<void> {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
   `);
 
+  // Real record of every admin broadcast sent — backs the Communication
+  // Center's history table with actual sends, not fabricated ones.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_broadcasts (
+      id CHAR(36) PRIMARY KEY,
+      title VARCHAR(200) NOT NULL,
+      message VARCHAR(2000) NOT NULL,
+      recipient_type ENUM('All', 'Specific') NOT NULL,
+      recipient_count INT NOT NULL DEFAULT 0,
+      email_sent BOOLEAN NOT NULL DEFAULT FALSE,
+      sent_by VARCHAR(120) NOT NULL DEFAULT '',
+      created_at DATETIME NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+  `);
+
   // Added after the tables above already existed in production — these three
   // calls are no-ops once the columns are in place, so this stays safe to
   // run on every boot rather than needing a one-off migration script.

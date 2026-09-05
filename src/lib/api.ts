@@ -249,6 +249,34 @@ export async function deleteAdminInvestor(token: string, investorUserId: string)
   return handleResponse(res);
 }
 
+export interface ApiBroadcast {
+  id: string;
+  title: string;
+  message: string;
+  recipientType: 'All' | 'Specific';
+  recipientCount: number;
+  emailSent: boolean;
+  sentBy: string;
+  createdAt: string;
+}
+
+export async function sendAdminBroadcast(
+  token: string,
+  payload: { title: string; message: string; recipientType: 'All' | 'Specific'; recipientIds?: string[]; sendEmail: boolean }
+): Promise<{ broadcast: ApiBroadcast }> {
+  const res = await fetch('/api/admin/broadcast', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+    body: JSON.stringify(payload)
+  });
+  return handleResponse(res);
+}
+
+export async function fetchAdminBroadcasts(token: string): Promise<{ broadcasts: ApiBroadcast[] }> {
+  const res = await fetch('/api/admin/broadcasts', { headers: authHeaders(token) });
+  return handleResponse(res);
+}
+
 export async function addAdminInvestorTransaction(
   token: string,
   investorUserId: string,
