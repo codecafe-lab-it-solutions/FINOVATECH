@@ -26,7 +26,8 @@ import {
   Globe,
   CheckCircle2,
   ChevronRight,
-  Shield
+  Shield,
+  ArrowDownToLine
 } from 'lucide-react';
 import { AdminTab, AdminUser } from '../../types';
 
@@ -38,6 +39,7 @@ interface AdminSidebarProps {
   onNavigateWebsite: () => void;
   pendingPayoutCount: number;
   pendingKycCount: number;
+  pendingDepositCount: number;
   openTicketCount: number;
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
@@ -64,6 +66,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   onNavigateWebsite,
   pendingPayoutCount,
   pendingKycCount,
+  pendingDepositCount,
   openTicketCount,
   isMobileOpen,
   onCloseMobile
@@ -88,6 +91,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       title: 'CAPITAL & TRANSACTIONS',
       items: [
         { id: 'investment-transactions', label: 'Investment Txns', icon: Receipt },
+        { id: 'deposit-requests', label: 'Deposit Requests', icon: ArrowDownToLine, badge: pendingDepositCount, badgeColor: 'bg-amber-500 text-black' },
         { id: 'all-documents', label: 'Contracts & Vault', icon: FileText }
       ]
     },

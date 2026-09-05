@@ -9,3 +9,4 @@ coverage/
 data/
 !src/data/
 server.js
+server/uploads/

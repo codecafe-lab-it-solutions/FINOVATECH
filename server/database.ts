@@ -254,6 +254,51 @@ export async function initSchema(): Promise<void> {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
   `);
 
+  // Company USDT deposit addresses admin configures. Only one is active at a
+  // time; visibility controls which investors are shown it on their side.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS deposit_addresses (
+      id CHAR(36) PRIMARY KEY,
+      address VARCHAR(160) NOT NULL,
+      network VARCHAR(20) NOT NULL,
+      is_active BOOLEAN NOT NULL DEFAULT FALSE,
+      visibility ENUM('All', 'Specific') NOT NULL DEFAULT 'All',
+      created_at DATETIME NOT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+  `);
+
+  // Which investors can see a given deposit address, when visibility = 'Specific'.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS deposit_address_visibility (
+      id CHAR(36) PRIMARY KEY,
+      deposit_address_id CHAR(36) NOT NULL,
+      investor_user_id CHAR(36) NOT NULL,
+      CONSTRAINT fk_dav_address FOREIGN KEY (deposit_address_id) REFERENCES deposit_addresses(id) ON DELETE CASCADE,
+      CONSTRAINT fk_dav_investor FOREIGN KEY (investor_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE KEY uniq_address_investor (deposit_address_id, investor_user_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+  `);
+
+  // Self-service deposit requests — investor claims they sent USDT and
+  // attaches proof; admin reviews and approves before any balance changes.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS deposit_requests (
+      id CHAR(36) PRIMARY KEY,
+      investor_user_id CHAR(36) NOT NULL,
+      reference_number VARCHAR(40) NOT NULL UNIQUE,
+      amount_usd DECIMAL(18,2) NOT NULL,
+      deposit_address VARCHAR(160) NOT NULL,
+      network VARCHAR(20) NOT NULL,
+      proof_filename VARCHAR(255) NOT NULL,
+      status ENUM('Pending', 'Approved', 'Rejected') NOT NULL DEFAULT 'Pending',
+      admin_note VARCHAR(255) NOT NULL DEFAULT '',
+      created_at DATETIME NOT NULL,
+      reviewed_at DATETIME NULL,
+      CONSTRAINT fk_deposit_req_investor FOREIGN KEY (investor_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      INDEX idx_deposit_req_investor (investor_user_id, created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+  `);
+
   // Added after the tables above already existed in production — these three
   // calls are no-ops once the columns are in place, so this stays safe to
   // run on every boot rather than needing a one-off migration script.

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AdminTab, AdminUser, AdminRole } from '../../types';
-import { AuthUser, fetchAdminInvestors, fetchAdminPayouts, fetchAdminMachines, fetchAdminAllTransactions, fetchBtcMarketData } from '../../lib/api';
+import { AuthUser, fetchAdminInvestors, fetchAdminPayouts, fetchAdminMachines, fetchAdminAllTransactions, fetchBtcMarketData, fetchAdminDepositRequests } from '../../lib/api';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
 
@@ -9,6 +9,7 @@ import { AdminDashboardView } from './AdminDashboardView';
 import { AdminInvestorsView } from './AdminInvestorsView';
 import { AdminPlansView } from './AdminPlansView';
 import { AdminTransactionsView } from './AdminTransactionsView';
+import { AdminDepositsView } from './AdminDepositsView';
 import { AdminMiningOpsView } from './AdminMiningOpsView';
 import { AdminAsicsView } from './AdminAsicsView';
 import { AdminPoolsView } from './AdminPoolsView';
@@ -105,7 +106,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   // Support tickets remain demo data (not part of today's real-data scope).
   const [pendingPayoutCount, setPendingPayoutCount] = useState(0);
   const [pendingKycCount, setPendingKycCount] = useState(0);
+  const [pendingDepositCount, setPendingDepositCount] = useState(0);
   const openTicketCount = tickets.filter((t) => t.status === 'Open' || t.status === 'In Progress').length;
+
+  useEffect(() => {
+    fetchAdminDepositRequests(authToken)
+      .then(({ requests }) => setPendingDepositCount(requests.filter((r) => r.status === 'Pending').length))
+      .catch(() => {});
+  }, [authToken]);
 
   // Dashboard KPIs derived from real investor/payout/machine/transaction data.
   // Monthly OPEX (and therefore Net Monthly Revenue) has no real cost-tracking
@@ -186,6 +194,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           }}
           pendingPayoutCount={pendingPayoutCount}
           pendingKycCount={pendingKycCount}
+          pendingDepositCount={pendingDepositCount}
           openTicketCount={openTicketCount}
           adminUser={currentAdminUser}
           isMobileOpen={isMobileSidebarOpen}
@@ -232,6 +241,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
 
             {currentTab === 'investment-transactions' && (
               <AdminTransactionsView authToken={authToken} />
+            )}
+
+            {currentTab === 'deposit-requests' && (
+              <AdminDepositsView authToken={authToken} />
             )}
 
             {(currentTab === 'mining-overview' || currentTab === 'mining-farms') && (
