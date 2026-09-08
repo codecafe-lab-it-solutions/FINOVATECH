@@ -126,6 +126,7 @@ export interface ApiInvestorProfile {
   btcMined: number;
   btcPendingAccrued: number;
   miningSharePercent: number;
+  nextWithdrawalDate: string | null;
   updatedAt: string;
 }
 
@@ -163,7 +164,6 @@ function authHeaders(token: string) {
 export interface ApiWithdrawalSettings {
   maxWithdrawalUsd: number;
   withdrawalsEnabled: boolean;
-  nextWithdrawalDate: string | null;
   updatedAt: string;
 }
 
@@ -174,7 +174,7 @@ export async function fetchWithdrawalSettings(token: string): Promise<{ settings
 
 export async function updateAdminWithdrawalSettings(
   token: string,
-  updates: Partial<Pick<ApiWithdrawalSettings, 'maxWithdrawalUsd' | 'withdrawalsEnabled' | 'nextWithdrawalDate'>>
+  updates: Partial<Pick<ApiWithdrawalSettings, 'maxWithdrawalUsd' | 'withdrawalsEnabled'>>
 ): Promise<{ settings: ApiWithdrawalSettings }> {
   const res = await fetch('/api/admin/withdrawal-settings', {
     method: 'PUT',

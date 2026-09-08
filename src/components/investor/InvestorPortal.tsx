@@ -333,6 +333,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
             <InvestorDashboardTab
               metrics={metrics}
               user={user}
+              withdrawalSettings={withdrawalSettings}
               onNavigateTab={handleSelectTab}
             />
           )}

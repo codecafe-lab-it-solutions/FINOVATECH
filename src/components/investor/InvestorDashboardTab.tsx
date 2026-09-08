@@ -1,37 +1,45 @@
 import React from 'react';
-import { 
-  DollarSign, 
-  TrendingUp, 
-  Coins, 
-  Calendar, 
-  Clock, 
-  Cpu, 
-  Percent, 
-  ArrowUpRight, 
-  ShieldCheck, 
-  CheckCircle2, 
-  Zap, 
+import {
+  DollarSign,
+  TrendingUp,
+  Coins,
+  Calendar,
+  Clock,
+  Cpu,
+  Percent,
+  ArrowUpRight,
+  ShieldCheck,
+  CheckCircle2,
+  Zap,
   Activity,
   Award,
   Wallet,
-  ArrowRight
+  ArrowRight,
+  AlertCircle
 } from 'lucide-react';
 import { InvestorOverviewMetrics, InvestorUser, InvestorTab } from '../../types';
+import { ApiWithdrawalSettings } from '../../lib/api';
 
 interface InvestorDashboardTabProps {
   metrics: InvestorOverviewMetrics;
   user: InvestorUser;
+  withdrawalSettings: ApiWithdrawalSettings | null;
   onNavigateTab: (tab: InvestorTab) => void;
 }
 
 export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
   metrics,
   user,
+  withdrawalSettings,
   onNavigateTab
 }) => {
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const isDateLocked = !!user.nextWithdrawalDate && todayIso < user.nextWithdrawalDate;
+  const globallyDisabled = withdrawalSettings?.withdrawalsEnabled === false;
+
   return (
     <div className="space-y-6 animate-in fade-in">
-      
+
       {/* Top Banner / Welcome & Contract Status */}
       <div className="p-5 sm:p-7 rounded-3xl bg-gradient-to-r from-gray-900 via-gray-900 to-gray-950 border border-gray-800 shadow-xl relative overflow-hidden text-white">
         <div className="absolute top-0 right-0 w-80 h-80 bg-[#F7931A]/10 rounded-full blur-3xl pointer-events-none" />
@@ -61,6 +69,14 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
                 <span className={`w-2 h-2 rounded-full ${user.accountStatus === 'Active' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
                 <span className="font-bold">ACCOUNT: {user.accountStatus?.toUpperCase()}</span>
               </div>
+              {(globallyDisabled || isDateLocked) && (
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-mono">
+                  <span className="w-2 h-2 rounded-full bg-rose-400" />
+                  <span className="font-bold">
+                    WITHDRAWALS: {globallyDisabled ? 'DISABLED' : `LOCKED UNTIL ${user.nextWithdrawalDate}`}
+                  </span>
+                </div>
+              )}
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               Welcome back, {user.name}
@@ -85,6 +101,17 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
           </div>
         </div>
       </div>
+
+      {(globallyDisabled || isDateLocked) && (
+        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>
+            {globallyDisabled
+              ? 'Withdrawals are currently disabled by the administrator.'
+              : <>Your withdrawals are locked until <strong>{user.nextWithdrawalDate}</strong>. You can request a withdrawal again after that date.</>}
+          </span>
+        </div>
+      )}
 
       {/* Primary KPI Grid (Directly Answers: How is my investment performing?) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 sm:gap-4">

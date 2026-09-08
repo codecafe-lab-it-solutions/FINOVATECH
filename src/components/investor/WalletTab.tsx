@@ -69,6 +69,11 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   const totalWithdrawnBtc = metrics.totalPayoutsBtc;
   const btcPriceUsd = metrics.currentBtcPriceUsd;
 
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const isDateLocked = !!user.nextWithdrawalDate && todayIso < user.nextWithdrawalDate;
+  const globallyDisabled = withdrawalSettings?.withdrawalsEnabled === false;
+  const withdrawalsBlocked = globallyDisabled || isDateLocked;
+
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedTx(id);
@@ -191,8 +196,14 @@ export const WalletTab: React.FC<WalletTabProps> = ({
           </button>
           <button
             onClick={handleStartWithdraw}
-            disabled={withdrawalSettings?.withdrawalsEnabled === false}
-            title={withdrawalSettings?.withdrawalsEnabled === false ? 'Withdrawals are currently disabled by the administrator.' : undefined}
+            disabled={withdrawalsBlocked}
+            title={
+              globallyDisabled
+                ? 'Withdrawals are currently disabled by the administrator.'
+                : isDateLocked
+                ? `Your withdrawals are locked until ${user.nextWithdrawalDate}.`
+                : undefined
+            }
             className="px-4 py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono flex items-center gap-2 cursor-pointer transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-3.5 h-3.5" />
@@ -201,22 +212,17 @@ export const WalletTab: React.FC<WalletTabProps> = ({
         </div>
       </div>
 
-      {withdrawalSettings && withdrawalSettings.withdrawalsEnabled === false && (
+      {globallyDisabled && (
         <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>
-            Withdrawals are currently disabled by the administrator.
-            {withdrawalSettings.nextWithdrawalDate && (
-              <> Withdrawals are expected to reopen on <strong>{withdrawalSettings.nextWithdrawalDate}</strong>.</>
-            )}
-          </span>
+          <span>Withdrawals are currently disabled by the administrator.</span>
         </div>
       )}
 
-      {withdrawalSettings && withdrawalSettings.withdrawalsEnabled && withdrawalSettings.nextWithdrawalDate && (
+      {isDateLocked && (
         <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-mono flex items-center gap-2">
           <Clock className="w-4 h-4 shrink-0" />
-          <span>Next scheduled withdrawal date: <strong>{withdrawalSettings.nextWithdrawalDate}</strong></span>
+          <span>Your withdrawals are locked until <strong>{user.nextWithdrawalDate}</strong>. You can request a withdrawal again after that date.</span>
         </div>
       )}
 

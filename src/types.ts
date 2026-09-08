@@ -313,6 +313,7 @@ export interface InvestorUser {
   bankAccountNumber: string;
   bankIban: string;
   bankSwift: string;
+  nextWithdrawalDate: string | null;
 }
 
 export interface InvestorOverviewMetrics {

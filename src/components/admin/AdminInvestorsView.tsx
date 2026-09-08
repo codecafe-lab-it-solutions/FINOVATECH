@@ -128,6 +128,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
         const num = Number(raw);
         payload[key] = raw === '' || raw === null || raw === undefined || Number.isNaN(num) ? 0 : num;
       }
+      payload.nextWithdrawalDate = payload.nextWithdrawalDate || null;
       const { profile } = await updateAdminInvestorProfile(authToken, selectedId, payload);
       setDetailProfile(profile);
       setFormState(profile);
@@ -337,6 +338,29 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                           <option>Under Review</option>
                           <option>Active</option>
                         </select>
+                      </label>
+                      <label className="block sm:col-span-2">
+                        <span className="text-gray-400 text-[10px] uppercase block mb-1">Withdrawals Locked Until (optional)</span>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="date"
+                            value={formState.nextWithdrawalDate ?? ''}
+                            onChange={(e) => handleField('nextWithdrawalDate', e.target.value)}
+                            className="flex-1 px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white"
+                          />
+                          {formState.nextWithdrawalDate && (
+                            <button
+                              type="button"
+                              onClick={() => handleField('nextWithdrawalDate', '')}
+                              className="px-3 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 text-[11px] cursor-pointer"
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-gray-500 mt-1 block">
+                          This investor cannot request a withdrawal before this date. Leave blank for no restriction.
+                        </span>
                       </label>
                     </div>
                   </div>

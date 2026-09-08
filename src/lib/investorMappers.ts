@@ -23,7 +23,8 @@ export function profileToUser(p: ApiInvestorProfile): InvestorUser {
     bankAccountHolder: p.bankAccountHolder || 'Not set',
     bankAccountNumber: p.bankAccountNumber || 'Not set',
     bankIban: p.bankIban || 'Not set',
-    bankSwift: p.bankSwift || 'Not set'
+    bankSwift: p.bankSwift || 'Not set',
+    nextWithdrawalDate: p.nextWithdrawalDate
   };
 }
 

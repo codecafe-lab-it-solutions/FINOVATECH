@@ -178,7 +178,7 @@ app.get('/api/withdrawal-settings', async (req, res) => {
 app.put('/api/admin/withdrawal-settings', async (req, res) => {
   try {
     await requireRole(req, 'admin');
-    const { maxWithdrawalUsd, withdrawalsEnabled, nextWithdrawalDate } = req.body ?? {};
+    const { maxWithdrawalUsd, withdrawalsEnabled } = req.body ?? {};
 
     if (maxWithdrawalUsd !== undefined && (typeof maxWithdrawalUsd !== 'number' || maxWithdrawalUsd <= 0)) {
       return res.status(400).json({ error: 'Max withdrawal must be a positive number.' });
@@ -186,11 +186,8 @@ app.put('/api/admin/withdrawal-settings', async (req, res) => {
     if (withdrawalsEnabled !== undefined && typeof withdrawalsEnabled !== 'boolean') {
       return res.status(400).json({ error: 'Invalid withdrawalsEnabled value.' });
     }
-    if (nextWithdrawalDate !== undefined && nextWithdrawalDate !== null && typeof nextWithdrawalDate !== 'string') {
-      return res.status(400).json({ error: 'Invalid next withdrawal date.' });
-    }
 
-    const settings = await updateWithdrawalSettings({ maxWithdrawalUsd, withdrawalsEnabled, nextWithdrawalDate });
+    const settings = await updateWithdrawalSettings({ maxWithdrawalUsd, withdrawalsEnabled });
     res.json({ settings });
   } catch (err) {
     if (handleAuthError(err, res)) return;
@@ -492,10 +489,16 @@ app.post('/api/investor/payouts', async (req, res) => {
 
     const withdrawalSettings = await getWithdrawalSettings();
     if (!withdrawalSettings.withdrawalsEnabled) {
-      const dateNote = withdrawalSettings.nextWithdrawalDate
-        ? ` Withdrawals are expected to reopen on ${withdrawalSettings.nextWithdrawalDate}.`
-        : '';
-      return res.status(400).json({ error: `Withdrawals are currently disabled by the administrator.${dateNote}` });
+      return res.status(400).json({ error: 'Withdrawals are currently disabled by the administrator.' });
+    }
+
+    if (profile.nextWithdrawalDate) {
+      const todayUtc = new Date().toISOString().slice(0, 10);
+      if (todayUtc < profile.nextWithdrawalDate) {
+        return res.status(400).json({
+          error: `Withdrawals for your account are locked until ${profile.nextWithdrawalDate}. Please try again after that date.`
+        });
+      }
     }
 
     let market: Awaited<ReturnType<typeof getBtcMarketData>> | null = null;
@@ -1033,6 +1036,12 @@ app.put('/api/admin/investors/:id', async (req, res) => {
         `Your KYC verification status is now: ${updates.kycStatus}.`,
         'kyc'
       );
+    }
+    if (updates.nextWithdrawalDate !== undefined && before?.nextWithdrawalDate !== updates.nextWithdrawalDate) {
+      const message = updates.nextWithdrawalDate
+        ? `Your withdrawals are locked until ${updates.nextWithdrawalDate}. You'll be able to request a withdrawal again after that date.`
+        : 'Your withdrawal lock has been lifted — you can now request a withdrawal at any time (subject to standard limits).';
+      await createNotification(req.params.id, 'Withdrawal Availability Updated', message, 'payout');
     }
     res.json({ profile });
   } catch (err) {
