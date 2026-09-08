@@ -19,6 +19,7 @@ import {
   listAllPayouts,
   createPayoutRequest,
   updatePayoutStatus,
+  getPayoutById,
   findUserIdByEmail,
   ProfileUpdate
 } from './investors';
@@ -1124,7 +1125,51 @@ app.patch('/api/admin/payouts/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid status.' });
     }
 
+    const existing = await getPayoutById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'Payout not found.' });
+
     const payout = await updatePayoutStatus(req.params.id, status as never, typeof notes === 'string' ? notes : undefined);
+
+    // The investor's available BTC balance only actually moves once a payout
+    // is confirmed Completed — debit it here (and credit it back if admin
+    // reverses a Completed payout to another status), since the balance
+    // shown across the dashboard/wallet is read straight from this field.
+    if (existing.status !== 'Completed' && status === 'Completed') {
+      const profile = await getProfile(payout.investorUserId);
+      const newBalance = Math.max(0, (profile?.totalBtcAllocated ?? 0) - payout.amountBtc);
+      await updateProfile(payout.investorUserId, { totalBtcAllocated: newBalance });
+
+      let market: Awaited<ReturnType<typeof getBtcMarketData>> | null = null;
+      try {
+        market = await getBtcMarketData();
+      } catch {
+        market = null;
+      }
+      await addTransaction({
+        investorUserId: payout.investorUserId,
+        type: 'Payout',
+        amountBtc: -payout.amountBtc,
+        amountUsd: market ? -(payout.amountBtc * market.usd) : 0,
+        status: 'Completed',
+        network: payout.network,
+        note: `Withdrawal to ${payout.destinationWallet}`
+      });
+    } else if (existing.status === 'Completed' && status !== 'Completed') {
+      const profile = await getProfile(payout.investorUserId);
+      const newBalance = (profile?.totalBtcAllocated ?? 0) + payout.amountBtc;
+      await updateProfile(payout.investorUserId, { totalBtcAllocated: newBalance });
+
+      await addTransaction({
+        investorUserId: payout.investorUserId,
+        type: 'Payout',
+        amountBtc: payout.amountBtc,
+        amountUsd: 0,
+        status: 'Reversed',
+        network: payout.network,
+        note: `Reversal of payout ${payout.id} (status changed to ${status})`
+      });
+    }
+
     await createNotification(
       payout.investorUserId,
       'Payout Status Updated',

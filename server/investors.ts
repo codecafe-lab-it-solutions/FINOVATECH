@@ -346,6 +346,14 @@ export async function listPayoutsForInvestor(investorUserId: string): Promise<Pa
   return rows.map(toPayout);
 }
 
+export async function getPayoutById(payoutId: string): Promise<PayoutRecordRow | undefined> {
+  const [rows] = await pool.query<PayoutRow[]>(
+    `SELECT p.*, u.name AS investor_name FROM payouts p JOIN users u ON u.id = p.investor_user_id WHERE p.id = ?`,
+    [payoutId]
+  );
+  return rows[0] ? toPayout(rows[0]) : undefined;
+}
+
 export async function listAllPayouts(): Promise<PayoutRecordRow[]> {
   const [rows] = await pool.query<PayoutRow[]>(
     `SELECT p.*, u.name AS investor_name FROM payouts p
