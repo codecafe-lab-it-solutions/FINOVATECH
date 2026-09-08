@@ -58,6 +58,7 @@ import {
   listMonthlyStatements
 } from './investorExtras';
 import { getBtcMarketData } from './market';
+import { getWithdrawalSettings, updateWithdrawalSettings } from './withdrawalSettings';
 import {
   listDepositAddresses,
   getActiveDepositAddressForInvestor,
@@ -158,6 +159,43 @@ app.get('/api/market/btc-price', async (req, res) => {
   } catch (err) {
     console.error('Fetch BTC market data failed:', err);
     res.status(502).json({ error: 'Could not fetch live market data.' });
+  }
+});
+
+// Readable by any signed-in user (investor or admin) — investors need this
+// to see the per-transaction limit and the next withdrawal date.
+app.get('/api/withdrawal-settings', async (req, res) => {
+  try {
+    await requireAuth(req);
+    res.json({ settings: await getWithdrawalSettings() });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Fetch withdrawal settings failed:', err);
+    res.status(500).json({ error: 'Could not load withdrawal settings.' });
+  }
+});
+
+app.put('/api/admin/withdrawal-settings', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    const { maxWithdrawalUsd, withdrawalsEnabled, nextWithdrawalDate } = req.body ?? {};
+
+    if (maxWithdrawalUsd !== undefined && (typeof maxWithdrawalUsd !== 'number' || maxWithdrawalUsd <= 0)) {
+      return res.status(400).json({ error: 'Max withdrawal must be a positive number.' });
+    }
+    if (withdrawalsEnabled !== undefined && typeof withdrawalsEnabled !== 'boolean') {
+      return res.status(400).json({ error: 'Invalid withdrawalsEnabled value.' });
+    }
+    if (nextWithdrawalDate !== undefined && nextWithdrawalDate !== null && typeof nextWithdrawalDate !== 'string') {
+      return res.status(400).json({ error: 'Invalid next withdrawal date.' });
+    }
+
+    const settings = await updateWithdrawalSettings({ maxWithdrawalUsd, withdrawalsEnabled, nextWithdrawalDate });
+    res.json({ settings });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Update withdrawal settings failed:', err);
+    res.status(500).json({ error: 'Could not update withdrawal settings.' });
   }
 });
 
@@ -450,6 +488,30 @@ app.post('/api/investor/payouts', async (req, res) => {
     }
     if (amountBtc > profile.totalBtcAllocated) {
       return res.status(400).json({ error: 'Requested amount exceeds your allocated BTC balance.' });
+    }
+
+    const withdrawalSettings = await getWithdrawalSettings();
+    if (!withdrawalSettings.withdrawalsEnabled) {
+      const dateNote = withdrawalSettings.nextWithdrawalDate
+        ? ` Withdrawals are expected to reopen on ${withdrawalSettings.nextWithdrawalDate}.`
+        : '';
+      return res.status(400).json({ error: `Withdrawals are currently disabled by the administrator.${dateNote}` });
+    }
+
+    let market: Awaited<ReturnType<typeof getBtcMarketData>> | null = null;
+    try {
+      market = await getBtcMarketData();
+    } catch {
+      market = null;
+    }
+    if (!market) {
+      return res.status(502).json({ error: 'Could not verify the live BTC price to check the withdrawal limit. Please try again.' });
+    }
+    const requestedUsd = amountBtc * market.usd;
+    if (requestedUsd > withdrawalSettings.maxWithdrawalUsd) {
+      return res.status(400).json({
+        error: `Withdrawal limit per transaction is $${withdrawalSettings.maxWithdrawalUsd.toLocaleString()} USDT. Reduce the amount and try again.`
+      });
     }
 
     const otpValid = await verifyAndConsumeOtp(payload.sub, otp.trim());
