@@ -299,29 +299,30 @@ export async function initSchema(): Promise<void> {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
   `);
 
-  // Single-row global withdrawal policy — max per-transaction limit, a global
-  // enable/disable switch, and an optional "next withdrawal date" shown to
-  // investors. id is always 'global' so there's ever only one row.
+  // Single-row global withdrawal policy — max per-transaction limit and a
+  // global enable/disable switch. id is always 'global' so there's ever only
+  // one row. The "next withdrawal date" lock lives per-investor instead (see
+  // investor_profiles.next_withdrawal_date below), not here.
   await pool.query(`
     CREATE TABLE IF NOT EXISTS withdrawal_settings (
       id VARCHAR(10) PRIMARY KEY,
       max_withdrawal_usd DECIMAL(18,2) NOT NULL DEFAULT 1000,
       withdrawals_enabled BOOLEAN NOT NULL DEFAULT TRUE,
-      next_withdrawal_date DATE NULL,
       updated_at DATETIME NOT NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
   `);
   await pool.query(
-    `INSERT INTO withdrawal_settings (id, max_withdrawal_usd, withdrawals_enabled, next_withdrawal_date, updated_at)
-     VALUES ('global', 1000, TRUE, NULL, ?)
+    `INSERT INTO withdrawal_settings (id, max_withdrawal_usd, withdrawals_enabled, updated_at)
+     VALUES ('global', 1000, TRUE, ?)
      ON DUPLICATE KEY UPDATE id = id`,
     [new Date().toISOString().slice(0, 19).replace('T', ' ')]
   );
 
-  // Added after the tables above already existed in production — these three
-  // calls are no-ops once the columns are in place, so this stays safe to
-  // run on every boot rather than needing a one-off migration script.
+  // Added after the tables above already existed in production — these calls
+  // are no-ops once the columns are in place, so this stays safe to run on
+  // every boot rather than needing a one-off migration script.
   await addColumnIfMissing("ALTER TABLE investor_profiles ADD COLUMN payout_network VARCHAR(20) NOT NULL DEFAULT 'TRC20'");
+  await addColumnIfMissing('ALTER TABLE investor_profiles ADD COLUMN next_withdrawal_date DATE NULL');
   await addColumnIfMissing("ALTER TABLE wallet_transactions ADD COLUMN network VARCHAR(20) NOT NULL DEFAULT ''");
   await addColumnIfMissing("ALTER TABLE payouts ADD COLUMN network VARCHAR(20) NOT NULL DEFAULT ''");
 }

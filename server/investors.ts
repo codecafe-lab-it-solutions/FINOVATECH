@@ -30,6 +30,7 @@ export interface InvestorProfile {
   btcMined: number;
   btcPendingAccrued: number;
   miningSharePercent: number;
+  nextWithdrawalDate: string | null;
   updatedAt: string;
 }
 
@@ -86,6 +87,7 @@ interface ProfileRow extends RowDataPacket {
   btc_mined: string;
   btc_pending_accrued: string;
   mining_share_percent: string;
+  next_withdrawal_date: string | null;
   updated_at: string;
 }
 
@@ -118,6 +120,7 @@ function toProfile(row: ProfileRow): InvestorProfile {
     btcMined: Number(row.btc_mined),
     btcPendingAccrued: Number(row.btc_pending_accrued),
     miningSharePercent: Number(row.mining_share_percent),
+    nextWithdrawalDate: row.next_withdrawal_date,
     updatedAt: row.updated_at
   };
 }
@@ -187,6 +190,7 @@ export interface ProfileUpdate {
   btcMined?: number;
   btcPendingAccrued?: number;
   miningSharePercent?: number;
+  nextWithdrawalDate?: string | null;
 }
 
 const UPDATABLE_COLUMNS: Record<keyof ProfileUpdate, string> = {
@@ -212,7 +216,8 @@ const UPDATABLE_COLUMNS: Record<keyof ProfileUpdate, string> = {
   totalBtcAllocated: 'total_btc_allocated',
   btcMined: 'btc_mined',
   btcPendingAccrued: 'btc_pending_accrued',
-  miningSharePercent: 'mining_share_percent'
+  miningSharePercent: 'mining_share_percent',
+  nextWithdrawalDate: 'next_withdrawal_date'
 };
 
 export async function updateProfile(userId: string, updates: ProfileUpdate): Promise<InvestorProfile> {
@@ -223,7 +228,7 @@ export async function updateProfile(userId: string, updates: ProfileUpdate): Pro
   // those must be silently dropped rather than corrupting the SQL.
   const entries = Object.entries(updates).filter(
     ([key, v]) => v !== undefined && key in UPDATABLE_COLUMNS
-  ) as [keyof ProfileUpdate, string | number][];
+  ) as [keyof ProfileUpdate, string | number | null][];
   if (entries.length > 0) {
     const setClause = entries.map(([key]) => `${UPDATABLE_COLUMNS[key]} = ?`).join(', ');
     const values = entries.map(([, value]) => value);

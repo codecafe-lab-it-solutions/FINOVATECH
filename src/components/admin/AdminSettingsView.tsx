@@ -94,10 +94,12 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
     }
   };
 
-  // --- Withdrawal Controls (real, backend-enforced global policy) ---
+  // --- Withdrawal Controls (real, backend-enforced global policy — just the
+  // per-transaction cap and the platform-wide on/off switch. The "locked
+  // until this date" rule is per-investor and is set from the Investor
+  // Directory instead, since it applies to specific accounts, not everyone.) ---
   const [maxWithdrawalUsd, setMaxWithdrawalUsd] = useState(1000);
   const [withdrawalsEnabled, setWithdrawalsEnabled] = useState(true);
-  const [nextWithdrawalDate, setNextWithdrawalDate] = useState('');
   const [withdrawalSettingsLoaded, setWithdrawalSettingsLoaded] = useState(false);
   const [isSavingWithdrawal, setIsSavingWithdrawal] = useState(false);
   const [withdrawalError, setWithdrawalError] = useState('');
@@ -108,7 +110,6 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
       .then(({ settings }) => {
         setMaxWithdrawalUsd(settings.maxWithdrawalUsd);
         setWithdrawalsEnabled(settings.withdrawalsEnabled);
-        setNextWithdrawalDate(settings.nextWithdrawalDate ?? '');
         setWithdrawalSettingsLoaded(true);
       })
       .catch(() => setWithdrawalSettingsLoaded(true));
@@ -128,12 +129,10 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
     try {
       const { settings } = await updateAdminWithdrawalSettings(authToken, {
         maxWithdrawalUsd,
-        withdrawalsEnabled,
-        nextWithdrawalDate: nextWithdrawalDate || null
+        withdrawalsEnabled
       });
       setMaxWithdrawalUsd(settings.maxWithdrawalUsd);
       setWithdrawalsEnabled(settings.withdrawalsEnabled);
-      setNextWithdrawalDate(settings.nextWithdrawalDate ?? '');
       setWithdrawalSuccess('Withdrawal controls updated — this applies platform-wide, immediately.');
       setTimeout(() => setWithdrawalSuccess(''), 4000);
     } catch (err) {
@@ -276,7 +275,8 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
           <span>Withdrawal Controls</span>
         </h3>
         <p className="text-[11px] text-gray-500 -mt-2">
-          Applies globally to every investor. Changes take effect immediately on the next withdrawal request.
+          Applies globally to every investor. Changes take effect immediately on the next withdrawal request. To lock a
+          specific investor's withdrawals until a chosen date, open their account in Investor Directory instead.
         </p>
 
         {withdrawalError && (
@@ -292,7 +292,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
           <div>
             <label className="block text-gray-400 text-[10px] uppercase mb-1">Max Withdrawal Per Transaction (USDT)</label>
             <input
@@ -303,17 +303,6 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
               onChange={(e) => setMaxWithdrawalUsd(Number(e.target.value))}
               className="w-full px-3.5 py-2.5 rounded-xl bg-gray-950 border border-gray-800 text-white focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A]"
             />
-          </div>
-
-          <div>
-            <label className="block text-gray-400 text-[10px] uppercase mb-1">Next Withdrawal Date (optional)</label>
-            <input
-              type="date"
-              value={nextWithdrawalDate}
-              onChange={(e) => setNextWithdrawalDate(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-gray-950 border border-gray-800 text-white focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A]"
-            />
-            <span className="text-[10px] text-gray-500 mt-1 block">Shown to investors, especially while withdrawals are disabled</span>
           </div>
 
           <label className="flex items-center justify-between p-3.5 rounded-2xl bg-gray-950 border border-gray-800 cursor-pointer">
