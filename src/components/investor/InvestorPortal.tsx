@@ -43,6 +43,8 @@ import {
   fetchInvestorDepositAddress,
   submitDepositRequest,
   fetchInvestorDepositRequests,
+  fetchWithdrawalSettings,
+  ApiWithdrawalSettings,
   ApiEarningRow,
   ApiMonthlyStatement,
   ApiNotification,
@@ -90,6 +92,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
   const [documents, setDocuments] = useState<ApiDocument[]>([]);
   const [depositRequests, setDepositRequests] = useState<ApiDepositRequest[]>([]);
   const [btcMarket, setBtcMarket] = useState<BtcMarketData | null>(null);
+  const [withdrawalSettings, setWithdrawalSettings] = useState<ApiWithdrawalSettings | null>(null);
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -142,12 +145,17 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
     return fetchInvestorDepositRequests(authToken).then(({ requests }) => setDepositRequests(requests)).catch(() => {});
   }, [authToken]);
 
+  const loadWithdrawalSettings = useCallback(() => {
+    return fetchWithdrawalSettings(authToken).then(({ settings }) => setWithdrawalSettings(settings)).catch(() => {});
+  }, [authToken]);
+
   useEffect(() => {
     loadPortfolio();
     loadNotifications();
     loadSessions();
     loadTickets();
     loadDepositRequests();
+    loadWithdrawalSettings();
     fetchInvestorEarnings(authToken).then(({ earnings }) => setEarnings(earnings)).catch(() => {});
     fetchInvestorStatements(authToken).then(({ statements }) => setStatements(statements)).catch(() => {});
     fetchInvestorReferrals(authToken).then(({ referralCode, referredUsers }) => {
@@ -156,7 +164,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
     }).catch(() => {});
     fetchInvestorMachines(authToken).then(({ machines }) => setMachines(machines)).catch(() => {});
     fetchInvestorDocuments(authToken).then(({ documents }) => setDocuments(documents)).catch(() => {});
-  }, [authToken, loadPortfolio, loadNotifications, loadSessions, loadTickets, loadDepositRequests]);
+  }, [authToken, loadPortfolio, loadNotifications, loadSessions, loadTickets, loadDepositRequests, loadWithdrawalSettings]);
 
   // Keeps the navbar's live BTC ticker fresh between full portfolio reloads.
   useEffect(() => {
@@ -357,6 +365,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
               metrics={metrics}
               user={user}
               depositRequests={depositRequests}
+              withdrawalSettings={withdrawalSettings}
               onRequestPayoutOtp={handleRequestPayoutOtp}
               onRequestPayout={handleRequestPayout}
               onFetchDepositAddress={handleFetchDepositAddress}

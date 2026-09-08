@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Settings,
   Zap,
@@ -11,10 +11,11 @@ import {
   Server,
   Lock,
   Database,
-  KeyRound
+  KeyRound,
+  Ban
 } from 'lucide-react';
 import { AdminSystemSettings } from '../../types';
-import { AuthUser, updateCredentialsRequest } from '../../lib/api';
+import { AuthUser, updateCredentialsRequest, fetchWithdrawalSettings, updateAdminWithdrawalSettings } from '../../lib/api';
 
 interface AdminSettingsViewProps {
   settings: AdminSystemSettings;
@@ -93,9 +94,58 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
     }
   };
 
+  // --- Withdrawal Controls (real, backend-enforced global policy) ---
+  const [maxWithdrawalUsd, setMaxWithdrawalUsd] = useState(1000);
+  const [withdrawalsEnabled, setWithdrawalsEnabled] = useState(true);
+  const [nextWithdrawalDate, setNextWithdrawalDate] = useState('');
+  const [withdrawalSettingsLoaded, setWithdrawalSettingsLoaded] = useState(false);
+  const [isSavingWithdrawal, setIsSavingWithdrawal] = useState(false);
+  const [withdrawalError, setWithdrawalError] = useState('');
+  const [withdrawalSuccess, setWithdrawalSuccess] = useState('');
+
+  useEffect(() => {
+    fetchWithdrawalSettings(authToken)
+      .then(({ settings }) => {
+        setMaxWithdrawalUsd(settings.maxWithdrawalUsd);
+        setWithdrawalsEnabled(settings.withdrawalsEnabled);
+        setNextWithdrawalDate(settings.nextWithdrawalDate ?? '');
+        setWithdrawalSettingsLoaded(true);
+      })
+      .catch(() => setWithdrawalSettingsLoaded(true));
+  }, [authToken]);
+
+  const handleSaveWithdrawalSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setWithdrawalError('');
+    setWithdrawalSuccess('');
+
+    if (!maxWithdrawalUsd || maxWithdrawalUsd <= 0) {
+      setWithdrawalError('Max withdrawal per transaction must be a positive number.');
+      return;
+    }
+
+    setIsSavingWithdrawal(true);
+    try {
+      const { settings } = await updateAdminWithdrawalSettings(authToken, {
+        maxWithdrawalUsd,
+        withdrawalsEnabled,
+        nextWithdrawalDate: nextWithdrawalDate || null
+      });
+      setMaxWithdrawalUsd(settings.maxWithdrawalUsd);
+      setWithdrawalsEnabled(settings.withdrawalsEnabled);
+      setNextWithdrawalDate(settings.nextWithdrawalDate ?? '');
+      setWithdrawalSuccess('Withdrawal controls updated — this applies platform-wide, immediately.');
+      setTimeout(() => setWithdrawalSuccess(''), 4000);
+    } catch (err) {
+      setWithdrawalError(err instanceof Error ? err.message : 'Could not update withdrawal controls.');
+    } finally {
+      setIsSavingWithdrawal(false);
+    }
+  };
+
   return (
     <div className="space-y-6 pb-12">
-      
+
       {/* Header */}
       <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -214,6 +264,86 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
             <>
               <KeyRound className="w-4 h-4" />
               <span>Update Credentials</span>
+            </>
+          )}
+        </button>
+      </form>
+
+      {/* Withdrawal Controls — real, backend-enforced global policy */}
+      <form onSubmit={handleSaveWithdrawalSettings} className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-4">
+        <h3 className="text-xs font-mono font-bold uppercase text-gray-300 flex items-center gap-2">
+          <Ban className="w-4 h-4 text-rose-400" />
+          <span>Withdrawal Controls</span>
+        </h3>
+        <p className="text-[11px] text-gray-500 -mt-2">
+          Applies globally to every investor. Changes take effect immediately on the next withdrawal request.
+        </p>
+
+        {withdrawalError && (
+          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2 font-mono">
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+            <span>{withdrawalError}</span>
+          </div>
+        )}
+        {withdrawalSuccess && (
+          <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2 font-mono">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{withdrawalSuccess}</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
+          <div>
+            <label className="block text-gray-400 text-[10px] uppercase mb-1">Max Withdrawal Per Transaction (USDT)</label>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={maxWithdrawalUsd}
+              onChange={(e) => setMaxWithdrawalUsd(Number(e.target.value))}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-gray-950 border border-gray-800 text-white focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A]"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-400 text-[10px] uppercase mb-1">Next Withdrawal Date (optional)</label>
+            <input
+              type="date"
+              value={nextWithdrawalDate}
+              onChange={(e) => setNextWithdrawalDate(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-gray-950 border border-gray-800 text-white focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A]"
+            />
+            <span className="text-[10px] text-gray-500 mt-1 block">Shown to investors, especially while withdrawals are disabled</span>
+          </div>
+
+          <label className="flex items-center justify-between p-3.5 rounded-2xl bg-gray-950 border border-gray-800 cursor-pointer">
+            <div>
+              <div className="text-white font-bold">Withdrawals Enabled</div>
+              <div className="text-[11px] text-gray-400">Turn off to block all investor withdrawal requests</div>
+            </div>
+            <input
+              type="checkbox"
+              checked={withdrawalsEnabled}
+              onChange={(e) => setWithdrawalsEnabled(e.target.checked)}
+              className="w-4 h-4 rounded bg-gray-900 border-gray-700 text-[#F7931A]"
+            />
+          </label>
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSavingWithdrawal || !withdrawalSettingsLoaded}
+          className="px-6 py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono flex items-center gap-2 transition-colors cursor-pointer shadow-lg shadow-amber-500/20 disabled:opacity-50"
+        >
+          {isSavingWithdrawal ? (
+            <>
+              <RotateCw className="w-4 h-4 animate-spin" />
+              <span>Saving...</span>
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4" />
+              <span>Save Withdrawal Controls</span>
             </>
           )}
         </button>

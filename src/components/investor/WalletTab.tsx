@@ -17,13 +17,14 @@ import {
   Upload
 } from 'lucide-react';
 import { WalletTransaction, InvestorOverviewMetrics, InvestorUser } from '../../types';
-import { ApiDepositRequest } from '../../lib/api';
+import { ApiDepositRequest, ApiWithdrawalSettings } from '../../lib/api';
 
 interface WalletTabProps {
   transactions: WalletTransaction[];
   metrics: InvestorOverviewMetrics;
   user: InvestorUser;
   depositRequests: ApiDepositRequest[];
+  withdrawalSettings: ApiWithdrawalSettings | null;
   onRequestPayoutOtp: () => Promise<{ ok: true; message: string }>;
   onRequestPayout: (amountBtc: number, destinationWallet: string, otp: string, network: string) => Promise<void>;
   onFetchDepositAddress: () => Promise<{ address: string; network: string }>;
@@ -35,6 +36,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   metrics,
   user,
   depositRequests,
+  withdrawalSettings,
   onRequestPayoutOtp,
   onRequestPayout,
   onFetchDepositAddress,
@@ -189,13 +191,34 @@ export const WalletTab: React.FC<WalletTabProps> = ({
           </button>
           <button
             onClick={handleStartWithdraw}
-            className="px-4 py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono flex items-center gap-2 cursor-pointer transition-all shadow-md"
+            disabled={withdrawalSettings?.withdrawalsEnabled === false}
+            title={withdrawalSettings?.withdrawalsEnabled === false ? 'Withdrawals are currently disabled by the administrator.' : undefined}
+            className="px-4 py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono flex items-center gap-2 cursor-pointer transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-3.5 h-3.5" />
             <span>Request BTC Withdrawal</span>
           </button>
         </div>
       </div>
+
+      {withdrawalSettings && withdrawalSettings.withdrawalsEnabled === false && (
+        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>
+            Withdrawals are currently disabled by the administrator.
+            {withdrawalSettings.nextWithdrawalDate && (
+              <> Withdrawals are expected to reopen on <strong>{withdrawalSettings.nextWithdrawalDate}</strong>.</>
+            )}
+          </span>
+        </div>
+      )}
+
+      {withdrawalSettings && withdrawalSettings.withdrawalsEnabled && withdrawalSettings.nextWithdrawalDate && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-mono flex items-center gap-2">
+          <Clock className="w-4 h-4 shrink-0" />
+          <span>Next scheduled withdrawal date: <strong>{withdrawalSettings.nextWithdrawalDate}</strong></span>
+        </div>
+      )}
 
       {withdrawSuccess && (
         <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono flex items-center justify-between">
@@ -628,6 +651,11 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                   <div className="text-[11px] text-gray-400 mt-1">
                     ≈ ${(parseFloat(withdrawAmount || '0') * btcPriceUsd).toFixed(2)} USDT
                   </div>
+                  {withdrawalSettings && (
+                    <div className="text-[11px] text-amber-400/90 mt-1">
+                      Limit: {withdrawalSettings.maxWithdrawalUsd.toLocaleString()} USDT per transaction
+                    </div>
+                  )}
                 </div>
 
                 <div>

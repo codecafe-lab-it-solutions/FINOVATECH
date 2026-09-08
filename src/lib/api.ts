@@ -158,6 +158,32 @@ function authHeaders(token: string) {
   return { Authorization: `Bearer ${token}` };
 }
 
+// --- Global withdrawal policy (admin-configurable, investor-readable) ---
+
+export interface ApiWithdrawalSettings {
+  maxWithdrawalUsd: number;
+  withdrawalsEnabled: boolean;
+  nextWithdrawalDate: string | null;
+  updatedAt: string;
+}
+
+export async function fetchWithdrawalSettings(token: string): Promise<{ settings: ApiWithdrawalSettings }> {
+  const res = await fetch('/api/withdrawal-settings', { headers: authHeaders(token) });
+  return handleResponse(res);
+}
+
+export async function updateAdminWithdrawalSettings(
+  token: string,
+  updates: Partial<Pick<ApiWithdrawalSettings, 'maxWithdrawalUsd' | 'withdrawalsEnabled' | 'nextWithdrawalDate'>>
+): Promise<{ settings: ApiWithdrawalSettings }> {
+  const res = await fetch('/api/admin/withdrawal-settings', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+    body: JSON.stringify(updates)
+  });
+  return handleResponse(res);
+}
+
 export async function fetchInvestorProfile(token: string): Promise<{ profile: ApiInvestorProfile }> {
   const res = await fetch('/api/investor/profile', { headers: authHeaders(token) });
   return handleResponse(res);
