@@ -700,17 +700,36 @@ app.patch('/api/admin/deposit-requests/:id', async (req, res) => {
     const updated = await updateDepositRequestStatus(req.params.id, status, typeof adminNote === 'string' ? adminNote : undefined);
 
     if (status === 'Approved') {
+      // Convert the deposited USD to BTC at the live market rate so it
+      // actually lands in the investor's withdrawable balance, instead of
+      // just sitting as a log line with no effect on their real numbers.
+      let market: Awaited<ReturnType<typeof getBtcMarketData>> | null = null;
+      try {
+        market = await getBtcMarketData();
+      } catch {
+        market = null;
+      }
+      const btcCredited = market ? updated.amountUsd / market.usd : 0;
+
+      const profile = await getProfile(updated.investorUserId);
+      if (profile) {
+        await updateProfile(updated.investorUserId, {
+          totalInvestmentUsd: profile.totalInvestmentUsd + updated.amountUsd,
+          currentPortfolioValueUsd: profile.currentPortfolioValueUsd + updated.amountUsd,
+          totalBtcAllocated: profile.totalBtcAllocated + btcCredited
+        });
+      }
+
       await addTransaction({
         investorUserId: updated.investorUserId,
         type: 'Deposit',
-        amountBtc: 0,
+        amountBtc: btcCredited,
         amountUsd: updated.amountUsd,
         network: updated.network,
         note: `Self-service deposit ${updated.referenceNumber}`
       });
-      const profile = await getProfile(updated.investorUserId);
       if (profile?.email) {
-        sendDepositEmail(profile.email, profile.name, 0, updated.amountUsd, updated.network).catch((err) => {
+        sendDepositEmail(profile.email, profile.name, btcCredited, updated.amountUsd, updated.network).catch((err) => {
           console.error('Send deposit email failed:', err);
         });
       }
@@ -1078,24 +1097,44 @@ app.post('/api/admin/investors/:id/transactions', async (req, res) => {
       return res.status(400).json({ error: 'BTC and USD amounts are required.' });
     }
 
+    const trimmedType = type.trim();
     const transaction = await addTransaction({
       investorUserId: req.params.id,
-      type: type.trim(),
+      type: trimmedType,
       amountBtc,
       amountUsd,
       status: typeof status === 'string' ? status : undefined,
       note: typeof note === 'string' ? note : undefined,
       network: typeof network === 'string' ? network : undefined
     });
+
+    // Any manually added transaction is the admin moving real BTC/USD into
+    // or out of the investor's account — reflect it in their actual balance,
+    // not just the transaction log. Deposit also counts as new principal
+    // capital (totalInvestmentUsd), and Mining Credit also counts toward
+    // lifetime mined BTC — everything else (Adjustment, Referral Commission,
+    // or any other type) still moves the wallet balance and portfolio value.
+    const profile = await getProfile(req.params.id);
+    if (profile) {
+      const updates: ProfileUpdate = {
+        totalBtcAllocated: profile.totalBtcAllocated + amountBtc,
+        currentPortfolioValueUsd: profile.currentPortfolioValueUsd + amountUsd
+      };
+      if (trimmedType === 'Deposit') {
+        updates.totalInvestmentUsd = profile.totalInvestmentUsd + amountUsd;
+      }
+      if (trimmedType === 'Mining Credit') {
+        updates.btcMined = profile.btcMined + amountBtc;
+      }
+      await updateProfile(req.params.id, updates);
+    }
+
     res.status(201).json({ transaction });
 
-    if (transaction.type === 'Deposit') {
-      const profile = await getProfile(req.params.id);
-      if (profile?.email) {
-        sendDepositEmail(profile.email, profile.name, transaction.amountBtc, transaction.amountUsd, transaction.network).catch((err) => {
-          console.error('Send deposit email failed:', err);
-        });
-      }
+    if (trimmedType === 'Deposit' && profile?.email) {
+      sendDepositEmail(profile.email, profile.name, transaction.amountBtc, transaction.amountUsd, transaction.network).catch((err) => {
+        console.error('Send deposit email failed:', err);
+      });
     }
   } catch (err) {
     if (handleAuthError(err, res)) return;
