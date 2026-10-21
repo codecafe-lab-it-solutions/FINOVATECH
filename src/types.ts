@@ -15,6 +15,7 @@ export type AdminTab =
   | 'all-investors'
   | 'kyc-queue'
   | 'investment-plans'
+  | 'referrals'
   | 'investor-allocations'
   | 'investments-list'
   | 'investment-transactions'
@@ -292,6 +293,13 @@ export interface CorporateInfoRow {
    ========================================================================= */
 
 export interface InvestorUser {
+  platformTimezone: string;
+  legacyInvestorId: string;
+  kycApprovedAt: string | null;
+  joiningDate: string | null;
+  registrationDate: string | null;
+  planTerms: import('./lib/api').ApiInvestorProfile['planTerms'];
+
   id: string;
   username: string;
   name: string;
@@ -306,6 +314,7 @@ export interface InvestorUser {
   maturityDate: string;
   referralCode: string;
   referrerName: string;
+  referredByCode?: string | null;
   payoutBtcAddress: string;
   payoutNetwork: string;
   bankName: string;
@@ -317,6 +326,7 @@ export interface InvestorUser {
 }
 
 export interface InvestorOverviewMetrics {
+  usdWalletBalance: number;
   totalInvestmentUsd: number;
   currentPortfolioValueUsd: number;
   totalBtcAllocated: number;
@@ -340,7 +350,7 @@ export interface InvestorOverviewMetrics {
 export interface WalletTransaction {
   id: string;
   date: string;
-  type: 'Mining Credit' | 'Payout' | 'Deposit' | 'Referral Commission';
+  type: 'Mining Credit' | 'Daily Interest' | 'Payout' | 'Deposit' | 'Referral Commission';
   amountBtc: number;
   amountUsd: number;
   status: 'Completed' | 'Pending' | 'Processing';
@@ -371,7 +381,7 @@ export interface PayoutRecord {
   date: string;
   amountBtc: number;
   amountUsd: number;
-  currency: 'BTC' | 'USDT';
+  currency: 'BTC' | 'USDT' | 'USD';
   destinationWallet: string;
   network: string;
   txid: string;

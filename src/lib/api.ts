@@ -99,6 +99,17 @@ export async function updateCredentialsRequest(
 // --- Investor profile / wallet / payouts ---
 
 export interface ApiInvestorProfile {
+  usdWalletBalance: number;
+  platformTimezone: string;
+  investorId: string;
+  legacyInvestorId: string;
+  kycApprovedAt: string | null;
+  joiningDate: string | null;
+  registrationDate: string | null;
+  planId: string | null;
+  planTerms: { name: string; dailyReturnPercent: number; payoutRequestDays: number; minimumThresholdPercent: number; withdrawalEntryFeePercent: number; managementFeePercent: number; durationMonths: number } | null;
+  investmentId: string;
+
   userId: string;
   username: string;
   name: string;
@@ -113,6 +124,7 @@ export interface ApiInvestorProfile {
   maturityDate: string;
   referralCode: string;
   referrerName: string;
+  referredByCode?: string | null;
   payoutBtcAddress: string;
   payoutNetwork: string;
   bankName: string;
@@ -143,6 +155,8 @@ export interface ApiWalletTransaction {
 }
 
 export interface ApiPayout {
+  amountUsd: number;
+  currency: 'USD' | 'BTC';
   id: string;
   investorUserId: string;
   investorName?: string;
@@ -237,6 +251,10 @@ export async function requestPayoutApi(
     body: JSON.stringify({ amountBtc, destinationWallet, otp, network })
   });
   return handleResponse(res);
+}
+
+export async function requestUsdPayoutApi(token: string, amountUsd: number, destinationWallet: string, otp: string): Promise<{ payout: ApiPayout }> {
+  return handleResponse(await fetch('/api/investor/payouts', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders(token) }, body: JSON.stringify({ currency: 'USD', amountUsd, destinationWallet, otp }) }));
 }
 
 // --- Investor self-service deposits ---
@@ -438,6 +456,12 @@ export async function updateAdminPayoutStatus(
 // --- Admin: Investment Plans ---
 
 export interface ApiPlan {
+  directReferralPercent?: number;
+  dailyReturnPercent: number;
+  payoutRequestDays: number;
+  minimumThresholdPercent: number;
+  withdrawalEntryFeePercent: number;
+
   id: string;
   name: string;
   tagline: string;
@@ -478,6 +502,9 @@ export async function updateAdminPlan(token: string, id: string, updates: Partia
   return handleResponse(res);
 }
 
+export async function deleteAdminPlan(token: string, id: string): Promise<{ ok: true }> {
+  return handleResponse(await fetch('/api/admin/plans/' + id, { method: 'DELETE', headers: authHeaders(token) }));
+}
 // --- Admin: Company Wallets ---
 
 export interface ApiCompanyWallet {
@@ -747,6 +774,7 @@ export async function updateAdminTicketStatus(token: string, ticketId: string, s
 // --- Investor: Referrals ---
 
 export interface ApiReferredInvestor {
+  commissions?: { id: string; referralCode: string; plan: string; principalUsd: number; ratePercent: number; amountUsd: number; createdAt: string }[];
   name: string;
   username: string;
   joinedDate: string;
@@ -804,4 +832,15 @@ export async function updateAdminMachine(token: string, id: string, updates: Par
     body: JSON.stringify(updates)
   });
   return handleResponse(res);
+}
+
+export interface ApiAdminReferral {
+  referredUserId: string; referredName: string; referredUsername: string;
+  referrerUserId: string | null; referrerName: string | null; referrerUsername: string | null;
+  referralCode: string; planName: string; investmentUsd: number | null; ratePercent: number | null;
+  commissionUsd: number | null; creditedAt: string | null;
+  status: 'Awaiting confirmation' | 'No reward (0%)' | 'Credited';
+}
+export async function fetchAdminReferrals(token: string): Promise<{ referrals: ApiAdminReferral[] }> {
+  return handleResponse(await fetch('/api/admin/referrals', { headers: authHeaders(token) }));
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Money } from '../../lib/currency';
 import {
   Clock,
   CheckCircle2,
@@ -83,6 +84,7 @@ export const AdminPayoutsView: React.FC<AdminPayoutsViewProps> = ({ authToken })
               ? 'Loading...'
               : `${pendingCount} request${pendingCount === 1 ? '' : 's'} awaiting review, totaling ${pendingBtc.toFixed(4)} BTC.`}
           </p>
+          <p className="text-xs text-emerald-400 mt-1">USD awaiting review: <Money usd={payouts.filter(p => p.currency === 'USD' && p.status === 'Requested').reduce((sum, p) => sum + p.amountUsd, 0)} /></p>
         </div>
       </div>
 
@@ -136,7 +138,7 @@ export const AdminPayoutsView: React.FC<AdminPayoutsViewProps> = ({ authToken })
               <tr className="bg-gray-900/90 text-gray-400 font-mono text-[11px] uppercase tracking-wider border-b border-gray-800">
                 <th className="py-3.5 px-4">Requested</th>
                 <th className="py-3.5 px-3">Investor</th>
-                <th className="py-3.5 px-3 text-right">Amount (BTC)</th>
+                <th className="py-3.5 px-3 text-right">Amount / Currency</th>
                 <th className="py-3.5 px-3">Destination Wallet</th>
                 <th className="py-3.5 px-3">Network</th>
                 <th className="py-3.5 px-3">Status</th>
@@ -151,7 +153,7 @@ export const AdminPayoutsView: React.FC<AdminPayoutsViewProps> = ({ authToken })
                   <td className="py-3.5 px-3 font-sans font-semibold text-white">{p.investorName || 'Unknown'}</td>
 
                   <td className="py-3.5 px-3 text-right font-extrabold text-[#F7931A]">
-                    {p.amountBtc} BTC
+                    {p.currency === 'USD' ? <><Money usd={p.amountUsd} /> (USD)</> : `${p.amountBtc} BTC`}
                   </td>
 
                   <td className="py-3.5 px-3">

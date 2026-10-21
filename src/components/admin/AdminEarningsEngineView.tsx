@@ -1,3 +1,4 @@
+import { Money } from '../../lib/currency';
 import React, { useState } from 'react';
 import {
   Cpu,
@@ -185,7 +186,7 @@ export const AdminEarningsEngineView: React.FC<AdminEarningsEngineViewProps> = (
                   </td>
 
                   <td className="py-3.5 px-3 text-right text-rose-400">
-                    -${run.electricityCostUsd.toLocaleString()}
+                    -<Money usd={run.electricityCostUsd} />
                   </td>
 
                   <td className="py-3.5 px-3 text-right font-extrabold text-emerald-400">
@@ -236,8 +237,8 @@ export const AdminEarningsEngineView: React.FC<AdminEarningsEngineViewProps> = (
                 <span className="font-bold text-[#F7931A]">1.48500000 BTC</span>
               </div>
               <div className="flex items-center justify-between text-rose-400">
-                <span>Power Tariff OPEX (13.6 MW @ $0.042/kWh):</span>
-                <span>-0.12500000 BTC ($8,031 USD)</span>
+                <span>Power Tariff OPEX (13.6 MW @ <Money usd={0.042} maximumFractionDigits={4} />/kWh):</span>
+                <span>-0.12500000 BTC (<Money usd={8031} />)</span>
               </div>
               <div className="flex items-center justify-between text-purple-400">
                 <span>Corporate Management Retention:</span>

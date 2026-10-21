@@ -1,3 +1,5 @@
+import { useCurrency } from '../../lib/currency';
+import { Money } from '../../lib/currency';
 import React, { useState } from 'react';
 import {
   TrendingUp,
@@ -17,6 +19,7 @@ interface AdminFinanceViewProps {
 }
 
 export const AdminFinanceView: React.FC<AdminFinanceViewProps> = ({ financeRecords }) => {
+  const { formatMoney, currency } = useCurrency();
   const [selectedCurrency, setSelectedCurrency] = useState<'USD' | 'BTC'>('USD');
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
@@ -48,7 +51,7 @@ export const AdminFinanceView: React.FC<AdminFinanceViewProps> = ({ financeRecor
                 selectedCurrency === 'USD' ? 'bg-[#F7931A] text-gray-950 font-bold' : 'text-gray-400'
               }`}
             >
-              USD ($)
+              {currency}
             </button>
             <button
               onClick={() => setSelectedCurrency('BTC')}
@@ -80,20 +83,20 @@ export const AdminFinanceView: React.FC<AdminFinanceViewProps> = ({ financeRecor
             <ArrowUpRight className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="text-2xl sm:text-3xl font-black text-emerald-400 font-mono">
-            {selectedCurrency === 'USD' ? `$${latest.totalRevenueUsd.toLocaleString()}` : `${latest.totalRevenueBtc} BTC`}
+            {selectedCurrency === 'USD' ? `${formatMoney(latest.totalRevenueUsd)}` : `${latest.totalRevenueBtc} BTC`}
           </div>
           <div className="space-y-1.5 text-xs font-mono pt-2 border-t border-gray-800">
             <div className="flex justify-between text-gray-300">
               <span>Mining Revenue:</span>
-              <span>${latest.miningRevenueUsd.toLocaleString()}</span>
+              <span><Money usd={latest.miningRevenueUsd} /></span>
             </div>
             <div className="flex justify-between text-gray-300">
               <span>Management Fees:</span>
-              <span>${latest.managementFeesUsd.toLocaleString()}</span>
+              <span><Money usd={latest.managementFeesUsd} /></span>
             </div>
             <div className="flex justify-between text-gray-300">
               <span>Setup / Onboarding Fees:</span>
-              <span>${latest.setupFeesUsd.toLocaleString()}</span>
+              <span><Money usd={latest.setupFeesUsd} /></span>
             </div>
           </div>
         </div>
@@ -105,24 +108,24 @@ export const AdminFinanceView: React.FC<AdminFinanceViewProps> = ({ financeRecor
             <ArrowDownLeft className="w-4 h-4 text-rose-400" />
           </div>
           <div className="text-2xl sm:text-3xl font-black text-rose-400 font-mono">
-            {selectedCurrency === 'USD' ? `$${latest.totalExpensesUsd.toLocaleString()}` : '1.436 BTC'}
+            {selectedCurrency === 'USD' ? `${formatMoney(latest.totalExpensesUsd)}` : '1.436 BTC'}
           </div>
           <div className="space-y-1.5 text-xs font-mono pt-2 border-t border-gray-800">
             <div className="flex justify-between text-gray-300">
               <span>Electricity & Power:</span>
-              <span>${latest.electricityCostUsd.toLocaleString()}</span>
+              <span><Money usd={latest.electricityCostUsd} /></span>
             </div>
             <div className="flex justify-between text-gray-300">
               <span>Hosting & Facility:</span>
-              <span>${latest.hostingCostUsd.toLocaleString()}</span>
+              <span><Money usd={latest.hostingCostUsd} /></span>
             </div>
             <div className="flex justify-between text-gray-300">
               <span>Maintenance & ASIC Parts:</span>
-              <span>${latest.maintenanceCostUsd.toLocaleString()}</span>
+              <span><Money usd={latest.maintenanceCostUsd} /></span>
             </div>
             <div className="flex justify-between text-gray-300">
               <span>General & Admin:</span>
-              <span>${latest.adminCostUsd.toLocaleString()}</span>
+              <span><Money usd={latest.adminCostUsd} /></span>
             </div>
           </div>
         </div>
@@ -136,7 +139,7 @@ export const AdminFinanceView: React.FC<AdminFinanceViewProps> = ({ financeRecor
             </span>
           </div>
           <div className="text-2xl sm:text-3xl font-black text-white font-mono">
-            {selectedCurrency === 'USD' ? `$${latest.netProfitUsd.toLocaleString()}` : `${latest.netProfitBtc} BTC`}
+            {selectedCurrency === 'USD' ? `${formatMoney(latest.netProfitUsd)}` : `${latest.netProfitBtc} BTC`}
           </div>
           <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-mono">
             Corporate treasury retained cashflow after complete investor distribution and energy settlement.
@@ -171,19 +174,19 @@ export const AdminFinanceView: React.FC<AdminFinanceViewProps> = ({ financeRecor
                 <tr key={rec.id} className="hover:bg-gray-800/40 transition-colors">
                   <td className="py-3.5 px-4 font-bold text-white">{rec.month}</td>
                   <td className="py-3.5 px-3 text-right font-semibold text-emerald-400">
-                    ${rec.totalRevenueUsd.toLocaleString()}
+                    <Money usd={rec.totalRevenueUsd} />
                   </td>
                   <td className="py-3.5 px-3 text-right text-rose-400">
-                    -${rec.electricityCostUsd.toLocaleString()}
+                    -<Money usd={rec.electricityCostUsd} />
                   </td>
                   <td className="py-3.5 px-3 text-right text-gray-300">
-                    -${(rec.hostingCostUsd + rec.maintenanceCostUsd).toLocaleString()}
+                    -<Money usd={(rec.hostingCostUsd + rec.maintenanceCostUsd)} />
                   </td>
                   <td className="py-3.5 px-3 text-right text-rose-400">
-                    -${rec.totalExpensesUsd.toLocaleString()}
+                    -<Money usd={rec.totalExpensesUsd} />
                   </td>
                   <td className="py-3.5 px-3 text-right font-extrabold text-white text-sm">
-                    ${rec.netProfitUsd.toLocaleString()}
+                    <Money usd={rec.netProfitUsd} />
                   </td>
                   <td className="py-3.5 px-4 text-center">
                     <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">

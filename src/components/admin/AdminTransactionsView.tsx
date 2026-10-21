@@ -1,3 +1,4 @@
+import { Money } from '../../lib/currency';
 import React, { useEffect, useState, useCallback } from 'react';
 import { Receipt, Plus, RotateCw, AlertTriangle, X, Save } from 'lucide-react';
 import {
@@ -128,7 +129,7 @@ export const AdminTransactionsView: React.FC<AdminTransactionsViewProps> = ({ au
                 <th className="py-3.5 px-3">Investor</th>
                 <th className="py-3.5 px-3">Type</th>
                 <th className="py-3.5 px-3 text-right">BTC</th>
-                <th className="py-3.5 px-3 text-right">USD</th>
+                <th className="py-3.5 px-3 text-right">Amount</th>
                 <th className="py-3.5 px-3">Network</th>
                 <th className="py-3.5 px-3">Status</th>
               </tr>
@@ -142,7 +143,7 @@ export const AdminTransactionsView: React.FC<AdminTransactionsViewProps> = ({ au
                   <td className={`py-3 px-3 text-right font-bold ${t.amountBtc >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                     {t.amountBtc >= 0 ? '+' : ''}{t.amountBtc} BTC
                   </td>
-                  <td className="py-3 px-3 text-right text-gray-300">${t.amountUsd.toLocaleString()}</td>
+                  <td className="py-3 px-3 text-right text-gray-300"><Money usd={t.amountUsd} /></td>
                   <td className="py-3 px-3 text-gray-400">{t.network || '—'}</td>
                   <td className="py-3 px-3">
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-800 text-gray-300">{t.status}</span>

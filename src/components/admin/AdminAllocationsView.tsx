@@ -1,3 +1,4 @@
+import { Money } from '../../lib/currency';
 import React, { useState } from 'react';
 import {
   PieChart,
@@ -58,7 +59,7 @@ export const AdminAllocationsView: React.FC<AdminAllocationsViewProps> = ({ allo
         <div className="p-3 rounded-xl bg-gray-900/80 border border-gray-800/80 text-white">
           <code>Investor Share % = (Allocated TH/s ÷ Fleet Active TH/s) × 100</code>
           <div className="text-gray-400 mt-1">
-            <code>Net BTC = (Gross Daily BTC × Share %) - (Daily Power kWh × $0.042 ÷ BTC Price) - (Management Fee %)</code>
+            <code>Net BTC = (Gross Daily BTC × Share %) - (Daily Power kWh × <Money usd={0.042} maximumFractionDigits={4} /> ÷ BTC Price in selected currency) - (Management Fee %)</code>
           </div>
         </div>
       </div>
@@ -88,7 +89,7 @@ export const AdminAllocationsView: React.FC<AdminAllocationsViewProps> = ({ allo
                   </td>
 
                   <td className="py-3.5 px-3 text-right font-bold text-white">
-                    ${item.investmentAmountUsd.toLocaleString()}
+                    <Money usd={item.investmentAmountUsd} />
                   </td>
 
                   <td className="py-3.5 px-3 text-right font-bold text-[#F7931A]">

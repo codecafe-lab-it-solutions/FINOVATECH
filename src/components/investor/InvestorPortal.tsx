@@ -1,3 +1,4 @@
+import { CurrencySelector } from '../../lib/currency';
 import React, { useState, useEffect, useCallback } from 'react';
 import { InvestorNavbar } from './InvestorNavbar';
 import { InvestorSidebar } from './InvestorSidebar';
@@ -36,7 +37,7 @@ import {
   fetchInvestorReferrals,
   fetchInvestorMachines,
   fetchInvestorDocuments,
-  requestPayoutApi,
+  requestUsdPayoutApi,
   requestPayoutOtpApi,
   updateInvestorProfileApi,
   fetchBtcMarketData,
@@ -109,10 +110,10 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
       const mappedMetrics = profileToMetrics(profile, btcPriceUsd, market?.difficultyT ?? 0);
       const completedPayouts = pos.filter((p) => p.status === 'Completed');
       mappedMetrics.totalPayoutsBtc = completedPayouts.reduce((sum, p) => sum + p.amountBtc, 0);
-      mappedMetrics.totalPayoutsUsd = mappedMetrics.totalPayoutsBtc * mappedMetrics.currentBtcPriceUsd;
+      mappedMetrics.totalPayoutsUsd = completedPayouts.reduce((sum, p) => sum + (p.currency === 'USD' ? p.amountUsd : p.amountBtc * btcPriceUsd), 0);
 
       const today = new Date().toISOString().slice(0, 10);
-      const todaysMiningCredits = txs.filter((t) => t.type === 'Mining Credit' && t.createdAt.startsWith(today));
+      const todaysMiningCredits = txs.filter((t) => (t.type === 'Mining Credit' || t.type === 'Daily Interest') && t.createdAt.startsWith(today));
       mappedMetrics.miningRevenuePerDayBtc = todaysMiningCredits.reduce((sum, t) => sum + t.amountBtc, 0);
       mappedMetrics.miningRevenuePerDayUsd = todaysMiningCredits.reduce((sum, t) => sum + t.amountUsd, 0);
 
@@ -169,18 +170,18 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
   // Keeps the navbar's live BTC ticker fresh between full portfolio reloads.
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchBtcMarketData().then(setBtcMarket).catch(() => {});
+      void loadPortfolio();
     }, 60_000);
     return () => clearInterval(interval);
-  }, []);
+  }, [loadPortfolio]);
 
   // Handlers
   const handleRequestPayoutOtp = async () => {
     return requestPayoutOtpApi(authToken);
   };
 
-  const handleRequestPayout = async (amountBtc: number, destinationWallet: string, otp: string, network: string) => {
-    await requestPayoutApi(authToken, amountBtc, destinationWallet, otp, network);
+  const handleRequestPayout = async (amountUsd: number, destinationWallet: string, otp: string, _network: string) => {
+    await requestUsdPayoutApi(authToken, amountUsd, destinationWallet, otp);
     await loadPortfolio();
     loadNotifications();
   };
@@ -271,6 +272,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
   return (
     <div id="investor-portal-root" className="min-h-screen bg-[#0B1120] text-gray-100 flex flex-col">
 
+      <CurrencySelector />
       {/* Top Navbar */}
       <InvestorNavbar
         user={user}
@@ -362,6 +364,8 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
 
           {currentTab === 'wallet' && (
             <WalletTab
+              reservedPayoutUsd={payouts.filter(p => p.currency === 'USD' && (p.status === 'Pending' || p.status === 'Processing')).reduce((sum, p) => sum + p.amountUsd, 0)}
+              reservedPayoutBtc={payouts.filter(p => p.status === 'Pending' || p.status === 'Processing').reduce((sum, p) => sum + p.amountBtc, 0)}
               transactions={transactions}
               metrics={metrics}
               user={user}
@@ -383,6 +387,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
           {currentTab === 'payout-history' && (
             <PayoutHistoryTab
               payouts={payouts}
+              nextWithdrawalDate={user.nextWithdrawalDate}
             />
           )}
 
@@ -429,7 +434,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
           )}
 
           {currentTab === 'referrals' && (
-            <ReferralPartnerTab
+            <ReferralPartnerTab joiningDate={user.joiningDate}
               referralCode={referralCode}
               referredUsers={referredUsers}
             />

@@ -1,3 +1,5 @@
+import { Money } from '../../lib/currency';
+import { todayInTimezone } from '../../lib/dates';
 import React from 'react';
 import {
   DollarSign,
@@ -33,7 +35,7 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
   withdrawalSettings,
   onNavigateTab
 }) => {
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = todayInTimezone(user.platformTimezone);
   const isDateLocked = !!user.nextWithdrawalDate && todayIso < user.nextWithdrawalDate;
   const globallyDisabled = withdrawalSettings?.withdrawalsEnabled === false;
 
@@ -123,7 +125,7 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
             <DollarSign className="w-4 h-4 text-gray-500" />
           </div>
           <div className="text-xl sm:text-2xl font-extrabold text-white mt-1 tracking-tight font-mono">
-            ${metrics.totalInvestmentUsd.toLocaleString()}
+            <Money usd={metrics.totalInvestmentUsd} />
           </div>
           <div className="text-[11px] text-gray-400 font-mono mt-1">
             Capital Deployed
@@ -137,10 +139,10 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
             <TrendingUp className="w-4 h-4 text-[#F7931A]" />
           </div>
           <div className="text-xl sm:text-2xl font-extrabold text-white mt-1 tracking-tight font-mono">
-            ${metrics.currentPortfolioValueUsd.toLocaleString()}
+            <Money usd={metrics.currentPortfolioValueUsd} />
           </div>
           <div className="text-[11px] text-emerald-400 font-mono mt-1 font-semibold flex items-center gap-1">
-            <span>+${(metrics.currentPortfolioValueUsd - metrics.totalInvestmentUsd).toLocaleString()} (+{metrics.roiPercent}%)</span>
+            <span>+<Money usd={(metrics.currentPortfolioValueUsd - metrics.totalInvestmentUsd)} /> (+{metrics.roiPercent}%)</span>
           </div>
         </div>
 
@@ -154,7 +156,7 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
             {metrics.totalBtcAllocated} BTC
           </div>
           <div className="text-[11px] text-gray-400 font-mono mt-1">
-            ≈ ${(metrics.totalBtcAllocated * metrics.currentBtcPriceUsd).toLocaleString(undefined, { maximumFractionDigits: 0 })} USDT
+            ≈ <Money usd={(metrics.totalBtcAllocated * metrics.currentBtcPriceUsd)} />
           </div>
         </div>
 
@@ -188,7 +190,7 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
         <div className="p-3.5 rounded-xl bg-gray-900/80 border border-gray-800 text-white">
           <div className="text-[10px] text-gray-400 uppercase">Total Returns</div>
           <div className="text-sm sm:text-base font-bold text-emerald-400 mt-1">
-            +${metrics.totalReturnsUsd.toLocaleString()}
+            +<Money usd={metrics.totalReturnsUsd} />
           </div>
           <div className="text-[10px] text-gray-500 mt-0.5">Yield + Appreciation</div>
         </div>
@@ -198,13 +200,13 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
           <div className="text-sm sm:text-base font-bold text-emerald-400 mt-1">
             +{metrics.roiPercent}%
           </div>
-          <div className="text-[10px] text-gray-500 mt-0.5">Since Jan 2025</div>
+          <div className="text-[10px] text-gray-500 mt-0.5">{user.joiningDate ? `Since ${user.joiningDate}` : 'Awaiting confirmed joining date'}</div>
         </div>
 
         <div className="p-3.5 rounded-xl bg-gray-900/80 border border-gray-800 text-white">
           <div className="text-[10px] text-gray-400 uppercase">Total Payouts</div>
           <div className="text-sm sm:text-base font-bold text-white mt-1">
-            ${metrics.totalPayoutsUsd.toLocaleString()}
+            <Money usd={metrics.totalPayoutsUsd} />
           </div>
           <div className="text-[10px] text-gray-500 mt-0.5">({metrics.totalPayoutsBtc} BTC disbursed)</div>
         </div>
@@ -253,12 +255,12 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
             <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
               <div className="text-gray-400 text-[11px]">Contract Duration</div>
               <div className="text-white font-bold text-sm mt-0.5">
-                {metrics.totalBtcAllocated > 0 ? '4-Year Defined Term Lease' : 'N/A — no active contract'}
+                {user.planTerms ? `${user.planTerms.durationMonths}-Month Term` : 'Awaiting assigned plan'}
               </div>
             </div>
             <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
-              <div className="text-gray-400 text-[11px]">Daily Mining Revenue</div>
-              <div className="text-emerald-400 font-bold text-sm mt-0.5">${metrics.miningRevenuePerDayUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })} / day</div>
+              <div className="text-gray-400 text-[11px]">{user.planTerms ? 'Daily Plan Return (USD equivalent)' : 'Mining Credits Today'}</div>
+              <div className="text-emerald-400 font-bold text-sm mt-0.5"><Money usd={user.planTerms ? metrics.totalInvestmentUsd * user.planTerms.dailyReturnPercent / 100 : metrics.miningRevenuePerDayUsd} />{user.planTerms ? ' / day' : ''}</div>
             </div>
             <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
               <div className="text-gray-400 text-[11px]">Network Difficulty</div>
@@ -303,7 +305,7 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
                 onClick={() => onNavigateTab('reports')}
                 className="w-full py-2.5 flex items-center justify-between text-xs text-gray-300 hover:text-white group cursor-pointer"
               >
-                <span>View Stamped 4-Year Lease Agreement</span>
+                <span>View Investment Agreement</span>
                 <ArrowRight className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#F7931A] transition-transform group-hover:translate-x-1" />
               </button>
               <button

@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import type { RowDataPacket } from 'mysql2';
+import type { RowDataPacket, ResultSetHeader } from 'mysql2';
 import { pool } from './database';
 
 function now(): string {
@@ -203,12 +203,13 @@ export async function updateDepositRequestStatus(
   status: 'Approved' | 'Rejected',
   adminNote?: string
 ): Promise<DepositRequest> {
-  await pool.query('UPDATE deposit_requests SET status = ?, admin_note = ?, reviewed_at = ? WHERE id = ?', [
+  const [result] = await pool.query<ResultSetHeader>("UPDATE deposit_requests SET status = ?, admin_note = ?, reviewed_at = ? WHERE id = ? AND status = 'Pending'", [
     status,
     adminNote ?? '',
     now(),
     id
   ]);
+  if (result.affectedRows !== 1) throw new Error('This deposit request has already been reviewed.');
   const request = await getDepositRequest(id);
   if (!request) throw new Error('DEPOSIT_REQUEST_NOT_FOUND');
   return request;

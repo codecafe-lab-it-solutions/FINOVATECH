@@ -1,3 +1,4 @@
+import { Money } from '../../lib/currency';
 import React from 'react';
 import { FileSpreadsheet, Download } from 'lucide-react';
 import { ApiMonthlyStatement } from '../../lib/api';
@@ -67,10 +68,10 @@ export const MonthlyStatementsTab: React.FC<MonthlyStatementsTabProps> = ({ stat
               {statements.map((s) => (
                 <tr key={s.month} className="hover:bg-gray-800/40">
                   <td className="py-3 px-4 font-sans font-bold text-white">{monthLabel(s.month)}</td>
-                  <td className="py-3 px-3 text-right text-emerald-400">+{s.miningCreditsBtc.toFixed(6)} BTC (${s.miningCreditsUsd.toLocaleString()})</td>
-                  <td className="py-3 px-3 text-right text-rose-400">-{s.payoutsBtc.toFixed(6)} BTC (${s.payoutsUsd.toLocaleString()})</td>
+                  <td className="py-3 px-3 text-right text-emerald-400">+{s.miningCreditsBtc.toFixed(6)} BTC (<Money usd={s.miningCreditsUsd} />)</td>
+                  <td className="py-3 px-3 text-right text-rose-400">-{s.payoutsBtc.toFixed(6)} BTC (<Money usd={s.payoutsUsd} />)</td>
                   <td className={`py-3 px-3 text-right font-bold ${s.netUsd >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                    {s.netUsd >= 0 ? '+' : ''}${s.netUsd.toLocaleString()}
+                    {s.netUsd >= 0 ? '+' : ''}<Money usd={s.netUsd} />
                   </td>
                   <td className="py-3 px-3 text-right text-gray-400">{s.transactionCount}</td>
                 </tr>

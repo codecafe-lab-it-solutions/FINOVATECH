@@ -1,0 +1,73 @@
+{
+  "parentUsername": "referrer_demo_6090423",
+  "childUsername": "referred_demo_6090423",
+  "password": "ReferralDemo123!",
+  "referralCode": "FINO-6D7C93007A5E4FC2B6470A9BA9A2BD3B",
+  "planName": "Referral Demo 5% 6090423",
+  "stats": {
+    "referralCode": "FINO-6D7C93007A5E4FC2B6470A9BA9A2BD3B",
+    "referredUsers": [
+      {
+        "commissions": [
+          {
+            "id": "aaa33e7f-2b21-4fd0-937e-32346557db1c",
+            "referralCode": "FINO-6D7C93007A5E4FC2B6470A9BA9A2BD3B",
+            "plan": "Referral Demo 5% 6090423",
+            "principalUsd": 10000,
+            "ratePercent": 5,
+            "amountUsd": 500,
+            "createdAt": "2026-10-21 12:34:51"
+          }
+        ],
+        "name": "Demo Referred Investor",
+        "username": "referred_demo_6090423",
+        "joinedDate": "2026-10-21",
+        "plan": "Referral Demo 5% 6090423"
+      }
+    ]
+  },
+  "profile": {
+    "profile": {
+      "usdWalletBalance": 500,
+      "platformTimezone": "UTC",
+      "investorId": "FINOVA1382",
+      "legacyInvestorId": "6d7c9300-7a5e-4fc2-b647-0a9ba9a2bd3b",
+      "kycApprovedAt": null,
+      "joiningDate": null,
+      "registrationDate": "2026-10-21",
+      "planId": null,
+      "planTerms": null,
+      "investmentId": "cf287f44-cd4b-11f1-919b-8469934a0025",
+      "userId": "6d7c9300-7a5e-4fc2-b647-0a9ba9a2bd3b",
+      "username": "referrer_demo_6090423",
+      "name": "Demo Referrer",
+      "email": "",
+      "phone": "",
+      "country": "",
+      "kycStatus": "Pending",
+      "accountStatus": "Under Review",
+      "plan": "No active investment plan",
+      "agreementNumber": "6d7c9300-7a5e-4fc2-b647-0a9ba9a2bd3b",
+      "startDate": "",
+      "maturityDate": "",
+      "referralCode": "FINO-6D7C93007A5E4FC2B6470A9BA9A2BD3B",
+      "referrerName": "",
+      "referredByCode": null,
+      "payoutBtcAddress": "",
+      "payoutNetwork": "TRC20",
+      "bankName": "",
+      "bankAccountHolder": "",
+      "bankAccountNumber": "",
+      "bankIban": "",
+      "bankSwift": "",
+      "totalInvestmentUsd": 0,
+      "currentPortfolioValueUsd": 500,
+      "totalBtcAllocated": 0,
+      "btcMined": 0,
+      "btcPendingAccrued": 0,
+      "miningSharePercent": 0,
+      "nextWithdrawalDate": null,
+      "updatedAt": "2026-10-21 12:34:51"
+    }
+  }
+}

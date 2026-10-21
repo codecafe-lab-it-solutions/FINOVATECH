@@ -1,3 +1,4 @@
+import { Money } from '../../lib/currency';
 import React, { useState } from 'react';
 import { 
   CreditCard, 
@@ -14,9 +15,10 @@ import { PayoutRecord } from '../../types';
 
 interface PayoutHistoryTabProps {
   payouts: PayoutRecord[];
+  nextWithdrawalDate?: string | null;
 }
 
-export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts }) => {
+export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts, nextWithdrawalDate }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const totalPayoutsUsd = payouts.reduce((acc, curr) => acc + (curr.status === 'Successful' ? curr.amountUsd : 0), 0);
@@ -53,7 +55,7 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts }) =
           <div className="p-2.5 px-4 rounded-2xl bg-gray-950/80 border border-gray-800 text-right">
             <div className="text-[10px] text-gray-400 font-mono">LIFETIME DISBURSED</div>
             <div className="text-sm font-bold text-emerald-400 font-mono mt-0.5">
-              ${totalPayoutsUsd.toFixed(2)} USDT ({totalPayoutsBtc.toFixed(4)} BTC)
+              <Money usd={totalPayoutsUsd} /> ({totalPayoutsBtc.toFixed(4)} BTC)
             </div>
           </div>
         </div>
@@ -65,25 +67,25 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts }) =
         <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 text-white">
           <div className="text-[10px] text-gray-400 uppercase">Total Payouts</div>
           <div className="text-xl font-bold text-white mt-1">{payouts.length} Batches</div>
-          <div className="text-[10px] text-gray-500 mt-0.5">Automatic Friday Cycle</div>
+          <div className="text-[10px] text-gray-500 mt-0.5">Requests follow assigned plan conditions</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-gray-900/90 border border-emerald-500/30 text-white">
           <div className="text-[10px] text-emerald-400 uppercase">Successful Payouts</div>
           <div className="text-xl font-bold text-emerald-400 mt-1">{successfulCount} Confirmed</div>
-          <div className="text-[10px] text-gray-500 mt-0.5">100% Delivery Rate</div>
+          <div className="text-[10px] text-gray-500 mt-0.5">Marked completed by administrator</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 text-white">
           <div className="text-[10px] text-gray-400 uppercase">Pending Batches</div>
           <div className="text-xl font-bold text-amber-400 mt-1">{pendingCount} In Queue</div>
-          <div className="text-[10px] text-gray-500 mt-0.5">Next on 28 Aug 2026</div>
+          <div className="text-[10px] text-gray-500 mt-0.5">{nextWithdrawalDate ? `Next eligible request: ${nextWithdrawalDate}` : 'Requires confirmed KYC date and assigned plan'}</div>
         </div>
 
         <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 text-white">
           <div className="text-[10px] text-gray-400 uppercase">Failed / Reversed</div>
           <div className="text-xl font-bold text-gray-400 mt-1">{failedCount} Failed</div>
-          <div className="text-[10px] text-emerald-400 mt-0.5">Zero Failures Recorded</div>
+          <div className="text-[10px] text-gray-500 mt-0.5">{failedCount ? 'Review rejected request details' : 'No rejected requests'}</div>
         </div>
 
       </div>
@@ -106,7 +108,7 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts }) =
                 <th className="pb-3 px-3">Payout ID</th>
                 <th className="pb-3 px-3">Date</th>
                 <th className="pb-3 px-3">Amount (BTC)</th>
-                <th className="pb-3 px-3">Value (USDT)</th>
+                <th className="pb-3 px-3">Value</th>
                 <th className="pb-3 px-3">Destination Wallet</th>
                 <th className="pb-3 px-3">Network</th>
                 <th className="pb-3 px-3">Status</th>
@@ -118,8 +120,8 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts }) =
                 <tr key={row.id} className="hover:bg-gray-800/40 transition-colors">
                   <td className="py-3.5 px-3 text-[#F7931A] font-bold whitespace-nowrap">{row.payoutId}</td>
                   <td className="py-3.5 px-3 text-gray-300 whitespace-nowrap">{row.date}</td>
-                  <td className="py-3.5 px-3 text-white font-bold whitespace-nowrap">{row.amountBtc} BTC</td>
-                  <td className="py-3.5 px-3 text-emerald-400 whitespace-nowrap">${row.amountUsd.toFixed(2)}</td>
+                  <td className="py-3.5 px-3 text-white font-bold whitespace-nowrap">{row.currency === 'USD' ? 'USD' : `${row.amountBtc} BTC`}</td>
+                  <td className="py-3.5 px-3 text-emerald-400 whitespace-nowrap"><Money usd={row.amountUsd} /></td>
                   <td className="py-3.5 px-3 text-gray-400 whitespace-nowrap">
                     <span className="font-mono select-all text-[11px] text-amber-200/80">
                       {row.destinationWallet.slice(0, 8)}...{row.destinationWallet.slice(-6)}

@@ -1,3 +1,4 @@
+import { useCurrency } from '../../lib/currency';
 import React, { useEffect, useState, useCallback } from 'react';
 import { Wallet, Plus, Save, RotateCw, AlertTriangle, X, ShieldCheck } from 'lucide-react';
 import { ApiCompanyWallet, fetchAdminWallets, createAdminWallet, updateAdminWallet } from '../../lib/api';
@@ -18,6 +19,7 @@ const emptyForm = {
 };
 
 export const AdminWalletsView: React.FC<AdminWalletsViewProps> = ({ authToken, spotBtcPriceUsd }) => {
+  const { formatMoney } = useCurrency();
   const [wallets, setWallets] = useState<ApiCompanyWallet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -89,7 +91,7 @@ export const AdminWalletsView: React.FC<AdminWalletsViewProps> = ({ authToken, s
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Company Wallets & Multi-Sig Vaults</h2>
           <p className="text-xs text-gray-400 mt-1">
-            {isLoading ? 'Loading...' : `${wallets.length} wallet${wallets.length === 1 ? '' : 's'} tracked • ${totalBtc.toFixed(4)} BTC total ≈ $${(totalBtc * spotBtcPriceUsd).toLocaleString()}`}
+            {isLoading ? 'Loading...' : `${wallets.length} wallet${wallets.length === 1 ? '' : 's'} tracked • ${totalBtc.toFixed(4)} BTC total ≈ ${formatMoney((totalBtc * spotBtcPriceUsd))}`}
           </p>
         </div>
         <button

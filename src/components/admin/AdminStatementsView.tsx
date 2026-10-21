@@ -1,3 +1,4 @@
+import { Money } from '../../lib/currency';
 import React, { useState } from 'react';
 import {
   FileText,
@@ -112,7 +113,7 @@ export const AdminStatementsView: React.FC<AdminStatementsViewProps> = ({ statem
                   </td>
 
                   <td className="py-3.5 px-3 text-right font-bold text-white">
-                    ${stmt.investmentAmountUsd.toLocaleString()}
+                    <Money usd={stmt.investmentAmountUsd} />
                   </td>
 
                   <td className="py-3.5 px-3 text-right text-[#F7931A] font-semibold">
@@ -120,7 +121,7 @@ export const AdminStatementsView: React.FC<AdminStatementsViewProps> = ({ statem
                   </td>
 
                   <td className="py-3.5 px-3 text-right font-extrabold text-emerald-400">
-                    ${stmt.netPayoutUsd.toLocaleString()}
+                    <Money usd={stmt.netPayoutUsd} />
                   </td>
 
                   <td className="py-3.5 px-3">
@@ -181,7 +182,7 @@ export const AdminStatementsView: React.FC<AdminStatementsViewProps> = ({ statem
               </div>
               <div className="text-right">
                 <span className="text-gray-500 block text-[10px] uppercase">Contract Principal</span>
-                <strong className="text-sm">${selectedStatement.investmentAmountUsd.toLocaleString()} USD</strong>
+                <strong className="text-sm"><Money usd={selectedStatement.investmentAmountUsd} /></strong>
               </div>
             </div>
 
@@ -192,16 +193,16 @@ export const AdminStatementsView: React.FC<AdminStatementsViewProps> = ({ statem
                 <strong>{selectedStatement.totalBtcMined.toFixed(4)} BTC</strong>
               </div>
               <div className="flex justify-between text-rose-600">
-                <span>Power Tariff Deduction ($0.042/kWh):</span>
-                <span>-${selectedStatement.electricityCostUsd.toLocaleString()}</span>
+                <span>Power Tariff Deduction (<Money usd={0.042} maximumFractionDigits={4} />/kWh):</span>
+                <span>-<Money usd={selectedStatement.electricityCostUsd} /></span>
               </div>
               <div className="flex justify-between text-rose-600">
                 <span>Management Fee:</span>
-                <span>-${selectedStatement.managementFeeUsd.toLocaleString()}</span>
+                <span>-<Money usd={selectedStatement.managementFeeUsd} /></span>
               </div>
               <div className="pt-2 border-t border-gray-300 flex justify-between font-black text-sm text-emerald-600">
                 <span>Net Disbursed to Cold Storage:</span>
-                <span>${selectedStatement.netPayoutUsd.toLocaleString()} USD</span>
+                <span><Money usd={selectedStatement.netPayoutUsd} /></span>
               </div>
             </div>
 

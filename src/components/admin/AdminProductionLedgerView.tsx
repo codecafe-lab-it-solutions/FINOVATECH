@@ -1,3 +1,4 @@
+import { Money } from '../../lib/currency';
 import React, { useState } from 'react';
 import {
   BookOpen,
@@ -76,7 +77,7 @@ export const AdminProductionLedgerView: React.FC<AdminProductionLedgerViewProps>
           <div className="p-3 rounded-2xl bg-gray-900/90 border border-gray-800">
             <div className="text-[10px] text-gray-400">3. Grid OPEX</div>
             <div className="text-sm font-extrabold text-rose-400 mt-1">-{totalOpexBtc.toFixed(4)} BTC</div>
-            <div className="text-[9px] text-gray-500">$0.042/kWh Tariff</div>
+            <div className="text-[9px] text-gray-500"><Money usd={0.042} maximumFractionDigits={4} />/kWh Tariff</div>
           </div>
 
           <div className="p-3 rounded-2xl bg-gray-900/90 border border-gray-800">
@@ -134,7 +135,7 @@ export const AdminProductionLedgerView: React.FC<AdminProductionLedgerViewProps>
 
                   <td className="py-3.5 px-3 text-right text-rose-400">
                     <div>-{row.operationalCostBtc.toFixed(4)} BTC</div>
-                    <div className="text-[10px] text-gray-500">${row.operationalCostUsd.toLocaleString()}</div>
+                    <div className="text-[10px] text-gray-500"><Money usd={row.operationalCostUsd} /></div>
                   </td>
 
                   <td className="py-3.5 px-3 text-right font-bold text-emerald-400">

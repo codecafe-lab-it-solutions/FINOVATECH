@@ -3,7 +3,13 @@ import { InvestorOverviewMetrics, InvestorUser, PayoutRecord, WalletTransaction 
 
 export function profileToUser(p: ApiInvestorProfile): InvestorUser {
   return {
-    id: p.userId,
+    platformTimezone: p.platformTimezone,
+    id: p.investorId,
+    legacyInvestorId: p.legacyInvestorId,
+    kycApprovedAt: p.kycApprovedAt,
+    joiningDate: p.joiningDate,
+    registrationDate: p.registrationDate,
+    planTerms: p.planTerms,
     username: p.username,
     name: p.name,
     email: p.email || 'Not provided',
@@ -17,6 +23,7 @@ export function profileToUser(p: ApiInvestorProfile): InvestorUser {
     maturityDate: p.maturityDate || 'Not yet assigned',
     referralCode: p.referralCode || `FINO-${p.username.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)}`,
     referrerName: p.referrerName || 'N/A',
+    referredByCode: p.referredByCode || null,
     payoutBtcAddress: p.payoutBtcAddress || 'Not set',
     payoutNetwork: p.payoutNetwork || 'TRC20',
     bankName: p.bankName || 'Not set',
@@ -31,6 +38,7 @@ export function profileToUser(p: ApiInvestorProfile): InvestorUser {
 export function profileToMetrics(p: ApiInvestorProfile, btcPriceUsd: number, networkDifficultyT: number): InvestorOverviewMetrics {
   const totalPayoutsBtc = 0; // computed from transactions by the caller when needed
   return {
+    usdWalletBalance: p.usdWalletBalance,
     totalInvestmentUsd: p.totalInvestmentUsd,
     currentPortfolioValueUsd: p.currentPortfolioValueUsd,
     totalBtcAllocated: p.totalBtcAllocated,
@@ -56,7 +64,7 @@ export function profileToMetrics(p: ApiInvestorProfile, btcPriceUsd: number, net
 
 export function transactionToWallet(t: ApiWalletTransaction): WalletTransaction {
   const type: WalletTransaction['type'] =
-    t.type === 'Mining Credit' || t.type === 'Payout' || t.type === 'Deposit' || t.type === 'Referral Commission'
+    t.type === 'Daily Interest' || t.type === 'Mining Credit' || t.type === 'Payout' || t.type === 'Deposit' || t.type === 'Referral Commission'
       ? t.type
       : 'Deposit';
   return {
@@ -92,8 +100,8 @@ export function payoutToRecord(p: ApiPayout, btcPriceUsd: number): PayoutRecord 
     payoutId: p.id.slice(0, 8).toUpperCase(),
     date: p.requestedAt,
     amountBtc: p.amountBtc,
-    amountUsd: p.amountBtc * btcPriceUsd,
-    currency: 'BTC',
+    amountUsd: p.currency === 'USD' ? p.amountUsd : p.amountBtc * btcPriceUsd,
+    currency: p.currency || 'BTC',
     destinationWallet: p.destinationWallet,
     network: p.network || '',
     txid: '',

@@ -1,0 +1,85 @@
+[
+  {
+    "screen": "Admin Dashboard",
+    "headings": [
+      "  - heading \"Admin Business Dashboard\" [level=1]",
+      "  - heading \"FINOVATECK Mining Operations & Finance\" [level=2]",
+      "  - heading \"Executive Key Performance Indicators (KPIs)\" [level=3]",
+      "  - heading \"Mining Infrastructure Fleet Sites\" [level=3]"
+    ],
+    "errors": []
+  },
+  {
+    "screen": "KYC & Compliance",
+    "headings": [
+      "  - heading \"KYC & Compliance Verification Queue\" [level=1]",
+      "  - heading \"KYC & Compliance Verification Queue\" [level=2]"
+    ],
+    "errors": []
+  },
+  {
+    "screen": "Investment Plans",
+    "headings": [
+      "  - heading \"Investment Plans & Capacity Allocation\" [level=1]",
+      "  - heading \"Investment Plans\" [level=2]",
+      "  - heading \"QA Full Audit 20261021\" [level=3]"
+    ],
+    "errors": []
+  },
+  {
+    "screen": "Investment Txns",
+    "headings": [
+      "  - heading \"Capital Transactions & Receipts\" [level=1]",
+      "  - heading \"Investment Transactions\" [level=2]"
+    ],
+    "errors": []
+  },
+  {
+    "screen": "Deposit Requests",
+    "headings": [
+      "  - heading \"Admin Management\" [level=1]",
+      "  - heading \"Deposit Requests\" [level=2]",
+      "  - heading \"Active Deposit Address\" [level=3]",
+      "  - heading \"Pending Review\" [level=3]",
+      "  - heading \"1 Deposit Request, Live From The Database\" [level=3]"
+    ],
+    "errors": []
+  },
+  {
+    "screen": "Contracts & Vault",
+    "headings": [
+      "  - heading \"Contracts & Document Vault\" [level=1]",
+      "  - heading \"Contracts & Document Vault\" [level=2]"
+    ],
+    "errors": []
+  },
+  {
+    "screen": "Company Wallets Multi-Sig",
+    "headings": [
+      "  - heading \"Company Wallets & Multi-Sig Vaults\" [level=1]",
+      "  - heading \"Company Wallets & Multi-Sig Vaults\" [level=2]"
+    ],
+    "errors": []
+  },
+  {
+    "screen": "Payout Management",
+    "headings": [
+      "  - heading \"Investor Payout Queue & Approvals\" [level=1]",
+      "  - heading \"Investor Payout Management & Queue\" [level=2]"
+    ],
+    "errors": []
+  },
+  {
+    "screen": "System Settings",
+    "headings": [
+      "  - heading \"System Settings & Operational Parameters\" [level=1]",
+      "  - heading \"System Settings & Mining Parameters\" [level=2]",
+      "  - heading \"Admin Account Credentials\" [level=3]:",
+      "  - heading \"Withdrawal Controls\" [level=3]:",
+      "  - heading \"1. Mining Infrastructure & Power Constants\" [level=3]:",
+      "  - heading \"2. Payout Thresholds & Treasury Multi-Sig Quorum\" [level=3]:",
+      "  - heading \"3. Platform Security & Operational Flags\" [level=3]:"
+    ],
+    "errors": []
+  }
+]

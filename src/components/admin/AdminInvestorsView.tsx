@@ -1,3 +1,4 @@
+import { Money } from '../../lib/currency';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Search,
@@ -12,6 +13,8 @@ import {
 } from 'lucide-react';
 import {
   ApiInvestorProfile,
+  ApiPlan,
+  fetchAdminPlans,
   ApiWalletTransaction,
   ApiPayout,
   fetchAdminInvestors,
@@ -28,6 +31,8 @@ interface AdminInvestorsViewProps {
 type ProfileFormState = Partial<ApiInvestorProfile>;
 
 export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToken }) => {
+  const [plans, setPlans] = useState<ApiPlan[]>([]);
+  useEffect(() => { fetchAdminPlans(authToken).then(r => setPlans(r.plans)).catch(() => {}); }, [authToken]);
   const [investors, setInvestors] = useState<ApiInvestorProfile[]>([]);
   const [isLoadingList, setIsLoadingList] = useState(true);
   const [listError, setListError] = useState('');
@@ -46,7 +51,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
   const [newTxType, setNewTxType] = useState('Adjustment');
   const [newTxBtc, setNewTxBtc] = useState('');
   const [newTxUsd, setNewTxUsd] = useState('');
-  const [newTxNetwork, setNewTxNetwork] = useState('TRC20');
+  const [newTxNetwork, setNewTxNetwork] = useState('BTC');
   const [newTxNote, setNewTxNote] = useState('');
   const [isAddingTx, setIsAddingTx] = useState(false);
 
@@ -240,9 +245,9 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                     <div className="text-[11px] font-mono text-gray-400">{inv.username} • {inv.email || 'no email set'}</div>
                   </td>
                   <td className="py-3.5 px-3">{kycBadge(inv.kycStatus)}</td>
-                  <td className="py-3.5 px-3 text-right font-bold text-white">${inv.totalInvestmentUsd.toLocaleString()}</td>
+                  <td className="py-3.5 px-3 text-right font-bold text-white"><Money usd={inv.totalInvestmentUsd} /></td>
                   <td className="py-3.5 px-3 text-right font-semibold text-[#F7931A]">{inv.totalBtcAllocated} BTC</td>
-                  <td className="py-3.5 px-3 text-right font-bold text-emerald-400">${inv.currentPortfolioValueUsd.toLocaleString()}</td>
+                  <td className="py-3.5 px-3 text-right font-bold text-emerald-400"><Money usd={inv.currentPortfolioValueUsd} /></td>
                   <td className="py-3.5 px-4 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <button
@@ -311,6 +316,10 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                   {/* Profile & Status */}
                   <div className="p-4 rounded-2xl bg-gray-900/80 border border-gray-800 space-y-3">
                     <div className="text-[10px] text-gray-400 uppercase font-bold">Profile & Compliance</div>
+                    <p>Investor ID: {detailProfile?.investorId} · Legacy Contract ID: {detailProfile?.legacyInvestorId}</p>
+                    <p>USD earnings wallet: <Money usd={detailProfile?.usdWalletBalance || 0} /></p>
+                    <p>KYC Approval Date: {detailProfile?.joiningDate || 'Not recorded'} · Joining Date: {detailProfile?.joiningDate || 'Awaiting confirmed KYC approval'}</p>
+                    {!detailProfile?.kycApprovedAt && <label className="block text-gray-400">Confirm historical KYC approval date (verified investors only)<input type="datetime-local" value={formState.kycApprovedAt ? new Date(new Date(formState.kycApprovedAt).getTime() - new Date(formState.kycApprovedAt).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''} onChange={e => handleField('kycApprovedAt', e.target.value ? new Date(e.target.value).toISOString() : '')} className="block p-2 bg-gray-950 border border-gray-800 text-white" /><span className="text-amber-400">Use the actual approval record. This date becomes permanent and starts interest eligibility.</span></label>}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <label className="block">
                         <span className="text-gray-400 text-[10px] uppercase block mb-1">Email</span>
@@ -359,7 +368,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                           )}
                         </div>
                         <span className="text-[10px] text-gray-500 mt-1 block">
-                          This investor cannot request a withdrawal before this date. Leave blank for no restriction.
+                          This investor cannot request a withdrawal before this date. The plan interval and global seven-day minimum always apply.
                         </span>
                       </label>
                     </div>
@@ -371,12 +380,11 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <label className="block sm:col-span-2">
                         <span className="text-gray-400 text-[10px] uppercase block mb-1">Plan</span>
-                        <input value={formState.plan ?? ''} onChange={(e) => handleField('plan', e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
+                        <select value={formState.plan ?? ''} onChange={(e) => handleField('plan', e.target.value)} className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white"><option value={detailProfile?.plan}>{detailProfile?.plan}</option>{plans.filter(p => p.name !== detailProfile?.plan).map(p => <option key={p.id} value={p.name}>{p.name}</option>)}</select>
                       </label>
                       <label className="block">
                         <span className="text-gray-400 text-[10px] uppercase block mb-1">Agreement Number</span>
-                        <input value={formState.agreementNumber ?? ''} onChange={(e) => handleField('agreementNumber', e.target.value)}
+                        <input value={detailProfile?.agreementNumber ?? ''} readOnly
                           className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
                       </label>
                       <label className="block">
@@ -464,6 +472,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                     </div>
                     <select value={newTxNetwork} onChange={(e) => setNewTxNetwork(e.target.value)}
                       className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-800 text-white text-[11px]">
+                      <option value="BTC">Bitcoin (BTC)</option>
                       <option value="TRC20">USDT Network: TRC20 (Tron)</option>
                       <option value="ERC20">USDT Network: ERC20 (Ethereum)</option>
                       <option value="BEP20">USDT Network: BEP20 (BNB Smart Chain)</option>
@@ -483,7 +492,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                     {payouts.length === 0 && <div className="text-gray-500">No payout requests yet.</div>}
                     {payouts.map((p) => (
                       <div key={p.id} className="flex items-center justify-between p-2 rounded-lg bg-gray-950 border border-gray-800">
-                        <span className="text-gray-300">{p.amountBtc} BTC → {p.destinationWallet.slice(0, 14)}... {p.network ? `(${p.network})` : ''}</span>
+                        <span className="text-gray-300">{p.currency === 'USD' ? <Money usd={p.amountUsd} /> : `${p.amountBtc} BTC`} → {p.destinationWallet.slice(0, 14)}... {p.network ? `(${p.network})` : ''}</span>
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
                           p.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-300' :
                           p.status === 'Rejected' ? 'bg-rose-500/20 text-rose-300' :

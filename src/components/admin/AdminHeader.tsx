@@ -1,3 +1,4 @@
+import { Money } from '../../lib/currency';
 import React, { useState } from 'react';
 import {
   Menu,
@@ -5,7 +6,6 @@ import {
   Bell,
   Zap,
   Shield,
-  PlusCircle,
   RefreshCw,
   Cpu,
   ChevronDown,
@@ -24,7 +24,6 @@ interface AdminHeaderProps {
   adminUser: AdminUser;
   onChangeRole: (newRole: AdminRole) => void;
   onToggleMobileSidebar: () => void;
-  onQuickAction: (action: string) => void;
   onLogout: () => void;
   spotBtcPriceUsd: number;
   totalHashratePH: number;
@@ -36,7 +35,6 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   adminUser,
   onChangeRole,
   onToggleMobileSidebar,
-  onQuickAction,
   onLogout,
   spotBtcPriceUsd,
   totalHashratePH,
@@ -59,6 +57,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       case 'dashboard': return 'Admin Business Dashboard';
       case 'all-investors': return 'Investor Management & Profiles';
       case 'kyc-queue': return 'KYC & Compliance Verification Queue';
+      case 'referrals': return 'Referral Overview';
       case 'investment-plans': return 'Investment Plans & Capacity Allocation';
       case 'investor-allocations': return 'Investor Hashrate Allocations';
       case 'investment-transactions': return 'Capital Transactions & Receipts';
@@ -113,7 +112,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         <div className="hidden xl:flex items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-900/90 border border-gray-800 text-xs font-mono">
             <span className="text-gray-400">BTC Spot:</span>
-            <span className="text-emerald-400 font-bold">${spotBtcPriceUsd.toLocaleString()}</span>
+            <span className="text-emerald-400 font-bold"><Money usd={spotBtcPriceUsd} /></span>
           </div>
 
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-900/90 border border-gray-800 text-xs font-mono">
@@ -135,25 +134,6 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         {/* Right Side: Role Selector + Actions + Notifications */}
         <div className="flex items-center gap-2.5 shrink-0">
           
-          {/* Quick Actions Dropdown / Button */}
-          <div className="hidden sm:flex items-center gap-2">
-            <button
-              onClick={() => onQuickAction('create_plan')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F7931A]/10 hover:bg-[#F7931A]/20 text-[#F7931A] border border-[#F7931A]/30 text-xs font-bold font-mono transition-colors cursor-pointer"
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
-              <span>New Plan</span>
-            </button>
-
-            <button
-              onClick={() => onQuickAction('batch_payout')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-bold font-mono transition-colors cursor-pointer"
-            >
-              <ArrowUpRight className="w-3.5 h-3.5" />
-              <span>Batch Payout</span>
-            </button>
-          </div>
-
           {/* Role Switcher */}
           <div className="relative">
             <button

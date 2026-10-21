@@ -1,0 +1,29 @@
+{
+  "existingInvestorCount": 6,
+  "existingFinancialDataUnchanged": true,
+  "remainingTestAccounts": [
+    "finova_test_browser_20261021"
+  ],
+  "withdrawalSettings": {
+    "max_withdrawal_usd": "1000.00",
+    "withdrawals_enabled": 1
+  },
+  "browserFixture": {
+    "user_id": "c70ac966-3691-4b02-8afb-6fb15e367ea2",
+    "kyc_approved_at": "2026-10-05 00:00:00",
+    "total_investment_usd": "10000.00",
+    "total_btc_allocated": "0.02960400",
+    "btc_mined": "0.00960400",
+    "plan_terms": {
+      "name": "QA Full Audit 20261021",
+      "durationMonths": 12,
+      "payoutRequestDays": 15,
+      "dailyReturnPercent": 0.5,
+      "managementFeePercent": 6.5,
+      "minimumThresholdPercent": 2,
+      "withdrawalEntryFeePercent": 1.25
+    },
+    "daily_credits": 16,
+    "credit_usd": "800.00"
+  }
+}

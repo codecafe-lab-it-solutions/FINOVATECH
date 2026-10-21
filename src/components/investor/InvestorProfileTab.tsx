@@ -34,7 +34,7 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
 
   const [formData, setFormData] = useState({
     payoutBtcAddress: user.payoutBtcAddress,
-    payoutNetwork: user.payoutNetwork,
+    payoutNetwork: 'BTC',
     bankName: user.bankName,
     bankAccountHolder: user.bankAccountHolder,
     bankAccountNumber: user.bankAccountNumber,
@@ -72,6 +72,7 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in">
+      <p className="text-xs text-gray-300">KYC Approval Date: {user.joiningDate || 'Not recorded'} · Joining Date: {user.joiningDate || 'Awaiting confirmed KYC approval'}</p>
       
       {/* Header Banner */}
       <div className="p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -252,24 +253,33 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
             <div className="space-y-3 text-xs font-mono">
               <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
                 <div className="text-gray-400 text-[11px]">Investment Plan:</div>
-                <div className="text-[#F7931A] font-bold text-sm mt-0.5">{user.plan}</div>
+                <div className="text-[#F7931A] font-bold text-sm mt-0.5">{user.planTerms?.name || user.plan}</div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
+              <div className="grid grid-cols-1 gap-3">
+                <div className="min-w-0 p-3 rounded-xl bg-gray-950/70 border border-gray-800">
                   <div className="text-gray-400 text-[11px]">Contract Agreement:</div>
-                  <div className="text-white font-bold mt-0.5">{user.agreementNumber}</div>
+                  <div className="text-white font-bold mt-0.5 whitespace-nowrap overflow-x-auto text-[11px] sm:text-xs">{user.agreementNumber}</div>
                 </div>
                 <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
                   <div className="text-gray-400 text-[11px]">Referral Sponsor:</div>
                   <div className="text-white font-bold mt-0.5">{user.referrerName}</div>
+                  <div className="text-xs text-gray-400 mt-2">Referral ID used: <span className="text-white break-all">{user.referredByCode || 'No referral code used'}</span></div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
-                  <div className="text-gray-400 text-[11px]">Start Date:</div>
-                  <div className="text-emerald-400 font-bold mt-0.5">{user.startDate}</div>
+                  <div className="text-gray-400 text-[11px]">Account Registration Date:</div>
+                  <div className="text-white font-bold mt-0.5">{user.registrationDate || 'Not recorded'}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
+                  <div className="text-gray-400 text-[11px]">KYC Approval Date:</div>
+                  <div className="text-emerald-400 font-bold mt-0.5">{user.joiningDate || 'Awaiting confirmed KYC approval'}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
+                  <div className="text-gray-400 text-[11px]">Start Date / Investment Joining Date:</div>
+                  <div className="text-emerald-400 font-bold mt-0.5">{user.joiningDate || 'Awaiting confirmed KYC approval'}</div>
                 </div>
                 <div className="p-3 rounded-xl bg-gray-950/70 border border-gray-800">
                   <div className="text-gray-400 text-[11px]">Maturity / End Date:</div>
@@ -304,10 +314,10 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
               )}
             </div>
 
-            {/* USDT Payout Address */}
+            {/* Bitcoin withdrawal destination */}
             <div className="p-4 rounded-2xl bg-gray-950/80 border border-gray-800 space-y-2">
               <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-[#F7931A] font-bold">USDT Payout Address:</span>
+                <span className="text-[#F7931A] font-bold">BTC Payout Address:</span>
                 <span className="px-2 py-0.5 rounded-md bg-gray-800 border border-gray-700 text-gray-300 text-[10px] font-bold">
                   {formData.payoutNetwork} Network
                 </span>
@@ -322,7 +332,7 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
                 </button>
               </div>
               <div className="text-[11px] text-gray-400 font-mono">
-                Automated weekly mining dividends are disbursed directly to this USDT address on the {formData.payoutNetwork} network. Sending to the wrong network can permanently lose funds — double-check before saving.
+                New daily earnings and withdrawal requests use USD. Bank/payment details below are used for USD requests; the saved BTC destination is retained for existing holdings and history.
               </div>
             </div>
 
@@ -353,20 +363,18 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
               <form onSubmit={handleSaveDetails} className="space-y-3.5 text-xs font-mono">
 
                 <div>
-                  <label className="block text-gray-400 mb-1">USDT Network:</label>
+                  <label className="block text-gray-400 mb-1">Withdrawal Network:</label>
                   <select
                     value={formData.payoutNetwork}
                     onChange={(e) => setFormData({ ...formData, payoutNetwork: e.target.value })}
                     className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-700 text-white focus:outline-hidden focus:border-[#F7931A]"
                   >
-                    <option value="TRC20">TRC20 (Tron)</option>
-                    <option value="ERC20">ERC20 (Ethereum)</option>
-                    <option value="BEP20">BEP20 (BNB Smart Chain)</option>
+                    <option value="BTC">Bitcoin (BTC)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-gray-400 mb-1">USDT Payout Address:</label>
+                  <label className="block text-gray-400 mb-1">BTC Payout Address:</label>
                   <input
                     type="text"
                     required

@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { listAdminReferrals } from './referrals';
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
@@ -7,8 +8,12 @@ import multer from 'multer';
 import bcrypt from 'bcryptjs';
 import { createUser, findUserById, findUserByUsername, seedIfEmpty, updateCredentials, deleteInvestor } from './db';
 import { initSchema } from './database';
+import { initFinancialSchema } from './financialSchema';
+import { submitPayout, submitUsdPayout, settlePayout, PolicyError, startInterestScheduler } from './financialEngine';
+import { getExchangeRate } from './exchangeRates';
+import { platformDay } from './planPolicy';
 import { signToken, verifyToken, TokenPayload } from './auth';
-import { createSession, isSessionRevoked, listSessionsForUser, revokeSession } from './sessions';
+import { createSession, isSessionRevoked, listSessionsForUser, revokeSession, revokeAllSessions } from './sessions';
 import {
   getProfile,
   listInvestorProfiles,
@@ -30,6 +35,7 @@ import {
   listPlans,
   createPlan,
   updatePlan,
+  deletePlan,
   listWallets,
   createWallet,
   updateWallet,
@@ -241,6 +247,7 @@ app.post('/api/auth/register', async (req, res) => {
     if (err instanceof Error && err.message === 'USERNAME_TAKEN') {
       return res.status(409).json({ error: 'That username is already taken.' });
     }
+    if (err instanceof Error && err.message === 'Enter a valid, unique referral code.') return res.status(400).json({ error: err.message });
     console.error('Registration failed:', err);
     res.status(500).json({ error: 'Registration failed. Please try again.' });
   }
@@ -258,9 +265,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
       const user = await findUserById(userId);
       const otp = await createOtpForUser(userId);
       if (user) {
-        sendOtpEmail(email.trim(), user.name, otp).catch((err) => {
-          console.error('Send OTP email failed:', err);
-        });
+        await sendOtpEmail(email.trim(), user.name, otp);
       }
     }
     // Same response whether or not the email is registered, so this endpoint
@@ -292,6 +297,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
     }
 
     await updateCredentials(userId, { password: newPassword });
+    await revokeAllSessions(userId);
     res.json({ ok: true });
   } catch (err) {
     console.error('Reset password failed:', err);
@@ -353,6 +359,7 @@ app.put('/api/auth/credentials', async (req, res) => {
       username: newUsername,
       password: newPassword
     });
+    if (newPassword !== undefined) await revokeAllSessions(user.id);
 
     // Reissue the session token — the old one still carries the previous
     // username/name claims, which are now stale.
@@ -453,10 +460,8 @@ app.post('/api/investor/payouts/request-otp', async (req, res) => {
       return res.status(400).json({ error: 'Add an email address to your profile before requesting a withdrawal.' });
     }
 
-    const otp = await createOtpForUser(payload.sub);
-    sendWithdrawalOtpEmail(profile.email, profile.name, otp).catch((err) => {
-      console.error('Send withdrawal OTP email failed:', err);
-    });
+    const otp = await createOtpForUser(payload.sub, 'withdrawal');
+    await sendWithdrawalOtpEmail(profile.email, profile.name, otp);
     res.json({ ok: true, message: `A confirmation code has been sent to ${profile.email}.` });
   } catch (err) {
     if (handleAuthError(err, res)) return;
@@ -468,9 +473,18 @@ app.post('/api/investor/payouts/request-otp', async (req, res) => {
 app.post('/api/investor/payouts', async (req, res) => {
   try {
     const payload = await requireRole(req, 'investor');
-    const { amountBtc, destinationWallet, otp, network } = req.body ?? {};
+    const { amountBtc, amountUsd, currency, destinationWallet, otp, network } = req.body ?? {};
+    if (currency !== undefined && currency !== 'USD' && currency !== 'BTC') return res.status(400).json({error: 'Unsupported payout currency.'});
+    if (currency === 'USD') {
+      if (typeof amountUsd !== 'number' || !Number.isFinite(amountUsd) || amountUsd <= 0 || typeof destinationWallet !== 'string') return res.status(400).json({error: 'Enter a valid USD amount and payment destination.'});
+      if (typeof otp !== 'string' || !await verifyAndConsumeOtp(payload.sub, otp.trim(), 'withdrawal')) return res.status(400).json({error: 'Invalid or expired confirmation code.'});
+      const id = await submitUsdPayout({investorUserId: payload.sub, amountUsd, destination: destinationWallet});
+      const payout = await getPayoutById(id);
+      await createNotification(payload.sub, 'USD Payout Request Submitted', `Your USD ${amountUsd.toFixed(2)} withdrawal request awaits administrator review.`, 'payout');
+      return res.status(201).json({payout});
+    }
 
-    if (typeof amountBtc !== 'number' || amountBtc <= 0) {
+    if (typeof amountBtc !== 'number' || !Number.isFinite(amountBtc) || amountBtc <= 0 || Math.round(amountBtc * 1e8) / 1e8 !== amountBtc) {
       return res.status(400).json({ error: 'Enter a valid BTC amount.' });
     }
     if (typeof destinationWallet !== 'string' || destinationWallet.trim().length < 6) {
@@ -494,8 +508,8 @@ app.post('/api/investor/payouts', async (req, res) => {
     }
 
     if (profile.nextWithdrawalDate) {
-      const todayUtc = new Date().toISOString().slice(0, 10);
-      if (todayUtc < profile.nextWithdrawalDate) {
+      const today = platformDay();
+      if (today < profile.nextWithdrawalDate) {
         return res.status(400).json({
           error: `Withdrawals for your account are locked until ${profile.nextWithdrawalDate}. Please try again after that date.`
         });
@@ -518,17 +532,18 @@ app.post('/api/investor/payouts', async (req, res) => {
       });
     }
 
-    const otpValid = await verifyAndConsumeOtp(payload.sub, otp.trim());
+    const otpValid = await verifyAndConsumeOtp(payload.sub, otp.trim(), 'withdrawal');
     if (!otpValid) {
       return res.status(400).json({ error: 'Invalid or expired confirmation code.' });
     }
 
-    const payout = await createPayoutRequest({
+    const payoutId = await submitPayout({
       investorUserId: payload.sub,
       amountBtc,
       destinationWallet: destinationWallet.trim(),
       network: typeof network === 'string' && network.trim() ? network.trim() : profile.payoutNetwork
-    });
+    }, market.usd);
+    const payout = await getPayoutById(payoutId);
     await createNotification(
       payload.sub,
       'Payout Request Submitted',
@@ -538,6 +553,7 @@ app.post('/api/investor/payouts', async (req, res) => {
     res.status(201).json({ payout });
   } catch (err) {
     if (handleAuthError(err, res)) return;
+    if (err instanceof PolicyError) return res.status(400).json({ error: err.message });
     console.error('Create payout request failed:', err);
     res.status(500).json({ error: 'Could not submit payout request.' });
   }
@@ -697,7 +713,7 @@ app.patch('/api/admin/deposit-requests/:id', async (req, res) => {
       return res.status(400).json({ error: 'This request has already been reviewed.' });
     }
 
-    const updated = await updateDepositRequestStatus(req.params.id, status, typeof adminNote === 'string' ? adminNote : undefined);
+    const updated = { ...existing, status };
 
     if (status === 'Approved') {
       // Convert the deposited USD to BTC at the live market rate so it
@@ -709,18 +725,14 @@ app.patch('/api/admin/deposit-requests/:id', async (req, res) => {
       } catch {
         market = null;
       }
-      const btcCredited = market ? updated.amountUsd / market.usd : 0;
+      if (!market || !Number.isFinite(market.usd) || market.usd <= 0) return res.status(502).json({ error: 'Live BTC conversion unavailable. The deposit remains pending; try again later.' });
+      const btcCredited = Math.round(updated.amountUsd / market.usd * 1e8) / 1e8;
 
       const profile = await getProfile(updated.investorUserId);
-      if (profile) {
-        await updateProfile(updated.investorUserId, {
-          totalInvestmentUsd: profile.totalInvestmentUsd + updated.amountUsd,
-          currentPortfolioValueUsd: profile.currentPortfolioValueUsd + updated.amountUsd,
-          totalBtcAllocated: profile.totalBtcAllocated + btcCredited
-        });
-      }
-
       await addTransaction({
+        applyToWallet: true,
+        depositRequestId: req.params.id,
+        depositAdminNote: typeof adminNote === 'string' ? adminNote : '',
         investorUserId: updated.investorUserId,
         type: 'Deposit',
         amountBtc: btcCredited,
@@ -740,6 +752,7 @@ app.patch('/api/admin/deposit-requests/:id', async (req, res) => {
         'deposit'
       );
     } else {
+      await updateDepositRequestStatus(req.params.id, 'Rejected', typeof adminNote === 'string' ? adminNote : undefined);
       await createNotification(
         updated.investorUserId,
         'Deposit Rejected',
@@ -899,6 +912,17 @@ app.post('/api/investor/tickets/:id/messages', async (req, res) => {
     if (handleAuthError(err, res)) return;
     console.error('Add ticket message failed:', err);
     res.status(500).json({ error: 'Could not send message.' });
+  }
+});
+
+app.get('/api/admin/referrals', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    res.json({ referrals: await listAdminReferrals() });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Fetch admin referrals failed:', err);
+    res.status(500).json({ error: 'Could not load referrals.' });
   }
 });
 
@@ -1067,7 +1091,7 @@ app.put('/api/admin/investors/:id', async (req, res) => {
   } catch (err) {
     if (handleAuthError(err, res)) return;
     console.error('Update investor profile failed:', err);
-    res.status(500).json({ error: 'Could not update investor.' });
+    res.status(400).json({ error: err instanceof Error ? err.message : 'Could not update investor.' });
   }
 });
 
@@ -1099,6 +1123,7 @@ app.post('/api/admin/investors/:id/transactions', async (req, res) => {
 
     const trimmedType = type.trim();
     const transaction = await addTransaction({
+      applyToWallet: true,
       investorUserId: req.params.id,
       type: trimmedType,
       amountBtc,
@@ -1115,19 +1140,6 @@ app.post('/api/admin/investors/:id/transactions', async (req, res) => {
     // lifetime mined BTC — everything else (Adjustment, Referral Commission,
     // or any other type) still moves the wallet balance and portfolio value.
     const profile = await getProfile(req.params.id);
-    if (profile) {
-      const updates: ProfileUpdate = {
-        totalBtcAllocated: profile.totalBtcAllocated + amountBtc,
-        currentPortfolioValueUsd: profile.currentPortfolioValueUsd + amountUsd
-      };
-      if (trimmedType === 'Deposit') {
-        updates.totalInvestmentUsd = profile.totalInvestmentUsd + amountUsd;
-      }
-      if (trimmedType === 'Mining Credit') {
-        updates.btcMined = profile.btcMined + amountBtc;
-      }
-      await updateProfile(req.params.id, updates);
-    }
 
     res.status(201).json({ transaction });
 
@@ -1167,57 +1179,19 @@ app.patch('/api/admin/payouts/:id', async (req, res) => {
     const existing = await getPayoutById(req.params.id);
     if (!existing) return res.status(404).json({ error: 'Payout not found.' });
 
-    const payout = await updatePayoutStatus(req.params.id, status as never, typeof notes === 'string' ? notes : undefined);
-
-    // The investor's available BTC balance only actually moves once a payout
-    // is confirmed Completed — debit it here (and credit it back if admin
-    // reverses a Completed payout to another status), since the balance
-    // shown across the dashboard/wallet is read straight from this field.
-    if (existing.status !== 'Completed' && status === 'Completed') {
-      const profile = await getProfile(payout.investorUserId);
-      const newBalance = Math.max(0, (profile?.totalBtcAllocated ?? 0) - payout.amountBtc);
-      await updateProfile(payout.investorUserId, { totalBtcAllocated: newBalance });
-
-      let market: Awaited<ReturnType<typeof getBtcMarketData>> | null = null;
-      try {
-        market = await getBtcMarketData();
-      } catch {
-        market = null;
-      }
-      await addTransaction({
-        investorUserId: payout.investorUserId,
-        type: 'Payout',
-        amountBtc: -payout.amountBtc,
-        amountUsd: market ? -(payout.amountBtc * market.usd) : 0,
-        status: 'Completed',
-        network: payout.network,
-        note: `Withdrawal to ${payout.destinationWallet}`
-      });
-    } else if (existing.status === 'Completed' && status !== 'Completed') {
-      const profile = await getProfile(payout.investorUserId);
-      const newBalance = (profile?.totalBtcAllocated ?? 0) + payout.amountBtc;
-      await updateProfile(payout.investorUserId, { totalBtcAllocated: newBalance });
-
-      await addTransaction({
-        investorUserId: payout.investorUserId,
-        type: 'Payout',
-        amountBtc: payout.amountBtc,
-        amountUsd: 0,
-        status: 'Reversed',
-        network: payout.network,
-        note: `Reversal of payout ${payout.id} (status changed to ${status})`
-      });
-    }
+    await settlePayout(req.params.id, status, typeof notes === 'string' ? notes : '');
+    const payout = (await getPayoutById(req.params.id))!;
 
     await createNotification(
       payout.investorUserId,
       'Payout Status Updated',
-      `Your payout of ${payout.amountBtc} BTC is now: ${status}.`,
+      `Your payout of ${payout.currency === 'USD' ? `USD ${payout.amountUsd.toFixed(2)}` : `${payout.amountBtc} BTC`} is now: ${status}.`,
       'payout'
     );
     res.json({ payout });
   } catch (err) {
     if (handleAuthError(err, res)) return;
+    if (err instanceof PolicyError) return res.status(400).json({ error: err.message });
     console.error('Update payout status failed:', err);
     res.status(500).json({ error: 'Could not update payout.' });
   }
@@ -1239,17 +1213,22 @@ app.get('/api/admin/plans', async (req, res) => {
 app.post('/api/admin/plans', async (req, res) => {
   try {
     await requireRole(req, 'admin');
-    const { name, tagline, minInvestmentUsd, maxInvestmentUsd, durationMonths, managementFeePercent, payoutFrequency, status } = req.body ?? {};
+    const { directReferralPercent, name, tagline, minInvestmentUsd, maxInvestmentUsd, durationMonths, managementFeePercent, payoutFrequency, status, dailyReturnPercent, payoutRequestDays, minimumThresholdPercent, withdrawalEntryFeePercent } = req.body ?? {};
     if (typeof name !== 'string' || !name.trim()) {
       return res.status(400).json({ error: 'Plan name is required.' });
     }
     const plan = await createPlan({
+      directReferralPercent: directReferralPercent ?? 5,
       name: name.trim(),
       tagline: tagline || '',
-      minInvestmentUsd: Number(minInvestmentUsd) || 0,
-      maxInvestmentUsd: Number(maxInvestmentUsd) || 0,
-      durationMonths: Number(durationMonths) || 12,
-      managementFeePercent: Number(managementFeePercent) || 0,
+      minInvestmentUsd: minInvestmentUsd ?? 0,
+      maxInvestmentUsd: maxInvestmentUsd ?? 0,
+      durationMonths: durationMonths ?? 12,
+      managementFeePercent: managementFeePercent ?? 0,
+      dailyReturnPercent: dailyReturnPercent ?? 0,
+      payoutRequestDays: payoutRequestDays ?? 7,
+      minimumThresholdPercent: minimumThresholdPercent ?? 0,
+      withdrawalEntryFeePercent: withdrawalEntryFeePercent ?? 0,
       payoutFrequency: payoutFrequency || 'Monthly',
       status: status || 'Draft'
     });
@@ -1257,7 +1236,7 @@ app.post('/api/admin/plans', async (req, res) => {
   } catch (err) {
     if (handleAuthError(err, res)) return;
     console.error('Create plan failed:', err);
-    res.status(500).json({ error: 'Could not create plan.' });
+    res.status(400).json({ error: err instanceof Error ? err.message : 'Could not create plan.' });
   }
 });
 
@@ -1269,8 +1248,18 @@ app.put('/api/admin/plans/:id', async (req, res) => {
   } catch (err) {
     if (handleAuthError(err, res)) return;
     console.error('Update plan failed:', err);
-    res.status(500).json({ error: 'Could not update plan.' });
+    res.status(400).json({ error: err instanceof Error ? err.message : 'Could not update plan.' });
   }
+});
+
+app.delete('/api/admin/plans/:id', async (req, res) => {
+  try { await requireRole(req, 'admin'); await deletePlan(req.params.id); res.json({ ok: true }); }
+  catch (err) { if (handleAuthError(err, res)) return; res.status(409).json({ error: err instanceof Error ? err.message : 'Could not delete plan.' }); }
+});
+
+app.get('/api/exchange-rate', async (_req, res) => {
+  try { res.json(await getExchangeRate()); }
+  catch { res.status(503).json({ error: 'Exchange rate unavailable. USD amounts remain available.' }); }
 });
 
 // --- Admin: Company Wallets ---
@@ -1507,6 +1496,7 @@ if (isProduction && fs.existsSync(DIST_DIR)) {
 async function start() {
   try {
     await initSchema();
+    await initFinancialSchema();
     await seedIfEmpty();
   } catch (err) {
     console.error('[finovateck-api] Could not connect to MySQL. Is the MySQL server running, and did you run server/scripts/setup-mysql.sql against it?');
@@ -1514,6 +1504,7 @@ async function start() {
     process.exit(1);
   }
 
+  startInterestScheduler();
   app.listen(PORT, () => {
     console.log(`[finovateck-api] listening on http://localhost:${PORT}${isProduction ? ' (serving built frontend + API)' : ''}`);
   });
