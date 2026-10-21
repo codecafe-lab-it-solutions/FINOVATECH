@@ -1,3 +1,5 @@
+import { AdminReferralsView } from './AdminReferralsView';
+import { CurrencySelector } from '../../lib/currency';
 import React, { useState, useEffect } from 'react';
 import { AdminTab, AdminUser, AdminRole } from '../../types';
 import { AuthUser, fetchAdminInvestors, fetchAdminPayouts, fetchAdminMachines, fetchAdminAllTransactions, fetchBtcMarketData, fetchAdminDepositRequests } from '../../lib/api';
@@ -172,17 +174,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     }));
   };
 
-  const handleQuickAction = (action: string) => {
-    if (action === 'create_plan') {
-      setCurrentTab('investment-plans');
-    } else if (action === 'batch_payout') {
-      setCurrentTab('payout-queue');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#070B14] text-gray-100 flex flex-col font-sans selection:bg-[#F7931A]/30 selection:text-[#F7931A]">
       
+      <CurrencySelector />
       <div className="flex flex-1 relative overflow-hidden">
         
         {/* Responsive Navigation Sidebar */}
@@ -212,7 +207,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             adminUser={currentAdminUser}
             onChangeRole={handleChangeRole}
             onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-            onQuickAction={handleQuickAction}
             onLogout={onLogout}
             spotBtcPriceUsd={kpis.spotBtcPriceUsd}
             totalHashratePH={kpis.miningHashratePH}
@@ -235,6 +229,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
               <AdminInvestorsView authToken={authToken} />
             )}
 
+            {currentTab === 'referrals' && <AdminReferralsView authToken={authToken} />}
             {currentTab === 'investment-plans' && (
               <AdminPlansView authToken={authToken} />
             )}

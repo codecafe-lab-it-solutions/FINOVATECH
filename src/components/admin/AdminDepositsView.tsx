@@ -1,3 +1,4 @@
+import { Money } from '../../lib/currency';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   ArrowDownToLine,
@@ -212,7 +213,7 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
               <div>
                 <div className="font-sans font-bold text-white">{r.investorName}</div>
                 <div className="text-gray-400 mt-0.5">
-                  {r.referenceNumber} • ${r.amountUsd.toLocaleString()} • {r.network} • {r.createdAt}
+                  {r.referenceNumber} • <Money usd={r.amountUsd} /> • {r.network} • {r.createdAt}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -271,7 +272,7 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
                 <tr key={r.id} className="hover:bg-gray-800/40">
                   <td className="py-3 px-4 text-[#F7931A] font-bold">{r.referenceNumber}</td>
                   <td className="py-3 px-3 font-sans text-white">{r.investorName}</td>
-                  <td className="py-3 px-3 text-right">${r.amountUsd.toLocaleString()}</td>
+                  <td className="py-3 px-3 text-right"><Money usd={r.amountUsd} /></td>
                   <td className="py-3 px-3">{r.network}</td>
                   <td className="py-3 px-3">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${

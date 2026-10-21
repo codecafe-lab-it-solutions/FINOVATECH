@@ -1,3 +1,4 @@
+import { Money } from '../../lib/currency';
 import React, { useState } from 'react';
 import {
   Layers,
@@ -54,7 +55,7 @@ export const AdminLiabilitiesView: React.FC<AdminLiabilitiesViewProps> = ({ liab
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800">
           <div className="text-[10px] font-mono text-gray-400 uppercase">Total Capital Invested</div>
-          <div className="text-2xl font-extrabold text-white font-mono mt-1">${(totalCapital / 1000000).toFixed(2)}M</div>
+          <div className="text-2xl font-extrabold text-white font-mono mt-1"><Money usd={totalCapital} /></div>
           <div className="text-[11px] text-gray-400 font-mono mt-0.5">Across 248 accounts</div>
         </div>
 
@@ -111,7 +112,7 @@ export const AdminLiabilitiesView: React.FC<AdminLiabilitiesViewProps> = ({ liab
                   </td>
 
                   <td className="py-3.5 px-3 text-right font-bold text-white">
-                    ${item.capitalInvestedUsd.toLocaleString()}
+                    <Money usd={item.capitalInvestedUsd} />
                   </td>
 
                   <td className="py-3.5 px-3 text-right text-[#F7931A] font-semibold">

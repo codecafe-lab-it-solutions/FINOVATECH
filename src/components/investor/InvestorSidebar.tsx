@@ -50,6 +50,7 @@ export const InvestorSidebar: React.FC<InvestorSidebarProps> = ({
         { id: 'overview' as InvestorTab, label: 'Overview Dashboard', icon: LayoutDashboard },
         { id: 'profile' as InvestorTab, label: 'Investor Profile & KYC', icon: User },
         { id: 'investment' as InvestorTab, label: 'Investment Terms & Docs', icon: FileText },
+        { id: 'referrals' as InvestorTab, label: 'Partner / Referrals', icon: Users },
         { id: 'mining-performance' as InvestorTab, label: 'Live Mining Telemetry', icon: Activity, hidden: true },
       ]
     },

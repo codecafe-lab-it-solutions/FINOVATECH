@@ -1,0 +1,50 @@
+[
+  {
+    "user_id": "36b8cf7a-b64e-489f-b7a5-5096b28c5d23",
+    "total_investment_usd": "5000.00",
+    "total_btc_allocated": "0.62700000",
+    "usd_wallet_balance": "0.00",
+    "kyc_approved_at": null,
+    "plan_terms": null
+  },
+  {
+    "user_id": "37375a74-810a-4bcc-9eea-3bf639de3ba8",
+    "total_investment_usd": "0.00",
+    "total_btc_allocated": "0.00000000",
+    "usd_wallet_balance": "0.00",
+    "kyc_approved_at": null,
+    "plan_terms": null
+  },
+  {
+    "user_id": "6d68357f-c637-4786-b8a9-315202de6222",
+    "total_investment_usd": "5000.00",
+    "total_btc_allocated": "0.06270000",
+    "usd_wallet_balance": "0.00",
+    "kyc_approved_at": null,
+    "plan_terms": null
+  },
+  {
+    "user_id": "a01841ed-8093-4665-af0f-9a03c701c620",
+    "total_investment_usd": "50000.00",
+    "total_btc_allocated": "0.08500000",
+    "usd_wallet_balance": "0.00",
+    "kyc_approved_at": null,
+    "plan_terms": null
+  },
+  {
+    "user_id": "ac1b990f-6f6b-4dce-9cc3-d7fe72fc49c1",
+    "total_investment_usd": "0.00",
+    "total_btc_allocated": "0.00000000",
+    "usd_wallet_balance": "0.00",
+    "kyc_approved_at": null,
+    "plan_terms": null
+  },
+  {
+    "user_id": "bb5c9ae8-db60-48ca-a3d6-b418f3c884ec",
+    "total_investment_usd": "5000.00",
+    "total_btc_allocated": "0.05000000",
+    "usd_wallet_balance": "0.00",
+    "kyc_approved_at": null,
+    "plan_terms": null
+  }
+]

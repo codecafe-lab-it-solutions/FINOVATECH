@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import type { RowDataPacket } from 'mysql2';
 import { pool } from './database';
+import { validatePlan } from './planPolicy';
 
 const now = () => new Date().toISOString().slice(0, 19).replace('T', ' ');
 
@@ -14,6 +15,11 @@ export interface PlanRecord {
   maxInvestmentUsd: number;
   durationMonths: number;
   managementFeePercent: number;
+  directReferralPercent?: number;
+  dailyReturnPercent: number;
+  payoutRequestDays: number;
+  minimumThresholdPercent: number;
+  withdrawalEntryFeePercent: number;
   payoutFrequency: 'Daily' | 'Weekly' | 'Monthly';
   status: 'Active' | 'Draft' | 'Deactivated';
   activeInvestorsCount: number;
@@ -45,6 +51,11 @@ function toPlan(row: PlanRow): PlanRecord {
     maxInvestmentUsd: Number(row.max_investment_usd),
     durationMonths: row.duration_months,
     managementFeePercent: Number(row.management_fee_percent),
+    directReferralPercent: Number(row.direct_referral_percent),
+    dailyReturnPercent: Number(row.daily_return_percent),
+    payoutRequestDays: Number(row.payout_request_days),
+    minimumThresholdPercent: Number(row.minimum_threshold_percent),
+    withdrawalEntryFeePercent: Number(row.withdrawal_entry_fee_percent),
     payoutFrequency: row.payout_frequency,
     status: row.status,
     activeInvestorsCount: Number(row.active_investors_count ?? 0),
@@ -56,7 +67,7 @@ function toPlan(row: PlanRow): PlanRecord {
 export async function listPlans(): Promise<PlanRecord[]> {
   const [rows] = await pool.query<PlanRow[]>(`
     SELECT pl.*, (
-      SELECT COUNT(*) FROM investor_profiles ip WHERE ip.plan = pl.name
+      SELECT COUNT(*) FROM investor_profiles ip WHERE ip.plan_id = pl.id OR (ip.plan_id IS NULL AND ip.plan = pl.name)
     ) AS active_investors_count
     FROM investment_plans pl
     ORDER BY pl.created_at DESC
@@ -65,25 +76,40 @@ export async function listPlans(): Promise<PlanRecord[]> {
 }
 
 export async function createPlan(params: Omit<PlanRecord, 'id' | 'activeInvestorsCount' | 'createdAt' | 'updatedAt'>): Promise<PlanRecord> {
+  validatePlan(params);
+  const [duplicates] = await pool.query<RowDataPacket[]>('SELECT id FROM investment_plans WHERE name = ?', [params.name.trim()]);
+  if (duplicates.length) throw new Error('A plan with this name already exists. Use a unique name.');
   const id = crypto.randomUUID();
   const ts = now();
   await pool.query(
     `INSERT INTO investment_plans
-      (id, name, tagline, min_investment_usd, max_investment_usd, duration_months, management_fee_percent, payout_frequency, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, params.name, params.tagline, params.minInvestmentUsd, params.maxInvestmentUsd, params.durationMonths, params.managementFeePercent, params.payoutFrequency, params.status, ts, ts]
+      (id, name, tagline, min_investment_usd, max_investment_usd, duration_months, management_fee_percent, payout_frequency, status, created_at, updated_at, daily_return_percent, payout_request_days, minimum_threshold_percent, withdrawal_entry_fee_percent, direct_referral_percent)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, params.name, params.tagline, params.minInvestmentUsd, params.maxInvestmentUsd, params.durationMonths, params.managementFeePercent, params.payoutFrequency, params.status, ts, ts, params.dailyReturnPercent, params.payoutRequestDays, params.minimumThresholdPercent, params.withdrawalEntryFeePercent, params.directReferralPercent ?? 5]
   );
   return { id, activeInvestorsCount: 0, createdAt: ts, updatedAt: ts, ...params };
 }
 
 export async function updatePlan(id: string, params: Partial<Omit<PlanRecord, 'id' | 'activeInvestorsCount' | 'createdAt' | 'updatedAt'>>): Promise<void> {
+  const current = (await listPlans()).find(p => p.id === id);
+  if (!current) throw new Error('Plan not found.');
+  validatePlan({ ...current, ...params });
+  if (params.name) {
+    const [duplicates] = await pool.query<RowDataPacket[]>('SELECT id FROM investment_plans WHERE name = ? AND id <> ?', [params.name.trim(), id]);
+    if (duplicates.length) throw new Error('A plan with this name already exists. Use a unique name.');
+  }
   const map: Record<string, string> = {
+    directReferralPercent: 'direct_referral_percent',
     name: 'name',
     tagline: 'tagline',
     minInvestmentUsd: 'min_investment_usd',
     maxInvestmentUsd: 'max_investment_usd',
     durationMonths: 'duration_months',
     managementFeePercent: 'management_fee_percent',
+    dailyReturnPercent: 'daily_return_percent',
+    payoutRequestDays: 'payout_request_days',
+    minimumThresholdPercent: 'minimum_threshold_percent',
+    withdrawalEntryFeePercent: 'withdrawal_entry_fee_percent',
     payoutFrequency: 'payout_frequency',
     status: 'status'
   };
@@ -92,6 +118,20 @@ export async function updatePlan(id: string, params: Partial<Omit<PlanRecord, 'i
   const setClause = entries.map(([k]) => `${map[k]} = ?`).join(', ');
   const values = entries.map(([, v]) => v);
   await pool.query(`UPDATE investment_plans SET ${setClause}, updated_at = ? WHERE id = ?`, [...values, now(), id]);
+}
+
+export async function deletePlan(id: string): Promise<void> {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    const [plans] = await conn.query<RowDataPacket[]>('SELECT * FROM investment_plans WHERE id = ? FOR UPDATE', [id]);
+    if (!plans[0]) throw new Error('Plan not found.');
+    const [investors] = await conn.query<RowDataPacket[]>('SELECT user_id FROM investor_profiles WHERE plan_id = ? OR (plan_id IS NULL AND plan = ?) FOR UPDATE', [id, plans[0].name]);
+    if (investors.length) throw new Error('Cannot delete a plan with assigned investors. Editing is still available.');
+    await conn.query('DELETE FROM investment_plans WHERE id = ?', [id]);
+    await conn.commit();
+  } catch (err) { await conn.rollback(); throw err; }
+  finally { conn.release(); }
 }
 
 // --- Company Wallets ---

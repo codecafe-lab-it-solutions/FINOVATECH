@@ -14,7 +14,9 @@
     "start": "NODE_ENV=production node server.js",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "test:audit": "node --import tsx --test --test-concurrency=1 tests/referrals.integration.test.ts tests/planPolicy.test.ts tests/financial.integration.test.ts tests/requirements.audit.test.tsx tests/full-system.audit.test.ts",
+    "test:smtp": "tsx tests/checkSmtp.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

@@ -1,3 +1,5 @@
+import { PlanConditions } from './PlanConditions';
+import { Money } from '../../lib/currency';
 import React, { useState } from 'react';
 import { 
   FileText, 
@@ -37,6 +39,7 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in">
+      <PlanConditions user={user} investmentUsd={metrics.totalInvestmentUsd} />
       
       {/* Top Banner with Agreement Actions */}
       <div className="p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -48,7 +51,7 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
             Investment Structure & Institutional Transparency
           </h2>
           <p className="text-xs text-gray-400 font-mono mt-0.5">
-            4-Year Defined Term Capital Equipment & Thermodynamic Compute Lease
+            {user.planTerms ? `${user.planTerms.durationMonths}-Month Investment Agreement` : 'Investment terms awaiting plan assignment'}
           </p>
         </div>
 
@@ -90,7 +93,7 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
           <div className="space-y-1.5 pt-1">
             <div className="flex justify-between text-gray-400">
               <span>Investment Amount:</span>
-              <span className="text-white font-bold">${metrics.totalInvestmentUsd.toLocaleString()} USDT</span>
+              <span className="text-white font-bold"><Money usd={metrics.totalInvestmentUsd} /></span>
             </div>
             <div className="flex justify-between text-gray-400">
               <span>Execution Date:</span>
@@ -102,7 +105,7 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
             </div>
             <div className="flex justify-between text-gray-400">
               <span>Contract Duration:</span>
-              <span className="text-white font-bold">48 Calendar Months (4 Years)</span>
+              <span className="text-white font-bold">{user.planTerms ? `${user.planTerms.durationMonths} Calendar Months` : 'Not assigned'}</span>
             </div>
           </div>
         </div>
@@ -146,15 +149,15 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
             </div>
             <div className="flex justify-between text-gray-400">
               <span>Management / Mining Fee:</span>
-              <span className="text-white font-bold">5.0% of Gross Mined BTC</span>
+              <span className="text-white font-bold">{user.planTerms ? `${user.planTerms.managementFeePercent}%` : 'Not assigned'}</span>
             </div>
             <div className="flex justify-between text-gray-400">
               <span>Electricity / OPEX:</span>
-              <span className="text-white font-bold">$0.042 / kWh (Industrial Oman)</span>
+              <span className="text-white font-bold"><Money usd={0.042} maximumFractionDigits={4} /> / kWh (Industrial Oman)</span>
             </div>
             <div className="flex justify-between text-gray-400">
               <span>Payout Frequency:</span>
-              <span className="text-[#F7931A] font-bold">Weekly Automated (Every Friday)</span>
+              <span className="text-[#F7931A] font-bold">{user.planTerms ? `Every ${Math.max(7, user.planTerms.payoutRequestDays)} days, on request` : 'Not assigned'}</span>
             </div>
           </div>
         </div>
@@ -174,14 +177,14 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
           <div className="p-4 rounded-xl bg-gray-950/70 border border-gray-800 space-y-1.5">
             <div className="text-[#F7931A] font-bold">Article 4.1 — Hashrate Guarantee & Redundancy</div>
             <p className="text-gray-300 leading-relaxed font-sans text-xs">
-              FINOVATECK guarantees a minimum fleet availability of 98.0% across the 4-year term. Hot-swap replacement units in Muscat inventory are deployed within 2 hours if any individual ASIC board falls below nominal tolerance.
+              FINOVATECK guarantees a minimum fleet availability of 98.0% across the agreed plan term. Hot-swap replacement units in Muscat inventory are deployed within 2 hours if any individual ASIC board falls below nominal tolerance.
             </p>
           </div>
 
           <div className="p-4 rounded-xl bg-gray-950/70 border border-gray-800 space-y-1.5">
             <div className="text-[#F7931A] font-bold">Article 6.2 — On-Chain Payout Verifiability</div>
             <p className="text-gray-300 leading-relaxed font-sans text-xs">
-              All mining revenue distributions are calculated at 00:00 UTC daily and disbursed to the investor's whitelisted Bitcoin Taproot/SegWit destination with broadcasted TXIDs visible on public mempools.
+              Daily interest uses the agreed plan rate and official KYC-approved Joining Date. Credits are recorded at midnight in the platform timezone. Payouts follow the eligibility conditions above and require administrator approval.
             </p>
           </div>
 
@@ -195,7 +198,7 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
           <div className="p-4 rounded-xl bg-gray-950/70 border border-gray-800 space-y-1.5">
             <div className="text-[#F7931A] font-bold">Article 11.4 — Maturity & Equipment Buyback Option</div>
             <p className="text-gray-300 leading-relaxed font-sans text-xs">
-              Upon completion of the 48-month contract, the investor holds guaranteed rights to either extend the mining charter at prevailing spot power rates or elect for physical delivery / liquid secondary buyout of the underlying compute hardware.
+              Upon completion of the agreed plan duration, the investor may request to either extend the mining charter at prevailing spot power rates or elect for physical delivery / liquid secondary buyout of the underlying compute hardware.
             </p>
           </div>
         </div>
@@ -227,8 +230,10 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
               </button>
             </div>
 
-            {/* Modal Body - Stamped Legal Text */}
+            {/* Agreement terms */}
             <div className="p-6 overflow-y-auto space-y-6 text-xs text-gray-300 font-mono leading-relaxed bg-gray-900/90">
+              <PlanConditions user={user} investmentUsd={metrics.totalInvestmentUsd} />
+              <p>Contract Investor ID: {user.legacyInvestorId} · Start Date: {user.joiningDate || "Awaiting KYC approval date"}</p>
               <div className="p-4 rounded-2xl bg-gray-950 border border-gray-800 flex items-center justify-between">
                 <div>
                   <div className="text-white font-bold">PARTY A (Operator): FINOVATECK Mining Company S.A.O.C</div>
@@ -236,7 +241,7 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
                 </div>
                 <div className="text-right">
                   <div className="text-[#F7931A] font-bold">PARTY B (Investor): {user.name}</div>
-                  <div className="text-gray-400">Investor ID: {user.id}</div>
+                  <div className="text-gray-400">Investor ID: {user.legacyInvestorId}</div>
                 </div>
               </div>
 
@@ -245,7 +250,7 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
                   RECITALS & OPERATIONAL ENGAGEMENT
                 </h4>
                 <p>
-                  WHEREAS, the Operator manages industrial Bitcoin computational facilities situated in Muscat, Sultanate of Oman; and WHEREAS, the Investor desires to lease dedicated SHA-256 computational hashrate for a period of 4 (four) calendar years commencing on 15 Jan 2025 and expiring on 15 Jan 2029.
+                  WHEREAS, the Operator manages industrial Bitcoin computational facilities situated in Muscat, Sultanate of Oman; and WHEREAS, the Investor desires to lease dedicated SHA-256 computational hashrate under the assigned plan {user.planTerms?.name || user.plan}, commencing on {user.joiningDate || 'the confirmed KYC approval date'} for {user.planTerms?.durationMonths ?? 'the agreed number of'} months.
                 </p>
                 <p>
                   NOW THEREFORE, in consideration of the mutual covenants herein contained, the parties agree as follows:
@@ -260,7 +265,7 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
                   <li>Total Allocated Hashrate: 125.0 TH/s dedicated continuously to Bitcoin SHA-256 hashing.</li>
                   <li>Target Uptime SLA: 98.0% minimum annual aggregate availability.</li>
                   <li>Mining Pool Target: Foundry USA VIP Enterprise Stratum V2 endpoint.</li>
-                  <li>Power Tariff Guarantee: $0.042/kWh for the full contractual 48-month window.</li>
+                  <li>Power Tariff: <Money usd={0.042} maximumFractionDigits={4} />/kWh for the agreed {user.planTerms?.durationMonths ?? 'unconfirmed'}-month term.</li>
                 </ul>
               </div>
 
@@ -269,7 +274,7 @@ export const InvestmentDetailsTab: React.FC<InvestmentDetailsTabProps> = ({
                   <ShieldCheck className="w-5 h-5 text-emerald-400" />
                   <span>Sovereign Compliance Seal & Electronic Signature Verified</span>
                 </div>
-                <span className="font-bold">VALID THROUGH 2029</span>
+                <span className="font-bold">Maturity Date: {user.maturityDate}</span>
               </div>
             </div>
 

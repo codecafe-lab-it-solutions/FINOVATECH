@@ -1,3 +1,6 @@
+import { PlanConditions } from './PlanConditions';
+import { todayInTimezone } from '../../lib/dates';
+import { Money } from '../../lib/currency';
 import React, { useState } from 'react';
 import {
   Wallet,
@@ -20,18 +23,22 @@ import { WalletTransaction, InvestorOverviewMetrics, InvestorUser } from '../../
 import { ApiDepositRequest, ApiWithdrawalSettings } from '../../lib/api';
 
 interface WalletTabProps {
+  reservedPayoutUsd?: number;
+  reservedPayoutBtc: number;
   transactions: WalletTransaction[];
   metrics: InvestorOverviewMetrics;
   user: InvestorUser;
   depositRequests: ApiDepositRequest[];
   withdrawalSettings: ApiWithdrawalSettings | null;
   onRequestPayoutOtp: () => Promise<{ ok: true; message: string }>;
-  onRequestPayout: (amountBtc: number, destinationWallet: string, otp: string, network: string) => Promise<void>;
+  onRequestPayout: (amountUsd: number, destinationWallet: string, otp: string, network: string) => Promise<void>;
   onFetchDepositAddress: () => Promise<{ address: string; network: string }>;
   onSubmitDeposit: (amountUsd: number, proofFile: File) => Promise<{ referenceNumber: string }>;
 }
 
 export const WalletTab: React.FC<WalletTabProps> = ({
+  reservedPayoutUsd = 0,
+  reservedPayoutBtc,
   transactions,
   metrics,
   user,
@@ -45,8 +52,8 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   const [copiedTx, setCopiedTx] = useState<string | null>(null);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawStep, setWithdrawStep] = useState<1 | 2 | 3>(1);
-  const [withdrawAmount, setWithdrawAmount] = useState('0.005');
-  const [destinationAddress, setDestinationAddress] = useState(user.payoutBtcAddress);
+  const [withdrawAmount, setWithdrawAmount] = useState('50');
+  const [destinationAddress, setDestinationAddress] = useState(user.bankIban === 'Not set' ? '' : user.bankIban);
   const [otpCode, setOtpCode] = useState('');
   const [otpMessage, setOtpMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -63,16 +70,19 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   const [depositError, setDepositError] = useState<string | null>(null);
   const [copiedDepositAddress, setCopiedDepositAddress] = useState(false);
 
-  const availableBtc = metrics.totalBtcAllocated;
+  const availableBtc = Math.max(0, metrics.totalBtcAllocated - reservedPayoutBtc);
+  const availableUsd = Math.max(0, (metrics.usdWalletBalance || 0) - reservedPayoutUsd);
+  const maximumUsd = Math.min(withdrawalSettings?.maxWithdrawalUsd ?? Infinity, Math.max(0, availableUsd - metrics.totalInvestmentUsd * (user.planTerms?.minimumThresholdPercent || 0) / 100));
   const pendingBtc = metrics.btcPendingAccrued;
   const totalEarnedBtc = metrics.btcMined;
   const totalWithdrawnBtc = metrics.totalPayoutsBtc;
   const btcPriceUsd = metrics.currentBtcPriceUsd;
 
-  const todayIso = new Date().toISOString().slice(0, 10);
+
+  const todayIso = todayInTimezone(user.platformTimezone);
   const isDateLocked = !!user.nextWithdrawalDate && todayIso < user.nextWithdrawalDate;
   const globallyDisabled = withdrawalSettings?.withdrawalsEnabled === false;
-  const withdrawalsBlocked = globallyDisabled || isDateLocked;
+  const withdrawalsBlocked = globallyDisabled || isDateLocked || !user.joiningDate || !user.planTerms || user.kycStatus !== 'Verified' || user.accountStatus !== 'Active';
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -82,7 +92,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
 
   const handleStartWithdraw = () => {
     setWithdrawStep(1);
-    setDestinationAddress(user.payoutBtcAddress);
+    setDestinationAddress(user.bankIban === 'Not set' ? '' : user.bankIban);
     setOtpCode('');
     setOtpMessage('');
     setWithdrawError(null);
@@ -92,6 +102,8 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   const handleStep1Next = async (e: React.FormEvent) => {
     e.preventDefault();
     setWithdrawError(null);
+    const requested = Number(withdrawAmount);
+    if (withdrawalsBlocked || !Number.isFinite(requested) || requested <= 0 || requested > maximumUsd) { setWithdrawError('Amount exceeds your eligible USD balance after the required threshold and transaction limit, or withdrawal is not yet eligible.'); return; }
     setIsProcessing(true);
     try {
       const { message } = await onRequestPayoutOtp();
@@ -108,9 +120,9 @@ export const WalletTab: React.FC<WalletTabProps> = ({
     setIsProcessing(true);
     setWithdrawError(null);
     try {
-      await onRequestPayout(parseFloat(withdrawAmount), destinationAddress, otpCode.trim(), user.payoutNetwork);
+      await onRequestPayout(parseFloat(withdrawAmount), destinationAddress, otpCode.trim(), 'USD bank/payment');
       setWithdrawStep(3);
-      setWithdrawSuccess(`Payout request for ${withdrawAmount} BTC submitted and is awaiting admin approval.`);
+      setWithdrawSuccess(`Payout request for USD ${withdrawAmount} submitted and is awaiting admin approval.`);
     } catch (err) {
       setWithdrawError(err instanceof Error ? err.message : 'Could not submit payout request.');
     } finally {
@@ -170,6 +182,8 @@ export const WalletTab: React.FC<WalletTabProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in">
+      <PlanConditions user={user} investmentUsd={metrics.totalInvestmentUsd} walletUsd={availableUsd} />
+      <div className="p-5 rounded-2xl bg-gray-900 border border-emerald-800 text-white"><h3 className="text-sm font-bold">USD Earnings Wallet</h3><p className="text-2xl font-bold mt-2"><Money usd={availableUsd} /></p><p className="text-xs text-gray-400 mt-2">Daily interest is credited in dollars without BTC conversion. Reserved USD payouts: <Money usd={reservedPayoutUsd} />. Maximum eligible withdrawal: <Money usd={maximumUsd} />.</p></div>
       
       {/* Header Banner */}
       <div className="p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -182,7 +196,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             Investor Wallet & Treasury Management
           </h2>
           <p className="text-xs text-gray-400 font-mono mt-0.5">
-            Your real BTC balance and transaction ledger, with admin-reviewed withdrawal requests
+            Your dollar earnings, existing BTC holdings and transaction ledger, with admin-reviewed USD withdrawal requests
           </p>
         </div>
 
@@ -207,7 +221,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             className="px-4 py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono flex items-center gap-2 cursor-pointer transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-3.5 h-3.5" />
-            <span>Request BTC Withdrawal</span>
+            <span>Request USD Withdrawal</span>
           </button>
         </div>
       </div>
@@ -251,7 +265,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             {availableBtc} BTC
           </div>
           <div className="text-[11px] text-gray-400 font-mono mt-0.5">
-            ≈ ${(availableBtc * btcPriceUsd).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDT
+            ≈ <Money usd={(availableBtc * btcPriceUsd)} />
           </div>
         </div>
 
@@ -265,7 +279,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             {pendingBtc} BTC
           </div>
           <div className="text-[11px] text-gray-400 font-mono mt-0.5">
-            ≈ ${(pendingBtc * btcPriceUsd).toFixed(2)} USDT
+            ≈ <Money usd={(pendingBtc * btcPriceUsd)} />
           </div>
         </div>
 
@@ -279,7 +293,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             {totalEarnedBtc} BTC
           </div>
           <div className="text-[11px] text-gray-400 font-mono mt-0.5">
-            ≈ ${(totalEarnedBtc * btcPriceUsd).toFixed(2)} USDT
+            ≈ <Money usd={(totalEarnedBtc * btcPriceUsd)} />
           </div>
         </div>
 
@@ -293,7 +307,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             {totalWithdrawnBtc} BTC
           </div>
           <div className="text-[11px] text-gray-400 font-mono mt-0.5">
-            ≈ ${(totalWithdrawnBtc * btcPriceUsd).toFixed(2)} USDT
+            ≈ <Money usd={(totalWithdrawnBtc * btcPriceUsd)} />
           </div>
         </div>
 
@@ -304,10 +318,10 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             <RefreshCw className="w-4 h-4 text-gray-400" />
           </div>
           <div className="text-xl font-bold text-emerald-400 mt-1 font-mono">
-            ${btcPriceUsd.toLocaleString()}
+            <Money usd={btcPriceUsd} />
           </div>
           <div className="text-[11px] text-gray-400 font-mono mt-0.5">
-            Spot Price (USDT)
+            Spot Price
           </div>
         </div>
 
@@ -334,7 +348,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                 <th className="pb-3 px-3">Date / Time (UTC)</th>
                 <th className="pb-3 px-3">Type</th>
                 <th className="pb-3 px-3">Amount (BTC)</th>
-                <th className="pb-3 px-3">Amount (USDT)</th>
+                <th className="pb-3 px-3">Amount</th>
                 <th className="pb-3 px-3">Network</th>
                 <th className="pb-3 px-3">Status</th>
                 <th className="pb-3 px-3 text-right">Blockchain TXID</th>
@@ -361,7 +375,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                     {tx.amountBtc >= 0 ? `+${tx.amountBtc}` : `${tx.amountBtc}`} BTC
                   </td>
                   <td className="py-3 px-3 text-gray-300 whitespace-nowrap">
-                    {tx.amountUsd >= 0 ? `+$${tx.amountUsd.toFixed(2)}` : `-$${Math.abs(tx.amountUsd).toFixed(2)}`}
+                    {tx.amountUsd >= 0 ? '+' : ''}<Money usd={tx.amountUsd} />
                   </td>
                   <td className="py-3 px-3 text-gray-400 whitespace-nowrap">
                     {tx.network || '—'}
@@ -420,7 +434,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
               <thead>
                 <tr className="border-b border-gray-800 text-gray-400 uppercase text-[10px]">
                   <th className="pb-3 px-3">Reference</th>
-                  <th className="pb-3 px-3">Amount (USD)</th>
+                  <th className="pb-3 px-3">Amount</th>
                   <th className="pb-3 px-3">Network</th>
                   <th className="pb-3 px-3">Status</th>
                   <th className="pb-3 px-3">Submitted</th>
@@ -430,7 +444,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                 {depositRequests.map((r) => (
                   <tr key={r.id} className="hover:bg-gray-800/40">
                     <td className="py-3 px-3 text-[#F7931A] font-bold whitespace-nowrap">{r.referenceNumber}</td>
-                    <td className="py-3 px-3 text-white whitespace-nowrap">${r.amountUsd.toLocaleString()}</td>
+                    <td className="py-3 px-3 text-white whitespace-nowrap"><Money usd={r.amountUsd} /></td>
                     <td className="py-3 px-3 text-gray-400 whitespace-nowrap">{r.network}</td>
                     <td className="py-3 px-3 whitespace-nowrap">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -451,7 +465,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
       {/* Multi-Step Deposit Modal */}
       {showDepositModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-lg p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white shadow-2xl space-y-5 animate-in zoom-in-95">
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white shadow-2xl space-y-5 animate-in zoom-in-95">
 
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-gray-800 pb-3">
@@ -542,7 +556,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             {depositStep === 2 && (
               <div className="space-y-4 text-xs font-mono">
                 <p className="text-gray-300">
-                  Attach a screenshot of your payment confirmation for <strong className="text-white">${depositAmount}</strong>.
+                  Attach a screenshot of your payment confirmation for <strong className="text-white"><Money usd={Number(depositAmount)} /></strong>.
                 </p>
 
                 <label className="flex flex-col items-center justify-center gap-2 p-6 rounded-xl bg-gray-950 border-2 border-dashed border-gray-700 hover:border-emerald-500 cursor-pointer transition-colors">
@@ -605,14 +619,14 @@ export const WalletTab: React.FC<WalletTabProps> = ({
       {/* Multi-Step Withdrawal Modal */}
       {showWithdrawModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-lg p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white shadow-2xl space-y-5 animate-in zoom-in-95">
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white shadow-2xl space-y-5 animate-in zoom-in-95">
             
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-gray-800 pb-3">
               <div className="flex items-center gap-2">
                 <Send className="w-5 h-5 text-[#F7931A]" />
                 <span className="font-bold text-sm uppercase tracking-wider font-mono">
-                  Bitcoin Withdrawal Protocol
+                  USD Withdrawal Request
                 </span>
               </div>
               <button
@@ -636,38 +650,46 @@ export const WalletTab: React.FC<WalletTabProps> = ({
               </div>
             </div>
 
+            {withdrawError && (
+              <div role="alert" className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{withdrawError}</span>
+              </div>
+            )}
+
             {/* Step 1: Form */}
             {withdrawStep === 1 && (
               <form onSubmit={handleStep1Next} className="space-y-4 text-xs font-mono">
+                  <PlanConditions user={user} investmentUsd={metrics.totalInvestmentUsd} walletUsd={availableUsd} />
                 <div>
                   <div className="flex justify-between text-gray-400 mb-1">
-                    <span>Withdrawal Amount (BTC):</span>
-                    <span>Max: {availableBtc} BTC</span>
+                    <span>Withdrawal Amount (USD):</span>
+                    <span>Max: USD {maximumUsd.toFixed(2)}</span>
                   </div>
                   <input
                     type="number"
-                    step="0.0001"
-                    min="0.001"
-                    max={availableBtc}
+                    step="0.01"
+                    min="0.01"
+                    max={maximumUsd}
                     required
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value)}
                     className="w-full px-3 py-2.5 rounded-xl bg-gray-950 border border-gray-700 text-white focus:outline-hidden focus:border-[#F7931A]"
                   />
                   <div className="text-[11px] text-gray-400 mt-1">
-                    ≈ ${(parseFloat(withdrawAmount || '0') * btcPriceUsd).toFixed(2)} USDT
+                    Display equivalent: <Money usd={parseFloat(withdrawAmount || '0')} />
                   </div>
                   {withdrawalSettings && (
                     <div className="text-[11px] text-amber-400/90 mt-1">
-                      Limit: {withdrawalSettings.maxWithdrawalUsd.toLocaleString()} USDT per transaction
+                      Limit: <Money usd={withdrawalSettings.maxWithdrawalUsd} /> per transaction
                     </div>
                   )}
                 </div>
 
                 <div>
                   <div className="flex justify-between text-gray-400 mb-1">
-                    <span>Destination USDT Address:</span>
-                    <span className="text-[#F7931A] font-bold">{user.payoutNetwork} Network</span>
+                    <span>USD Payment Destination (bank/account details):</span>
+                    <span className="text-[#F7931A] font-bold">USD bank/payment</span>
                   </div>
                   <input
                     type="text"
@@ -677,7 +699,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                     className="w-full px-3 py-2.5 rounded-xl bg-gray-950 border border-gray-700 text-white focus:outline-hidden focus:border-[#F7931A]"
                   />
                   <div className="text-[11px] text-gray-500 mt-1">
-                    Sent on the {user.payoutNetwork} network, matching your saved payout address in Investor Profile. Change the network there before withdrawing if this is wrong.
+                    An administrator reviews these bank/account details before processing your USD payment.
                   </div>
                 </div>
 
@@ -701,7 +723,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                 <div className="p-4 rounded-xl bg-gray-950 border border-gray-700 space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-400">Amount:</span>
-                    <span className="text-white font-bold">{withdrawAmount} BTC</span>
+                    <span className="text-white font-bold">USD {withdrawAmount}</span>
                   </div>
                   <div className="flex justify-between gap-3">
                     <span className="text-gray-400 shrink-0">Destination:</span>
@@ -732,13 +754,6 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                   />
                 </div>
 
-                {withdrawError && (
-                  <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{withdrawError}</span>
-                  </div>
-                )}
-
                 <button
                   type="button"
                   disabled={isProcessing || !otpCode.trim()}
@@ -758,7 +773,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                 </div>
                 <h4 className="text-base font-bold text-white">Payout Request Submitted</h4>
                 <p className="text-gray-300">
-                  Your request to withdraw <strong className="text-white">{withdrawAmount} BTC</strong> has been recorded and is now awaiting admin review and approval. You'll see it under Payout Records once processed.
+                  Your request to withdraw <strong className="text-white">USD {withdrawAmount}</strong> has been recorded and is now awaiting admin review and approval. You'll see it under Payout Records once processed.
                 </p>
                 <button
                   type="button"

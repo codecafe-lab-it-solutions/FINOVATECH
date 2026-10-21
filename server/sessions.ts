@@ -10,6 +10,9 @@ export interface SessionRecord {
   createdAt: string;
   revoked: boolean;
 }
+export async function revokeAllSessions(userId: string): Promise<void> {
+  await pool.query('UPDATE login_sessions SET revoked = TRUE WHERE user_id = ?', [userId]);
+}
 
 interface SessionRow extends RowDataPacket {
   id: string;

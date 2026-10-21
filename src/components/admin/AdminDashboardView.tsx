@@ -1,3 +1,4 @@
+import { Money } from '../../lib/currency';
 import React from 'react';
 import {
   Users,
@@ -87,15 +88,15 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           <span className="text-[11px] font-mono text-gray-500">Live 10-Second Telemetry Sync</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,15rem),1fr))] gap-3 sm:gap-4">
           
           {/* Total Investors */}
-          <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
+          <div className="min-w-0 [container-type:inline-size] [overflow-wrap:anywhere] p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
             <div className="flex items-center justify-between text-gray-400 mb-2">
               <span className="text-xs font-medium">Total Investors</span>
               <Users className="w-4 h-4 text-blue-400" />
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-white font-mono">{kpis.totalInvestors}</div>
+            <div className="text-[clamp(1rem,8cqw,1.5rem)] break-all font-extrabold text-white font-mono">{kpis.totalInvestors}</div>
             <div className="text-[11px] text-emerald-400 font-mono mt-1 flex items-center gap-1">
               <span className="font-semibold">{kpis.activeInvestors} Active</span>
               {' '}({kpis.totalInvestors > 0 ? Math.round((kpis.activeInvestors / kpis.totalInvestors) * 100) : 0}%)
@@ -103,13 +104,13 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           </div>
 
           {/* Total Investment */}
-          <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
+          <div className="min-w-0 [container-type:inline-size] [overflow-wrap:anywhere] p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
             <div className="flex items-center justify-between text-gray-400 mb-2">
               <span className="text-xs font-medium">Total Investment</span>
               <DollarSign className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-white font-mono">
-              ${(kpis.totalInvestmentUsd / 1000000).toFixed(2)}M
+            <div className="text-[clamp(1rem,8cqw,1.5rem)] break-all font-extrabold text-white font-mono">
+              <Money usd={kpis.totalInvestmentUsd} />
             </div>
             <div className="text-[11px] text-gray-400 font-mono mt-1">
               Allocated: {kpis.totalBtcAllocated} BTC
@@ -117,26 +118,26 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           </div>
 
           {/* BTC Mined */}
-          <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
+          <div className="min-w-0 [container-type:inline-size] [overflow-wrap:anywhere] p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
             <div className="flex items-center justify-between text-gray-400 mb-2">
               <span className="text-xs font-medium">Total BTC Mined</span>
               <span className="w-4 h-4 rounded-full bg-[#F7931A] text-gray-950 font-black text-[10px] flex items-center justify-center">₿</span>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-white font-mono text-[#F7931A]">
+            <div className="text-[clamp(1rem,8cqw,1.5rem)] break-all font-extrabold text-white font-mono text-[#F7931A]">
               {kpis.totalBtcMined.toFixed(2)} BTC
             </div>
             <div className="text-[11px] text-gray-400 font-mono mt-1">
-              ≈ ${(kpis.totalBtcMined * kpis.spotBtcPriceUsd / 1000000).toFixed(2)}M USD
+              ≈ <Money usd={kpis.totalBtcMined * kpis.spotBtcPriceUsd} />
             </div>
           </div>
 
           {/* BTC Paid Out */}
-          <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
+          <div className="min-w-0 [container-type:inline-size] [overflow-wrap:anywhere] p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
             <div className="flex items-center justify-between text-gray-400 mb-2">
               <span className="text-xs font-medium">BTC Paid Out</span>
               <ArrowUpRight className="w-4 h-4 text-purple-400" />
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-white font-mono">
+            <div className="text-[clamp(1rem,8cqw,1.5rem)] break-all font-extrabold text-white font-mono">
               {kpis.totalBtcPaidOut.toFixed(2)} BTC
             </div>
             <div className="text-[11px] text-gray-400 font-mono mt-1">
@@ -145,12 +146,12 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           </div>
 
           {/* Pending Payout */}
-          <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
+          <div className="min-w-0 [container-type:inline-size] [overflow-wrap:anywhere] p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
             <div className="flex items-center justify-between text-gray-400 mb-2">
               <span className="text-xs font-medium">Pending Payout</span>
               <Clock className="w-4 h-4 text-amber-400" />
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-amber-400 font-mono">
+            <div className="text-[clamp(1rem,8cqw,1.5rem)] break-all font-extrabold text-amber-400 font-mono">
               {kpis.pendingPayoutBtc.toFixed(2)} BTC
             </div>
             <div className="text-[11px] text-gray-400 font-mono mt-1">
@@ -159,12 +160,12 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           </div>
 
           {/* Fleet Hashrate */}
-          <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
+          <div className="min-w-0 [container-type:inline-size] [overflow-wrap:anywhere] p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
             <div className="flex items-center justify-between text-gray-400 mb-2">
               <span className="text-xs font-medium">Fleet Hashrate</span>
               <Zap className="w-4 h-4 text-[#F7931A]" />
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-white font-mono">
+            <div className="text-[clamp(1rem,8cqw,1.5rem)] break-all font-extrabold text-white font-mono">
               {kpis.miningHashratePH.toFixed(2)} PH/s
             </div>
             <div className="text-[11px] text-gray-400 font-mono mt-1">
@@ -173,12 +174,12 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           </div>
 
           {/* Active Miners */}
-          <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
+          <div className="min-w-0 [container-type:inline-size] [overflow-wrap:anywhere] p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
             <div className="flex items-center justify-between text-gray-400 mb-2">
               <span className="text-xs font-medium">Miners Online</span>
               <Cpu className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-white font-mono">
+            <div className="text-[clamp(1rem,8cqw,1.5rem)] break-all font-extrabold text-white font-mono">
               {kpis.minersOnline} <span className="text-xs text-gray-500 font-normal">/ {kpis.totalMiners}</span>
             </div>
             <div className="text-[11px] text-emerald-400 font-mono mt-1">
@@ -187,12 +188,12 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           </div>
 
           {/* Mining Uptime */}
-          <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
+          <div className="min-w-0 [container-type:inline-size] [overflow-wrap:anywhere] p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
             <div className="flex items-center justify-between text-gray-400 mb-2">
               <span className="text-xs font-medium">Mining Uptime</span>
               <Activity className="w-4 h-4 text-teal-400" />
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-emerald-400 font-mono">
+            <div className="text-[clamp(1rem,8cqw,1.5rem)] break-all font-extrabold text-emerald-400 font-mono">
               {kpis.miningUptimePercent}%
             </div>
             <div className="text-[11px] text-gray-400 font-mono mt-1">
@@ -201,13 +202,13 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           </div>
 
           {/* Monthly Revenue */}
-          <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
+          <div className="min-w-0 [container-type:inline-size] [overflow-wrap:anywhere] p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
             <div className="flex items-center justify-between text-gray-400 mb-2">
               <span className="text-xs font-medium">Monthly Revenue</span>
               <TrendingUp className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-white font-mono">
-              ${kpis.monthlyRevenueUsd.toLocaleString()}
+            <div className="text-[clamp(1rem,8cqw,1.5rem)] break-all font-extrabold text-white font-mono">
+              <Money usd={kpis.monthlyRevenueUsd} />
             </div>
             <div className="text-[11px] text-gray-400 font-mono mt-1">
               From Mining Credit transactions this month
@@ -215,13 +216,13 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           </div>
 
           {/* Monthly Cost */}
-          <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
+          <div className="min-w-0 [container-type:inline-size] [overflow-wrap:anywhere] p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors">
             <div className="flex items-center justify-between text-gray-400 mb-2">
               <span className="text-xs font-medium">Monthly OPEX</span>
               <DollarSign className="w-4 h-4 text-rose-400" />
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-white font-mono">
-              ${kpis.monthlyCostUsd.toLocaleString()}
+            <div className="text-[clamp(1rem,8cqw,1.5rem)] break-all font-extrabold text-white font-mono">
+              <Money usd={kpis.monthlyCostUsd} />
             </div>
             <div className="text-[11px] text-gray-500 font-mono mt-1">
               Not tracked yet
@@ -229,15 +230,15 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
           </div>
 
           {/* Net Profit */}
-          <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors col-span-2 sm:col-span-1 lg:col-span-2">
+          <div className="min-w-0 [container-type:inline-size] [overflow-wrap:anywhere] p-4 rounded-2xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-colors lg:col-span-2">
             <div className="flex items-center justify-between text-gray-400 mb-2">
               <span className="text-xs font-medium">Net Monthly Revenue</span>
               {kpis.monthlyCostUsd === 0 && (
                 <span className="px-2 py-0.5 rounded bg-gray-800 text-gray-400 text-[10px] font-mono font-bold">OPEX NOT TRACKED</span>
               )}
             </div>
-            <div className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">
-              ${kpis.netProfitUsd.toLocaleString()}
+            <div className="text-[clamp(1rem,8cqw,1.5rem)] break-all font-black text-emerald-400 font-mono">
+              <Money usd={kpis.netProfitUsd} />
             </div>
             <div className="text-[11px] text-gray-400 font-mono mt-1">
               Mining Revenue minus OPEX minus Fees

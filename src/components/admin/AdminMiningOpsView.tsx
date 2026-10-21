@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Money } from '../../lib/currency';
 import {
   Zap,
   Activity,
@@ -79,7 +80,7 @@ export const AdminMiningOpsView: React.FC<AdminMiningOpsViewProps> = ({ faciliti
 
         <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800">
           <div className="text-[10px] font-mono text-gray-400 uppercase">Grid Tariff Locked</div>
-          <div className="text-2xl font-extrabold text-emerald-400 font-mono mt-1">$0.042</div>
+          <div className="text-2xl font-extrabold text-emerald-400 font-mono mt-1"><Money usd={0.042} maximumFractionDigits={4} /></div>
           <div className="text-[11px] text-gray-400 font-mono mt-0.5">Per kWh Levelized</div>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { utcDay } from './planPolicy';
 import crypto from 'node:crypto';
 import type { RowDataPacket } from 'mysql2';
 import { pool } from './database';
@@ -209,6 +210,7 @@ export async function updateTicketStatus(ticketId: string, status: TicketRecord[
 export interface ReferredInvestor {
   name: string;
   username: string;
+  commissions?: { id: string; referralCode: string; plan: string; principalUsd: number; ratePercent: number; amountUsd: number; createdAt: string }[];
   joinedDate: string;
   plan: string;
 }
@@ -220,15 +222,16 @@ export async function getReferralStats(investorUserId: string): Promise<{ referr
   if (!referralCode) return { referralCode, referredUsers: [] };
 
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT u.name, u.username, u.created_at, p.plan
+    `SELECT u.id, u.name, u.username, u.created_at, p.kyc_approved_at, p.plan
      FROM investor_profiles p JOIN users u ON u.id = p.user_id
      WHERE p.referred_by_code = ?
      ORDER BY u.created_at DESC`,
     [referralCode]
   );
+  const [commissions] = await pool.query<RowDataPacket[]>('SELECT * FROM referral_commissions WHERE referrer_user_id = ? ORDER BY created_at DESC', [investorUserId]);
   return {
     referralCode,
-    referredUsers: (rows as any[]).map((r) => ({ name: r.name, username: r.username, joinedDate: r.created_at, plan: r.plan }))
+    referredUsers: (rows as any[]).map((r) => ({ commissions: commissions.filter(c => c.referred_user_id === r.id).map(c => ({ id: c.id, referralCode: c.referral_code, plan: c.plan_name, principalUsd: Number(c.principal_usd), ratePercent: Number(c.rate_percent), amountUsd: Number(c.amount_usd), createdAt: c.created_at })), name: r.name, username: r.username, joinedDate: r.kyc_approved_at ? utcDay(r.kyc_approved_at) : 'Awaiting KYC approval', plan: r.plan }))
   };
 }
 
@@ -338,7 +341,7 @@ export interface EarningRow {
 export async function listEarnings(investorUserId: string): Promise<EarningRow[]> {
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT id, created_at, amount_btc, amount_usd, status FROM wallet_transactions
-     WHERE investor_user_id = ? AND type = 'Mining Credit'
+     WHERE investor_user_id = ? AND type IN ('Mining Credit', 'Daily Interest')
      ORDER BY created_at DESC`,
     [investorUserId]
   );
@@ -365,8 +368,8 @@ export async function listMonthlyStatements(investorUserId: string): Promise<Mon
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT
        DATE_FORMAT(created_at, '%Y-%m') AS month,
-       SUM(CASE WHEN type = 'Mining Credit' THEN amount_btc ELSE 0 END) AS mining_btc,
-       SUM(CASE WHEN type = 'Mining Credit' THEN amount_usd ELSE 0 END) AS mining_usd,
+       SUM(CASE WHEN type IN ('Mining Credit', 'Daily Interest') THEN amount_btc ELSE 0 END) AS mining_btc,
+       SUM(CASE WHEN type IN ('Mining Credit', 'Daily Interest') THEN amount_usd ELSE 0 END) AS mining_usd,
        SUM(CASE WHEN type = 'Payout' THEN -amount_btc ELSE 0 END) AS payout_btc,
        SUM(CASE WHEN type = 'Payout' THEN -amount_usd ELSE 0 END) AS payout_usd,
        SUM(amount_usd) AS net_usd,

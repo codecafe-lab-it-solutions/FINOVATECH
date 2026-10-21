@@ -1,3 +1,4 @@
+import { useCurrency } from '../../lib/currency';
 import React, { useState } from 'react';
 import { 
   Bell, 
@@ -42,6 +43,7 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
   isMobileSidebarOpen,
   btcMarket
 }) => {
+  const { formatMoney } = useCurrency();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
@@ -73,7 +75,7 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
                   <span className="text-sm font-extrabold tracking-tight text-white">
                     FINOVATECK
                   </span>
-                  <span className="px-1.5 py-0.5 rounded bg-[#F7931A]/20 text-[#F7931A] text-[9px] font-mono font-bold uppercase tracking-wider">
+                  <span className="hidden sm:inline px-1.5 py-0.5 rounded bg-[#F7931A]/20 text-[#F7931A] text-[9px] font-mono font-bold uppercase tracking-wider">
                     INVESTOR PORTAL
                   </span>
                 </div>
@@ -88,7 +90,7 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
           <div className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-gray-900/90 border border-gray-800 text-xs font-mono">
             <div className="flex items-center gap-1.5 text-amber-400 font-bold">
               <span className="w-2 h-2 rounded-full bg-[#F7931A] animate-pulse" />
-              <span>BTC/USDT: {btcMarket ? `$${btcMarket.usd.toLocaleString()}` : 'Loading...'}</span>
+              <span>BTC price: {btcMarket ? formatMoney(btcMarket.usd) : 'Loading...'}</span>
             </div>
             {btcMarket && (
               <>
@@ -113,6 +115,7 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
             {/* Quick Wallet Button */}
             <button
               onClick={() => onSelectTab('wallet')}
+              aria-label={`Wallet: ${walletBalanceBtc} BTC`}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-colors cursor-pointer ${
                 currentTab === 'wallet'
                   ? 'bg-[#F7931A] text-gray-950 font-bold'
@@ -121,7 +124,7 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
             >
               <Wallet className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Wallet:</span>
-              <span className="text-[#F7931A] group-hover:text-amber-400 font-bold">{walletBalanceBtc} BTC</span>
+              <span className="hidden sm:inline text-[#F7931A] group-hover:text-amber-400 font-bold">{walletBalanceBtc} BTC</span>
             </button>
 
             {/* Notification Bell with Dropdown */}

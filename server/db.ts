@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import type { RowDataPacket } from 'mysql2';
 import { pool } from './database';
+import { createPlan } from './adminData';
 import { ensureProfile, updateProfile, setReferralCode, setReferredByCode, addTransaction, createPayoutRequest, updatePayoutStatus } from './investors';
 
 export type UserRole = 'investor' | 'admin';
@@ -69,6 +70,7 @@ export async function seedIfEmpty(): Promise<void> {
   // Give the demo investor a populated profile + ledger so the portal has
   // something real to show out of the box; real registrations start at zero.
   await ensureProfile(investorId);
+  await createPlan({ name: 'Industrial Pod Tier 1 (125 TH/s Dedicated Compute)', tagline: 'Demo investment plan', minInvestmentUsd: 10000, maxInvestmentUsd: 100000, durationMonths: 48, managementFeePercent: 0, dailyReturnPercent: 0, payoutRequestDays: 7, minimumThresholdPercent: 0, withdrawalEntryFeePercent: 0, payoutFrequency: 'Monthly', status: 'Active' });
   await updateProfile(investorId, {
     email: 'tariq.albalushi@investor.om',
     phone: '+968 9123 4567',
@@ -165,6 +167,10 @@ export async function createUser(params: {
   email?: string;
   referredByCode?: string;
 }): Promise<StoredUser> {
+  if (params.referredByCode) {
+    const [referrers] = await pool.query<any[]>('SELECT user_id FROM investor_profiles WHERE referral_code = ?', [params.referredByCode.trim()]);
+    if (referrers.length !== 1) throw new Error('Enter a valid, unique referral code.');
+  }
   const id = crypto.randomUUID();
   const passwordHash = bcrypt.hashSync(params.password, 10);
   const createdAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -187,7 +193,7 @@ export async function createUser(params: {
     if (params.email) {
       await updateProfile(id, { email: params.email.trim() });
     }
-    const generatedCode = `FINO-${username.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)}`;
+    const generatedCode = `FINO-${id.replace(/-/g, '').toUpperCase()}`;
     await setReferralCode(id, generatedCode);
     if (params.referredByCode) {
       await setReferredByCode(id, params.referredByCode.trim());

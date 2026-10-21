@@ -1,13 +1,15 @@
+import { Money } from '../../lib/currency';
 import React, { useState } from 'react';
 import { Users, Copy, Check } from 'lucide-react';
 import { ApiReferredInvestor } from '../../lib/api';
 
 interface ReferralPartnerTabProps {
+  joiningDate: string | null;
   referralCode: string;
   referredUsers: ApiReferredInvestor[];
 }
 
-export const ReferralPartnerTab: React.FC<ReferralPartnerTabProps> = ({ referralCode, referredUsers }) => {
+export const ReferralPartnerTab: React.FC<ReferralPartnerTabProps> = ({ referralCode, referredUsers, joiningDate }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopyCode = () => {
@@ -18,6 +20,7 @@ export const ReferralPartnerTab: React.FC<ReferralPartnerTabProps> = ({ referral
 
   return (
     <div className="space-y-6 animate-in fade-in">
+      <p className="text-xs text-gray-300">Start Date: {joiningDate || "Awaiting confirmed KYC approval date"}</p>
       <div className="p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800 border border-gray-700 text-xs font-mono text-[#F7931A]">
@@ -53,6 +56,13 @@ export const ReferralPartnerTab: React.FC<ReferralPartnerTabProps> = ({ referral
         <p className="text-[11px] text-gray-500">New investors enter this code on the "Create Account" screen when registering.</p>
       </div>
 
+      <div className="p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white space-y-3">
+        <h3 className="font-bold">Direct Referral Earnings: <Money usd={referredUsers.reduce((sum, u) => sum + (u.commissions || []).reduce((n, c) => n + c.amountUsd, 0), 0)} /></h3>
+        <p className="text-xs text-gray-400">Commission is credited to your USD wallet after investment confirmation, using the plan's referral rate.</p>
+        <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead><tr><th className="p-2">Investor / Plan</th><th className="p-2">Referral ID</th><th className="p-2">Investment</th><th className="p-2">Rate</th><th className="p-2">Wallet Credit</th><th className="p-2">Date</th></tr></thead>
+        <tbody>{referredUsers.flatMap(u => (u.commissions || []).map(c => <tr key={c.id}><td className="p-2">{u.name} / {c.plan}</td><td className="p-2">{c.referralCode}</td><td className="p-2"><Money usd={c.principalUsd} /></td><td className="p-2">{c.ratePercent}%</td><td className="p-2"><Money usd={c.amountUsd} /></td><td className="p-2">{c.createdAt}</td></tr>))}</tbody></table></div>
+        {!referredUsers.some(u => u.commissions?.length) && <p className="text-xs text-gray-400">No confirmed referral commissions yet.</p>}
+      </div>
       <div className="p-6 rounded-3xl bg-gray-900/90 border border-gray-800 text-white space-y-4 font-mono text-xs">
         <div className="flex items-center justify-between border-b border-gray-800 pb-3">
           <span className="text-sm font-bold uppercase tracking-wider">Investors Who Used Your Code</span>

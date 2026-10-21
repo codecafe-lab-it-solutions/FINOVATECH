@@ -4,6 +4,9 @@ const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: Number(process.env.EMAIL_PORT) || 465,
   secure: Number(process.env.EMAIL_PORT) !== 587,
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD
@@ -11,6 +14,8 @@ const transporter = nodemailer.createTransport({
 });
 
 const FROM = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+export const mailSender = FROM;
+export const verifyMailConnection = () => transporter.verify();
 
 const WRAPPER = (title: string, bodyHtml: string) => `
   <div style="font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 480px; margin: 0 auto; color: #111827;">
@@ -72,7 +77,7 @@ export async function sendWithdrawalOtpEmail(to: string, name: string, otp: stri
     WRAPPER(
       'Withdrawal Confirmation Code',
       `<p>Hi ${name},</p>
-       <p>Use the code below to confirm your BTC withdrawal request. It expires in 10 minutes.</p>
+       <p>Use the code below to confirm your withdrawal request. It expires in 10 minutes.</p>
        <div style="font-size: 32px; font-weight: 800; letter-spacing: 0.15em; background: #F3F4F6; padding: 16px; text-align: center; border-radius: 12px; margin: 16px 0;">${otp}</div>
        <p style="color: #6B7280; font-size: 12px;">If you didn't request this withdrawal, do not share this code with anyone and consider changing your password.</p>`
     )

@@ -129,7 +129,7 @@ export const AdminKycView: React.FC<AdminKycViewProps> = ({ authToken }) => {
           </div>
           <div className="p-4 flex flex-wrap gap-2 text-xs font-mono">
             {verified.map((inv) => (
-              <span key={inv.userId} className="px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 text-gray-300">{inv.name}</span>
+              <span key={inv.userId} className="px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 text-gray-300">{inv.name} · {inv.investorId}<br />KYC Approval Date: {inv.joiningDate || 'Not recorded'} · Joining Date: {inv.joiningDate || 'Awaiting confirmation'}</span>
             ))}
           </div>
         </div>

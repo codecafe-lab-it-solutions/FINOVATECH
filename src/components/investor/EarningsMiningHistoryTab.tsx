@@ -1,3 +1,4 @@
+import { Money } from '../../lib/currency';
 import React, { useState, useMemo } from 'react';
 import { History, Filter, Zap, DollarSign, CheckCircle2 } from 'lucide-react';
 import { ApiEarningRow } from '../../lib/api';
@@ -55,7 +56,7 @@ export const EarningsMiningHistoryTab: React.FC<EarningsMiningHistoryTabProps> =
         </div>
         <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 text-white">
           <div className="text-[11px] font-mono text-gray-400 uppercase flex items-center gap-1.5"><DollarSign className="w-3.5 h-3.5 text-[#F7931A]" /> Total Value</div>
-          <div className="text-xl font-extrabold text-white mt-1 font-mono">${totalUsd.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+          <div className="text-xl font-extrabold text-white mt-1 font-mono"><Money usd={totalUsd} /></div>
         </div>
       </div>
 
@@ -75,7 +76,7 @@ export const EarningsMiningHistoryTab: React.FC<EarningsMiningHistoryTabProps> =
                 <tr key={e.id} className="hover:bg-gray-800/40">
                   <td className="py-3 px-4 text-gray-400">{e.date}</td>
                   <td className="py-3 px-3 text-right font-bold text-emerald-400">+{e.amountBtc} BTC</td>
-                  <td className="py-3 px-3 text-right text-white">${e.amountUsd.toLocaleString()}</td>
+                  <td className="py-3 px-3 text-right text-white"><Money usd={e.amountUsd} /></td>
                   <td className="py-3 px-3">
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 flex items-center gap-1 w-fit">
                       <CheckCircle2 className="w-3 h-3" /> {e.status}

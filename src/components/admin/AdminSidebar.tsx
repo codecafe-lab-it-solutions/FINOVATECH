@@ -84,6 +84,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { id: 'all-investors', label: 'Investor Management', icon: Users },
         { id: 'kyc-queue', label: 'KYC & Compliance', icon: ShieldCheck, badge: pendingKycCount, badgeColor: 'bg-amber-500 text-black' },
         { id: 'investment-plans', label: 'Investment Plans', icon: Layers },
+        { id: 'referrals', label: 'Referral Overview', icon: Users },
         { id: 'investor-allocations', label: 'Hashrate Allocations', icon: PieChart, hidden: true }
       ]
     },
