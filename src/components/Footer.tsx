@@ -82,13 +82,9 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           {/* Quick Details */}
           <div className="md:col-span-3 space-y-3">
             <div className="text-xs font-mono font-bold uppercase tracking-wider text-gray-300">
-              Governance & Term
+              Company & Term
             </div>
             <div className="text-xs text-gray-400 space-y-2">
-              <div className="p-3 rounded-lg bg-gray-900/90 border border-gray-800">
-                <div className="text-[11px] text-gray-400 font-mono">Managing Director:</div>
-                <div className="font-semibold text-gray-200">{COMPANY_PROFILE.managingDirector}</div>
-              </div>
               <div className="p-3 rounded-lg bg-gray-900/90 border border-gray-800">
                 <div className="text-[11px] text-gray-400 font-mono">Operating Term:</div>
                 <div className="font-semibold text-gray-200">4-Year Defined Term (Lease)</div>
@@ -102,7 +98,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-gray-500">
           <div className="space-y-2 text-center md:text-left max-w-2xl">
             <p>
-              © 2026 {COMPANY_PROFILE.name}. All Rights Reserved.
+              © 2025 {COMPANY_PROFILE.name}. All Rights Reserved.
             </p>
             <p className="text-[11px] text-gray-400 leading-relaxed">
               Digital-asset activities involve inherent technological, operational and market risks. Information presented on this website is for general corporate and informational purposes.

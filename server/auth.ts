@@ -1,7 +1,14 @@
 import jwt from 'jsonwebtoken';
 import type { UserRole } from './db';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'finovateck-dev-secret-change-me';
+export function jwtSecret(env: NodeJS.ProcessEnv): string {
+  const secret = env.JWT_SECRET || 'finovateck-dev-secret-change-me';
+  if (env.NODE_ENV === 'production' && (secret.length < 32 || /change-me|MY_|dev-secret/i.test(secret))) {
+    throw new Error('Production requires a unique JWT_SECRET of at least 32 characters.');
+  }
+  return secret;
+}
+const JWT_SECRET = jwtSecret(process.env);
 const TOKEN_TTL = '7d';
 
 export interface TokenPayload {

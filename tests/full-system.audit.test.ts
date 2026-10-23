@@ -13,6 +13,7 @@ import { listEarnings, listMonthlyStatements, getReferralStats } from '../server
 import { platformDay, addDays, maturityDay } from '../server/planPolicy';
 
 const stamp = crypto.randomUUID().slice(0,8), users:string[]=[], plans:string[]=[];
+let schedulerIsolation: Awaited<ReturnType<typeof pool.getConnection>> | undefined;
 const today = platformDay(), price = 100000;
 const market = async () => ({usd:price,change24hPercent:0,difficultyT:0,updatedAt:new Date().toISOString()});
 const terms = {name:`Full QA ${stamp}`,tagline:'Disposable system audit',minInvestmentUsd:100,maxInvestmentUsd:100000,durationMonths:12,managementFeePercent:6.5,dailyReturnPercent:0.5,payoutRequestDays:15,minimumThresholdPercent:2,withdrawalEntryFeePercent:1.25,payoutFrequency:'Monthly' as const,status:'Active' as const};
@@ -26,9 +27,15 @@ async function fixture(overrides:Record<string,any>={}) {
   await updateProfile(u.id,{plan:plan.name,kycStatus:'Verified',accountStatus:'Active',kycApprovedAt:addDays(today,-60)+'T00:00:00Z',totalInvestmentUsd:10000,totalBtcAllocated:0.02,currentPortfolioValueUsd:2000,payoutNetwork:'BTC'});
   return {u,plan};
 }
-after(async()=>{for(const id of users)await pool.query("DELETE FROM users WHERE id=? AND username LIKE 'finova_test_full_%'",[id]);for(const id of plans)await pool.query('DELETE FROM investment_plans WHERE id=? AND name LIKE ?',[id,`%${stamp}%`]);await pool.end();});
+after(async()=>{try{for(const id of users)await pool.query("DELETE FROM users WHERE id=? AND username LIKE 'finova_test_full_%'",[id]);for(const id of plans)await pool.query('DELETE FROM investment_plans WHERE id=? AND name LIKE ?',[id,`%${stamp}%`]);}finally{if(schedulerIsolation){await schedulerIsolation.query("SELECT RELEASE_LOCK('finova_daily_earnings_job')");schedulerIsolation.release();}await pool.end();}});
 
 test('full admin/investor boundary and lifecycle audit',async t=>{
+  // The running localhost API must not reconcile deliberately historical
+  // fixtures halfway through a fixed-balance assertion. Direct scoped
+  // reconciliation remains exercised below; timer tests live in a separate suite.
+  schedulerIsolation=await pool.getConnection();
+  const [isolationRows]=await schedulerIsolation.query<any[]>("SELECT GET_LOCK('finova_daily_earnings_job',10) acquired");
+  assert.equal(Number(isolationRows[0].acquired),1);
   const admin=await req('POST','/api/auth/login',{username:'Admin',password:'Admin'});assert.equal(admin.status,200);const adminToken=admin.body.token;
   const {u,plan}=await fixture();
   const login=await req('POST','/api/auth/login',{username:u.username,password:'FullAudit123!'});assert.equal(login.status,200);const token=login.body.token;
@@ -71,12 +78,12 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
     await updateProfile(child.id,{kycStatus:'Verified',accountStatus:'Active'});stats=await getReferralStats(u.id);assert.equal(stats.referredUsers.find(r=>r.username===child.username)?.joinedDate,today);
     assert.equal((await getProfile(child.id))?.registrationDate,addDays(today,-20));
   });
-  const request=(id:string,amount=.018)=>submitPayout({investorUserId:id,amountBtc:amount,destinationWallet:'bc1q000000000000000000000000000000000000000',network:'BTC'},price);
-  await t.test('exact $1800 maximum from $2000 wallet/$10000 principal/2% threshold succeeds without entry fee',async()=>{
+  const request=(id:string,amount=.005)=>submitPayout({investorUserId:id,amountBtc:amount,destinationWallet:'bc1q000000000000000000000000000000000000000',network:'BTC'},price);
+  await t.test('exact $500 maximum from $2000 wallet/$10000 principal/0.5% daily monthly obligation succeeds without entry fee',async()=>{
     const original=(await req('GET','/api/withdrawal-settings',undefined,adminToken)).body.settings;
     try {
       await req('PUT','/api/admin/withdrawal-settings',{maxWithdrawalUsd:2000},adminToken);
-      const id=await request(u.id);await settlePayout(id,'Completed','QA exact threshold');const p=(await getProfile(u.id))!;assert.equal(p.totalBtcAllocated,.002);assert.equal(p.currentPortfolioValueUsd,200);await settlePayout(id,'Rejected','QA restore');assert.equal((await getProfile(u.id))?.totalBtcAllocated,.02);
+      const id=await request(u.id);await settlePayout(id,'Completed','QA exact threshold');const p=(await getProfile(u.id))!;assert.equal(p.totalBtcAllocated,.015);assert.equal(p.currentPortfolioValueUsd,1500);await settlePayout(id,'Rejected','QA restore');assert.equal((await getProfile(u.id))?.totalBtcAllocated,.02);
     } finally { await req('PUT','/api/admin/withdrawal-settings',{maxWithdrawalUsd:original.maxWithdrawalUsd},adminToken); }
   });
   await t.test('zero, negative, over-precision amounts and missing destinations are rejected by HTTP',async()=>{
@@ -119,7 +126,7 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
   });
   await t.test('pending requests reserve wallet funds and completion honors competing reservations',async()=>{
     const member=await fixture();const profile=(await getProfile(member.u.id))!;
-    const reserved=crypto.randomUUID();await pool.query("INSERT INTO payouts(id,investor_user_id,investment_id,amount_btc,amount_usd,destination_wallet,status,requested_at) VALUES(?,?,?,.017,1700,'test-wallet','Processing',?)",[reserved,member.u.id,profile.investmentId,addDays(today,-20)+' 00:00:00']);
+    const reserved=crypto.randomUUID();await pool.query("INSERT INTO payouts(id,investor_user_id,investment_id,amount_btc,amount_usd,destination_wallet,status,requested_at) VALUES(?,?,?,.004,400,'test-wallet','Processing',?)",[reserved,member.u.id,profile.investmentId,addDays(today,-20)+' 00:00:00']);
     await assert.rejects(request(member.u.id,.00101),/Maximum eligible/);const id=await request(member.u.id,.001);await settlePayout(id,'Completed','QA reserved');assert.equal((await getProfile(member.u.id))?.totalBtcAllocated,.019);
   });
   await t.test('daily interest stops at maturity, and reruns after maturity do not add more credits',async()=>{
@@ -185,16 +192,16 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
     const after=(await getProfile(member.u.id))!;assert.equal(after.totalBtcAllocated,.02);assert.equal(after.usdWalletBalance,50);
   });
   await t.test('USD earnings to withdrawal to admin settlement/reversal preserve threshold and never debit BTC',async()=>{
-    const member=await fixture();await pool.query('UPDATE investor_profiles SET usd_wallet_balance=200 WHERE user_id=?',[member.u.id]);await pool.query('UPDATE investment_capital_history SET effective_day=? WHERE investor_user_id=?',[addDays(today,-3),member.u.id]);
-    assert.equal(await reconcileDailyInterest({investorUserId:member.u.id}),3);assert.equal((await getProfile(member.u.id))?.usdWalletBalance,350);
+    const member=await fixture();await pool.query('UPDATE investor_profiles SET usd_wallet_balance=1500 WHERE user_id=?',[member.u.id]);await pool.query('UPDATE investment_capital_history SET effective_day=? WHERE investor_user_id=?',[addDays(today,-3),member.u.id]);
+    assert.equal(await reconcileDailyInterest({investorUserId:member.u.id}),3);assert.equal((await getProfile(member.u.id))?.usdWalletBalance,1650);
     const withdraw=(amountUsd:number)=>submitUsdPayout({investorUserId:member.u.id,amountUsd,destination:'QA dollar payment account'});
-    await assert.rejects(withdraw(351),/available USD/);await assert.rejects(withdraw(150.01),/threshold/);await assert.rejects(withdraw(1.001),/two decimal/);
+    await assert.rejects(withdraw(1651),/available USD|global USD transaction limit/);await assert.rejects(withdraw(150.01),/30-day/);await assert.rejects(withdraw(1.001),/two decimal/);
     const signed=await req('POST','/api/auth/login',{username:member.u.username,password:'FullAudit123!'});const memberToken=signed.body.token;
     const otp=await createOtpForUser(member.u.id,'withdrawal');const result=await req('POST','/api/investor/payouts',{currency:'USD',amountUsd:150,destinationWallet:'QA dollar payment account',otp},memberToken);assert.equal(result.status,201,result.body.error);assert.equal(result.body.payout.currency,'USD');assert.equal(result.body.payout.amountBtc,0);assert.equal(result.body.payout.amountUsd,150);
     for(let n=0;n<2;n++)assert.equal((await req('PATCH',`/api/admin/payouts/${result.body.payout.id}`,{status:'Completed'},adminToken)).status,200);
-    assert.equal((await getProfile(member.u.id))?.usdWalletBalance,200);assert.equal((await getProfile(member.u.id))?.totalBtcAllocated,.02);
+    assert.equal((await getProfile(member.u.id))?.usdWalletBalance,1500);assert.equal((await getProfile(member.u.id))?.totalBtcAllocated,.02);
     for(let n=0;n<2;n++)await req('PATCH',`/api/admin/payouts/${result.body.payout.id}`,{status:'Rejected'},adminToken);
-    assert.equal((await getProfile(member.u.id))?.usdWalletBalance,350);assert.equal((await getProfile(member.u.id))?.totalBtcAllocated,.02);
+    assert.equal((await getProfile(member.u.id))?.usdWalletBalance,1650);assert.equal((await getProfile(member.u.id))?.totalBtcAllocated,.02);
   });
   await t.test('USD withdrawals enforce first and subsequent 7/15/30/45-day boundaries',async()=>{
     for(const interval of [5,7,15,30,45]){

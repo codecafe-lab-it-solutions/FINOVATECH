@@ -184,12 +184,12 @@ export async function getProfile(userId: string): Promise<InvestorProfile | unde
   return rows[0] ? toProfile(rows[0]) : undefined;
 }
 
-export async function findUserIdByEmail(email: string): Promise<string | undefined> {
+export async function findUserIdByEmail(email: string, username?: string): Promise<string | undefined> {
   const [rows] = await pool.query<RowDataPacket[]>(
-    'SELECT u.id AS id FROM users u JOIN investor_profiles p ON p.user_id = u.id WHERE p.email = ?',
-    [email.trim()]
+    'SELECT u.id AS id FROM users u JOIN investor_profiles p ON p.user_id = u.id WHERE LOWER(p.email) = LOWER(?)' + (username ? ' AND u.username = ?' : ''),
+    username ? [email.trim(), username.trim()] : [email.trim()]
   );
-  return rows[0]?.id as string | undefined;
+  return rows.length === 1 ? rows[0].id as string : undefined;
 }
 
 export async function listInvestorProfiles(): Promise<InvestorProfile[]> {
@@ -384,6 +384,9 @@ export async function addTransaction(params: {
       const [profiles] = await conn.query<RowDataPacket[]>('SELECT * FROM investor_profiles WHERE user_id = ? FOR UPDATE', [params.investorUserId]);
       const p = profiles[0];
       if (!p) throw new Error('Investor profile not found.');
+      const isUsd = network === 'USD';
+      if (isUsd && params.amountBtc !== 0) throw new Error('A USD wallet entry must have zero BTC.');
+      if (isUsd && Number(p.usd_wallet_balance) + params.amountUsd < 0) throw new Error('Transaction would make the USD wallet balance negative.');
       if (Number(p.total_btc_allocated) + params.amountBtc < 0) throw new Error('Transaction would make the wallet balance negative.');
       if (params.depositRequestId) {
         const [requests] = await conn.query<RowDataPacket[]>('SELECT * FROM deposit_requests WHERE id = ? FOR UPDATE', [params.depositRequestId]);
@@ -394,6 +397,7 @@ export async function addTransaction(params: {
       const principal = params.type === 'Deposit' ? Number(p.total_investment_usd) + params.amountUsd : Number(p.total_investment_usd);
       if (principal < 0) throw new Error('Investment principal cannot become negative.');
       await conn.query('UPDATE investor_profiles SET total_btc_allocated = total_btc_allocated + ?, current_portfolio_value_usd = current_portfolio_value_usd + ?, total_investment_usd = ?, btc_mined = btc_mined + ?, updated_at = ? WHERE user_id = ?', [params.amountBtc, params.amountUsd, principal, params.type === 'Mining Credit' ? params.amountBtc : 0, createdAt, params.investorUserId]);
+      if (isUsd) await conn.query('UPDATE investor_profiles SET usd_wallet_balance=usd_wallet_balance+? WHERE user_id=?',[params.amountUsd,params.investorUserId]);
       if (params.type === 'Deposit' && p.kyc_approved_at) await conn.query(`INSERT INTO investment_capital_history (investor_user_id, investment_id, effective_day, principal_usd, recorded_at) VALUES (?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE principal_usd = VALUES(principal_usd), recorded_at = VALUES(recorded_at)`, [p.user_id, p.investment_id, platformDay(), principal, createdAt]);
     }

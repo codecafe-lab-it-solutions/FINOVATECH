@@ -2,11 +2,11 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { maximumWithdrawal, nextEligibleDay, platformDay, maturityDay, validatePlan } from '../server/planPolicy';
 
-test('threshold retains the plan percentage of principal, and clamps insufficient wallets to zero', () => {
-  assert.equal(maximumWithdrawal(10000, 2000, 2), 1800);
-  assert.equal(maximumWithdrawal(10000, 100, 2), 0);
+test('threshold retains thirty days of daily earnings, and clamps insufficient wallets to zero', () => {
+  assert.equal(maximumWithdrawal(10000, 2000, .5), 500);
+  assert.equal(maximumWithdrawal(10000, 100, .5), 0);
   assert.equal(maximumWithdrawal(10000, 2000, 0), 2000);
-  assert.equal(maximumWithdrawal(10000, 2000, 1.25), 1875);
+  assert.equal(maximumWithdrawal(10000, 4000, 1.25), 250);
 });
 test('first and subsequent payouts honor plan interval, seven days and manual lock', () => {
   assert.equal(nextEligibleDay('2026-10-01', null, 15), '2026-10-16');

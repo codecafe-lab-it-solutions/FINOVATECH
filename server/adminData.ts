@@ -179,7 +179,21 @@ export async function listWallets(): Promise<CompanyWalletRecord[]> {
   return rows.map(toWallet);
 }
 
+function validateWallet(params: Partial<CompanyWalletRecord>) {
+  if (params.walletName !== undefined && (typeof params.walletName !== 'string' || !params.walletName.trim() || params.walletName.length > 120)) throw new Error('Wallet name is required (maximum 120 characters).');
+  if (params.address !== undefined && (typeof params.address !== 'string' || params.address.length > 255)) throw new Error('Invalid wallet address.');
+  if (params.balance !== undefined && (typeof params.balance !== 'number' || !Number.isFinite(params.balance) || params.balance < 0)) throw new Error('Balance must be a non-negative number.');
+  if (params.currency !== undefined && !['BTC','USDT'].includes(params.currency)) throw new Error('Invalid currency.');
+  if (params.type !== undefined && !['Cold Vault','Hot Payout','Treasury','Operational OPEX','USDT Reserve'].includes(params.type)) throw new Error('Invalid wallet type.');
+  if (params.status !== undefined && !['Secure','Active','Restricted'].includes(params.status)) throw new Error('Invalid wallet status.');
+  if (params.requiresMultisig !== undefined && typeof params.requiresMultisig !== 'boolean') throw new Error('Invalid multi-signature flag.');
+}
+export async function deleteWallet(id: string): Promise<void> {
+  const [result] = await pool.query<any>('DELETE FROM company_wallets WHERE id = ?', [id]);
+  if (!result.affectedRows) throw new Error('Wallet not found.');
+}
 export async function createWallet(params: Omit<CompanyWalletRecord, 'id' | 'updatedAt'>): Promise<CompanyWalletRecord> {
+  validateWallet(params);
   const id = crypto.randomUUID();
   const ts = now();
   await pool.query(
@@ -191,6 +205,8 @@ export async function createWallet(params: Omit<CompanyWalletRecord, 'id' | 'upd
 }
 
 export async function updateWallet(id: string, params: Partial<Omit<CompanyWalletRecord, 'id' | 'updatedAt'>>): Promise<void> {
+  validateWallet(params);
+  if (!(await listWallets()).some(w => w.id === id)) throw new Error('Wallet not found.');
   const map: Record<string, string> = {
     walletName: 'wallet_name',
     type: 'type',

@@ -14,12 +14,13 @@ export function PlanConditions({ user, investmentUsd, walletUsd }: { user: Inves
       <div><dt>Daily Return</dt><dd>{terms ? `${terms.dailyReturnPercent}%` : 'Plan assignment required'}</dd></div>
       <div><dt>Daily Interest</dt><dd>{terms ? <Money usd={investmentUsd * terms.dailyReturnPercent / 100} /> : '—'}</dd></div>
       <div><dt>Allow Payout Request</dt><dd>{terms ? `${terms.payoutRequestDays} days; effective gap ${Math.max(7, terms.payoutRequestDays)} days` : '—'}</dd></div>
-      <div><dt>Minimum Threshold</dt><dd>{terms ? `${terms.minimumThresholdPercent}% of investment must remain` : '—'}</dd></div>
+      <div><dt>Minimum Threshold / 30-day payout obligation</dt><dd>{terms ? `${terms.dailyReturnPercent * 30}% of principal (30-day payout obligation) must remain` : '—'}</dd></div>
+      <div><dt>Monthly Payout Obligation</dt><dd>{terms ? <Money usd={Math.round(investmentUsd * terms.dailyReturnPercent * 30) / 100} /> : '-'}</dd></div>
       <div><dt>Withdrawal / Entry Fee</dt><dd>{terms ? `${terms.withdrawalEntryFeePercent}% (information only; no deduction)` : '—'}</dd></div>
       <div><dt>Platform / Management Fee</dt><dd>{terms ? `${terms.managementFeePercent}%` : '—'}</dd></div>
       <div><dt>Plan Duration</dt><dd>{terms ? `${terms.durationMonths} months from Joining Date` : '—'}</dd></div>
       <div><dt>Next Eligible Withdrawal Date</dt><dd>{user.nextWithdrawalDate || 'Requires confirmed approval date and assigned plan'}</dd></div>
-      {terms && walletUsd !== undefined && <div><dt>Maximum Withdrawal Before Global Transaction Limit</dt><dd><Money usd={Math.max(0, walletUsd - investmentUsd * terms.minimumThresholdPercent / 100)} /></dd></div>}
+      {terms && walletUsd !== undefined && <div><dt>Maximum Withdrawal Before Global Transaction Limit</dt><dd><Money usd={Math.max(0, Math.floor((walletUsd - Math.round(investmentUsd * terms.dailyReturnPercent * 30) / 100) * 100 + 0.000001) / 100)} /></dd></div>}
     </dl>
     <p className="text-gray-500">Daily interest is credited in USD at 12:00 AM ({user.platformTimezone}) for the preceding eligible day. A $50 daily return adds $50 to the USD earnings wallet. No BTC conversion applies.</p>
     {!terms || !user.joiningDate ? <p className="text-amber-400">An administrator must confirm the plan assignment and KYC approval date before interest or withdrawals become available.</p> : <p className="text-gray-500">Agreed plan terms are preserved when the plan catalog is edited. Withdrawals require available funds, email verification and admin review.</p>}

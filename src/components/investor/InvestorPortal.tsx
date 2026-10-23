@@ -1,3 +1,4 @@
+import { OperatingMetrics } from '../OperatingMetrics';
 import { CurrencySelector } from '../../lib/currency';
 import React, { useState, useEffect, useCallback } from 'react';
 import { InvestorNavbar } from './InvestorNavbar';
@@ -109,7 +110,9 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
       const btcPriceUsd = market?.usd ?? 0;
       const mappedMetrics = profileToMetrics(profile, btcPriceUsd, market?.difficultyT ?? 0);
       const completedPayouts = pos.filter((p) => p.status === 'Completed');
-      mappedMetrics.totalPayoutsBtc = completedPayouts.reduce((sum, p) => sum + p.amountBtc, 0);
+      mappedMetrics.btcMined = txs.filter(t => t.type === 'Mining Credit' && t.status === 'Completed').reduce((sum,t) => sum + t.amountBtc,0);
+      mappedMetrics.btcPendingAccrued = pos.filter(p => p.currency === 'BTC' && ['Requested','Processing'].includes(p.status)).reduce((sum,p) => sum + p.amountBtc,0);
+      mappedMetrics.totalPayoutsBtc = completedPayouts.filter(p => p.currency === 'BTC').reduce((sum, p) => sum + p.amountBtc, 0);
       mappedMetrics.totalPayoutsUsd = completedPayouts.reduce((sum, p) => sum + (p.currency === 'USD' ? p.amountUsd : p.amountBtc * btcPriceUsd), 0);
 
       const today = new Date().toISOString().slice(0, 10);
@@ -225,13 +228,13 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
     loadNotifications();
   };
 
-  const handleAddTicket = async (subject: string, category: string, message: string) => {
-    await createInvestorTicket(authToken, { subject, category, message });
+  const handleAddTicket = async (subject: string, category: string, message: string, imageData?: string | null) => {
+    await createInvestorTicket(authToken, { subject, category, message, imageData });
     loadTickets();
   };
 
-  const handleAddTicketMessage = async (ticketId: string, messageText: string) => {
-    await addInvestorTicketMessage(authToken, ticketId, messageText);
+  const handleAddTicketMessage = async (ticketId: string, messageText: string, imageData?: string | null) => {
+    await addInvestorTicketMessage(authToken, ticketId, messageText, imageData);
     loadTickets();
   };
 
@@ -239,6 +242,11 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
     await revokeSessionApi(authToken, sessionId);
     loadSessions();
   };
+
+  useEffect(() => {
+    const timer=setInterval(()=>{void loadPortfolio();loadTickets();loadNotifications();},15000);
+    return()=>clearInterval(timer);
+  },[loadPortfolio,loadTickets,loadNotifications]);
 
   const unreadNotifs = notifications.filter((n) => !n.isRead).length;
   const openTickets = tickets.filter((t) => t.status !== 'Resolved').length;
@@ -331,6 +339,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
 
         {/* Main Content Area */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full overflow-y-auto">
+          {currentTab === 'overview' && <OperatingMetrics authToken={authToken} />}
           {currentTab === 'overview' && (
             <InvestorDashboardTab
               metrics={metrics}

@@ -87,8 +87,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate, showExte
                     <Shield className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-[11px] font-semibold text-gray-400 uppercase font-mono">Governance</div>
-                    <div className="text-sm font-bold text-gray-900">Rayees Ahmad Bhat</div>
+                    <div className="text-sm font-bold text-gray-900">Established 2 October 2025</div>
                   </div>
                 </div>
               </div>

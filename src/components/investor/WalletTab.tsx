@@ -72,7 +72,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
 
   const availableBtc = Math.max(0, metrics.totalBtcAllocated - reservedPayoutBtc);
   const availableUsd = Math.max(0, (metrics.usdWalletBalance || 0) - reservedPayoutUsd);
-  const maximumUsd = Math.min(withdrawalSettings?.maxWithdrawalUsd ?? Infinity, Math.max(0, availableUsd - metrics.totalInvestmentUsd * (user.planTerms?.minimumThresholdPercent || 0) / 100));
+  const maximumUsd = Math.min(withdrawalSettings?.maxWithdrawalUsd ?? Infinity, Math.max(0, Math.floor((availableUsd - Math.round(metrics.totalInvestmentUsd * (user.planTerms?.dailyReturnPercent ?? 0) * 30) / 100) * 100 + 0.000001) / 100));
   const pendingBtc = metrics.btcPendingAccrued;
   const totalEarnedBtc = metrics.btcMined;
   const totalWithdrawnBtc = metrics.totalPayoutsBtc;
@@ -731,7 +731,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Network:</span>
-                    <span className="text-white font-bold">{user.payoutNetwork}</span>
+                    <span className="text-white font-bold">USD bank/payment</span>
                   </div>
                 </div>
 

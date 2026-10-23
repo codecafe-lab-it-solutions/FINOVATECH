@@ -81,6 +81,7 @@ export interface TicketMessageRecord {
   senderRole: 'investor' | 'admin';
   senderName: string;
   message: string;
+  imageData?: string | null;
   createdAt: string;
 }
 
@@ -114,6 +115,7 @@ interface MsgRow extends RowDataPacket {
   sender_role: TicketMessageRecord['senderRole'];
   sender_name: string;
   message: string;
+  imageData?: string | null;
   created_at: string;
 }
 
@@ -124,6 +126,7 @@ function toMessage(row: MsgRow): TicketMessageRecord {
     senderRole: row.sender_role,
     senderName: row.sender_name,
     message: row.message,
+    imageData: row.image_data || null,
     createdAt: row.created_at
   };
 }
@@ -158,8 +161,11 @@ export async function createTicket(params: {
   subject: string;
   category: string;
   firstMessage: string;
+  imageData?: string | null;
   senderName: string;
 }): Promise<TicketRecord> {
+  validateTicketImage(params.imageData);
+  if (params.subject.length > 255 || params.firstMessage.length > 10000) throw new Error('Subject must be at most 255 characters and message at most 10000.');
   const id = crypto.randomUUID();
   const ts = now();
   await pool.query(
@@ -167,8 +173,8 @@ export async function createTicket(params: {
     [id, params.investorUserId, params.subject, params.category, 'Open', ts, ts]
   );
   await pool.query(
-    'INSERT INTO support_messages (id, ticket_id, sender_role, sender_name, message, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-    [crypto.randomUUID(), id, 'investor', params.senderName, params.firstMessage, ts]
+    'INSERT INTO support_messages (id, ticket_id, sender_role, sender_name, message, created_at, image_data) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [crypto.randomUUID(), id, 'investor', params.senderName, params.firstMessage, ts, params.imageData || null]
   );
   return {
     id,
@@ -186,19 +192,22 @@ export async function addTicketMessage(params: {
   senderRole: 'investor' | 'admin';
   senderName: string;
   message: string;
+  imageData?: string | null;
 }): Promise<TicketMessageRecord> {
+  validateTicketImage(params.imageData);
+  if (params.message.length > 10000) throw new Error('Message must be at most 10000 characters.');
   const id = crypto.randomUUID();
   const ts = now();
   await pool.query(
-    'INSERT INTO support_messages (id, ticket_id, sender_role, sender_name, message, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-    [id, params.ticketId, params.senderRole, params.senderName, params.message, ts]
+    'INSERT INTO support_messages (id, ticket_id, sender_role, sender_name, message, created_at, image_data) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [id, params.ticketId, params.senderRole, params.senderName, params.message, ts, params.imageData || null]
   );
   const nextStatus = params.senderRole === 'admin' ? 'In Progress' : undefined;
   await pool.query(
     nextStatus ? 'UPDATE support_tickets SET updated_at = ?, status = ? WHERE id = ?' : 'UPDATE support_tickets SET updated_at = ? WHERE id = ?',
     nextStatus ? [ts, nextStatus, params.ticketId] : [ts, params.ticketId]
   );
-  return { id, ticketId: params.ticketId, senderRole: params.senderRole, senderName: params.senderName, message: params.message, createdAt: ts };
+  return { id, ticketId: params.ticketId, senderRole: params.senderRole, senderName: params.senderName, message: params.message, imageData: params.imageData || null, createdAt: ts };
 }
 
 export async function updateTicketStatus(ticketId: string, status: TicketRecord['status']): Promise<void> {
@@ -298,7 +307,13 @@ export async function listAllMachines(): Promise<MachineRecord[]> {
   return rows.map(toMachine);
 }
 
+function validateMachine(params: Partial<MachineRecord>) {
+ for(const key of ['hashrateTh','powerDrawWatts','tempCelsius','uptimePercent'] as const){const v=params[key];if(v!==undefined&&(typeof v!=='number'||!Number.isFinite(v)||v<0||(key==='uptimePercent'&&v>100)))throw new Error('Invalid machine '+key);}
+ if(params.status!==undefined&&!['Online','Offline','Maintenance'].includes(params.status))throw new Error('Invalid machine status.');
+ for(const key of ['model','podId','pool'] as const){const v=params[key];if(v!==undefined&&(typeof v!=='string'||v.length>120||(key==='model'&&!v.trim())))throw new Error('Invalid machine '+key);}
+}
 export async function createMachine(params: Omit<MachineRecord, 'id' | 'updatedAt' | 'investorName'>): Promise<MachineRecord> {
+  validateMachine(params);
   const id = crypto.randomUUID();
   const ts = now();
   await pool.query(
@@ -310,6 +325,7 @@ export async function createMachine(params: Omit<MachineRecord, 'id' | 'updatedA
 }
 
 export async function updateMachine(id: string, params: Partial<Omit<MachineRecord, 'id' | 'updatedAt' | 'investorName'>>): Promise<void> {
+  validateMachine(params);
   const map: Record<string, string> = {
     investorUserId: 'investor_user_id',
     podId: 'pod_id',
@@ -389,4 +405,13 @@ export async function listMonthlyStatements(investorUserId: string): Promise<Mon
     netUsd: Number(r.net_usd),
     transactionCount: Number(r.tx_count)
   }));
+}
+
+export function validateTicketImage(value?: string | null) {
+  if (!value) return;
+  if (typeof value !== 'string' || value.length > 2800000 || !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(value)) throw new Error('Attach a PNG, JPEG or WebP image up to 2 MB.');
+  const raw = Buffer.from(value.split(',')[1], 'base64');
+  if (raw.length > 2 * 1024 * 1024) throw new Error('Image must be no larger than 2 MB.');
+  const valid = value.startsWith('data:image/png;') ? raw.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])) : value.startsWith('data:image/jpeg;') ? raw[0] === 255 && raw[1] === 216 && raw[2] === 255 : raw.toString('ascii',0,4) === 'RIFF' && raw.toString('ascii',8,12) === 'WEBP';
+  if (!valid) throw new Error('The attached file is not a valid supported image.');
 }

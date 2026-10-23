@@ -170,7 +170,7 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
             {metrics.btcMined} BTC
           </div>
           <div className="text-[11px] text-gray-400 font-mono mt-1">
-            Accrued via SHA-256
+            Completed mining credit records
           </div>
         </div>
 
@@ -219,14 +219,6 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
           <div className="text-[10px] text-gray-500 mt-0.5">Est. {metrics.nextExpectedPayoutDate}</div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-gray-900/80 border border-gray-800 text-white">
-          <div className="text-[10px] text-gray-400 uppercase">Mining Share %</div>
-          <div className="text-sm sm:text-base font-bold text-[#F7931A] mt-1">
-            {metrics.yourMiningSharePercent}%
-          </div>
-          <div className="text-[10px] text-gray-500 mt-0.5">Muscat Pod Allocation</div>
-        </div>
-
       </div>
 
       {/* Operational Highlights & Quick Summary Box */}
@@ -243,7 +235,7 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
             </div>
             <span className="text-xs text-emerald-400 font-mono flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              99.8% Uptime Target
+              Recorded plan conditions
             </span>
           </div>
 
@@ -271,7 +263,7 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
           <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-200/90 font-sans flex items-start gap-3">
             <ShieldCheck className="w-4 h-4 text-[#F7931A] shrink-0 mt-0.5" />
             <div>
-              <span className="font-semibold text-amber-300">Audited Telemetry:</span> Your computational nodes are monitored 24/7 at the Muscat MCT-01 facility with automated sensor streams balancing temperature, voltage, and hash rate.
+              <span className="font-semibold text-amber-300">Account records:</span> Your balances and earnings reflect recorded transactions. Fleet readings and production are shown above when the operator has supplied them.
             </div>
           </div>
         </div>
@@ -291,7 +283,7 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
                 onClick={() => onNavigateTab('monthly-statements')}
                 className="w-full py-2.5 flex items-center justify-between text-xs text-gray-300 hover:text-white group cursor-pointer"
               >
-                <span>Download August 2026 Statement</span>
+                <span>View Monthly Statements</span>
                 <ArrowRight className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#F7931A] transition-transform group-hover:translate-x-1" />
               </button>
               <button

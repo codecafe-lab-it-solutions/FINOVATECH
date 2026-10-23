@@ -118,15 +118,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                 <ShieldCheck className="w-3.5 h-3.5 text-[#F7931A] shrink-0" />
                 <span>Login</span>
               </button>
-
-              <button
-                id="navbar-contact-cta"
-                onClick={() => handleNavClick('contact')}
-                className="inline-flex items-center justify-center gap-1.5 xl:gap-2 px-3.5 xl:px-4 py-1.5 xl:py-2 rounded-lg bg-[#111827] hover:bg-[#1F2937] text-white text-xs font-semibold tracking-wide transition-all shadow-xs hover:shadow-sm cursor-pointer whitespace-nowrap min-h-[38px]"
-              >
-                <span>Contact Us</span>
-                <ArrowUpRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
-              </button>
             </div>
 
             {/* Mobile Controls (Menu Toggle & Quick Action) */}
@@ -228,15 +219,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
               >
                 <ShieldCheck className="w-4 h-4 text-[#F7931A]" />
                 <span>Login</span>
-              </button>
-
-              <button
-                id="mobile-drawer-contact-action"
-                onClick={() => handleNavClick('contact')}
-                className="w-full py-3 px-3 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono tracking-wide flex items-center justify-center gap-1.5 shadow-md cursor-pointer min-h-[46px]"
-              >
-                <span>Contact Us</span>
-                <ArrowUpRight className="w-4 h-4 text-gray-950" />
               </button>
             </div>
 

@@ -1,4 +1,7 @@
 import 'dotenv/config';
+import {operatingMetrics,listOperatingEntries,createOperatingEntry} from './operations';
+import {getPlatformSettings, savePlatformSettings} from './platformSettings';
+import {pool} from './database';
 import { listAdminReferrals } from './referrals';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -37,6 +40,7 @@ import {
   updatePlan,
   deletePlan,
   listWallets,
+  deleteWallet,
   createWallet,
   updateWallet,
   listDocuments,
@@ -78,7 +82,7 @@ import {
 } from './deposits';
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '4mb' }));
 
 // In production this same process serves the built frontend (vite build's
 // dist/) alongside the API, so there's just one server to run and one port
@@ -130,6 +134,7 @@ async function requireAuth(req: express.Request): Promise<TokenPayload> {
   if (await isSessionRevoked(payload.sid)) {
     throw new Error('NOT_AUTHENTICATED');
   }
+  if (payload.role === 'investor' && (await getPlatformSettings()).maintenanceMode) throw new Error('MAINTENANCE');
   return payload;
 }
 
@@ -142,6 +147,7 @@ async function requireRole(req: express.Request, role: 'admin' | 'investor'): Pr
 }
 
 function handleAuthError(err: unknown, res: express.Response): boolean {
+  if (err instanceof Error && err.message === 'MAINTENANCE') { res.status(503).json({error:'Investor access is temporarily paused for maintenance.'}); return true; }
   if (err instanceof Error && err.message === 'NOT_AUTHENTICATED') {
     res.status(401).json({ error: 'Not authenticated.' });
     return true;
@@ -254,13 +260,13 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 app.post('/api/auth/forgot-password', async (req, res) => {
-  const { email } = req.body ?? {};
+  const { email, username } = req.body ?? {};
   if (typeof email !== 'string' || !EMAIL_PATTERN.test(email.trim())) {
     return res.status(400).json({ error: 'A valid email address is required.' });
   }
 
   try {
-    const userId = await findUserIdByEmail(email.trim());
+    const userId = await findUserIdByEmail(email.trim(), typeof username === 'string' ? username.trim() : undefined);
     if (userId) {
       const user = await findUserById(userId);
       const otp = await createOtpForUser(userId);
@@ -278,7 +284,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
 });
 
 app.post('/api/auth/reset-password', async (req, res) => {
-  const { email, otp, newPassword } = req.body ?? {};
+  const { email, otp, newPassword, username } = req.body ?? {};
   if (typeof email !== 'string' || !EMAIL_PATTERN.test(email.trim())) {
     return res.status(400).json({ error: 'A valid email address is required.' });
   }
@@ -290,7 +296,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
   }
 
   try {
-    const userId = await findUserIdByEmail(email.trim());
+    const userId = await findUserIdByEmail(email.trim(), typeof username === 'string' ? username.trim() : undefined);
     const valid = userId ? await verifyAndConsumeOtp(userId, otp.trim()) : false;
     if (!userId || !valid) {
       return res.status(400).json({ error: 'Invalid or expired reset code.' });
@@ -872,7 +878,7 @@ app.get('/api/investor/tickets', async (req, res) => {
 app.post('/api/investor/tickets', async (req, res) => {
   try {
     const payload = await requireRole(req, 'investor');
-    const { subject, category, message } = req.body ?? {};
+    const { subject, category, message, imageData } = req.body ?? {};
     if (typeof subject !== 'string' || !subject.trim()) {
       return res.status(400).json({ error: 'Subject is required.' });
     }
@@ -884,34 +890,38 @@ app.post('/api/investor/tickets', async (req, res) => {
       subject: subject.trim(),
       category: typeof category === 'string' && category ? category : 'General',
       firstMessage: message.trim(),
+      imageData,
       senderName: payload.name
     });
     res.status(201).json({ ticket });
   } catch (err) {
     if (handleAuthError(err, res)) return;
     console.error('Create ticket failed:', err);
-    res.status(500).json({ error: 'Could not create ticket.' });
+    res.status(400).json({ error: err instanceof Error ? err.message : 'Could not create ticket.' });
   }
 });
 
 app.post('/api/investor/tickets/:id/messages', async (req, res) => {
   try {
     const payload = await requireRole(req, 'investor');
-    const { message } = req.body ?? {};
+    const { message, imageData } = req.body ?? {};
     if (typeof message !== 'string' || !message.trim()) {
       return res.status(400).json({ error: 'Message is required.' });
     }
+    const owned = (await listTicketsForInvestor(payload.sub)).some(t => t.id === req.params.id);
+    if (!owned) return res.status(403).json({ error: 'This ticket does not belong to you.' });
     const msg = await addTicketMessage({
       ticketId: req.params.id,
       senderRole: 'investor',
       senderName: payload.name,
-      message: message.trim()
+      message: message.trim(),
+      imageData
     });
     res.status(201).json({ message: msg });
   } catch (err) {
     if (handleAuthError(err, res)) return;
     console.error('Add ticket message failed:', err);
-    res.status(500).json({ error: 'Could not send message.' });
+    res.status(400).json({ error: err instanceof Error ? err.message : 'Could not send message.' });
   }
 });
 
@@ -1224,7 +1234,7 @@ app.post('/api/admin/plans', async (req, res) => {
       minInvestmentUsd: minInvestmentUsd ?? 0,
       maxInvestmentUsd: maxInvestmentUsd ?? 0,
       durationMonths: durationMonths ?? 12,
-      managementFeePercent: managementFeePercent ?? 0,
+      managementFeePercent: managementFeePercent ?? (await getPlatformSettings()).defaultManagementFeePercent,
       dailyReturnPercent: dailyReturnPercent ?? 0,
       payoutRequestDays: payoutRequestDays ?? 7,
       minimumThresholdPercent: minimumThresholdPercent ?? 0,
@@ -1264,6 +1274,15 @@ app.get('/api/exchange-rate', async (_req, res) => {
 
 // --- Admin: Company Wallets ---
 
+app.delete('/api/admin/wallets/:id', async (req, res) => {
+  try { await requireRole(req, 'admin'); await deleteWallet(req.params.id); res.json({ ok: true }); }
+  catch (err) { if (handleAuthError(err, res)) return; res.status(400).json({ error: err instanceof Error ? err.message : 'Could not delete wallet.' }); }
+});
+app.get('/api/operating-metrics',async(req,res)=>{try{await requireAuth(req);res.json({metrics:await operatingMetrics()});}catch(err){if(handleAuthError(err,res))return;console.error(err);res.status(500).json({error:'Could not load operating metrics.'});}});
+app.get('/api/admin/operating-entries',async(req,res)=>{try{await requireRole(req,'admin');res.json({entries:await listOperatingEntries()});}catch(err){if(handleAuthError(err,res))return;res.status(500).json({error:'Could not load operating records.'});}});
+app.post('/api/admin/operating-entries',async(req,res)=>{try{const admin=await requireRole(req,'admin');res.status(201).json({id:await createOperatingEntry(req.body,admin.sub)});}catch(err){if(handleAuthError(err,res))return;res.status(400).json({error:err instanceof Error?err.message:'Invalid entry.'});}});
+app.get('/api/admin/platform-settings', async (req,res)=>{try{await requireRole(req,'admin');const [runs]=await pool.query<any[]>('SELECT * FROM earnings_job_runs ORDER BY started_at DESC LIMIT 10');const [eligibility]=await pool.query<any[]>("SELECT u.username,p.kyc_status AS kyc,p.account_status AS account,p.kyc_approved_at AS approval,p.total_investment_usd AS principal,p.plan_id AS planId,EXISTS(SELECT 1 FROM investment_capital_history h WHERE h.investor_user_id=p.user_id AND h.investment_id=p.investment_id) AS hasCapitalHistory FROM investor_profiles p JOIN users u ON u.id=p.user_id ORDER BY u.username");res.json({settings:await getPlatformSettings(),timezone:process.env.PLATFORM_TIMEZONE||'Asia/Kolkata',runs,eligibility});}catch(err){if(handleAuthError(err,res))return;res.status(500).json({error:'Could not load settings.'});}});
+app.put('/api/admin/platform-settings', async(req,res)=>{try{await requireRole(req,'admin');res.json({settings:await savePlatformSettings(req.body||{})});}catch(err){if(handleAuthError(err,res))return;res.status(400).json({error:err instanceof Error?err.message:'Invalid settings.'});}});
 app.get('/api/admin/wallets', async (req, res) => {
   try {
     await requireRole(req, 'admin');
@@ -1287,7 +1306,7 @@ app.post('/api/admin/wallets', async (req, res) => {
       type: type || 'Treasury',
       currency: currency || 'BTC',
       address: address || '',
-      balance: Number(balance) || 0,
+      balance: balance ?? 0,
       requiresMultisig: Boolean(requiresMultisig),
       status: status || 'Active'
     });
@@ -1295,7 +1314,7 @@ app.post('/api/admin/wallets', async (req, res) => {
   } catch (err) {
     if (handleAuthError(err, res)) return;
     console.error('Create wallet failed:', err);
-    res.status(500).json({ error: 'Could not create wallet.' });
+    res.status(400).json({ error: err instanceof Error ? err.message : 'Could not create wallet.' });
   }
 });
 
@@ -1307,7 +1326,7 @@ app.put('/api/admin/wallets/:id', async (req, res) => {
   } catch (err) {
     if (handleAuthError(err, res)) return;
     console.error('Update wallet failed:', err);
-    res.status(500).json({ error: 'Could not update wallet.' });
+    res.status(400).json({ error: err instanceof Error ? err.message : 'Could not update wallet.' });
   }
 });
 
@@ -1397,7 +1416,7 @@ app.get('/api/admin/tickets', async (req, res) => {
 app.post('/api/admin/tickets/:id/messages', async (req, res) => {
   try {
     const payload = await requireRole(req, 'admin');
-    const { message } = req.body ?? {};
+    const { message, imageData } = req.body ?? {};
     if (typeof message !== 'string' || !message.trim()) {
       return res.status(400).json({ error: 'Message is required.' });
     }
@@ -1405,13 +1424,14 @@ app.post('/api/admin/tickets/:id/messages', async (req, res) => {
       ticketId: req.params.id,
       senderRole: 'admin',
       senderName: payload.name,
-      message: message.trim()
+      message: message.trim(),
+      imageData
     });
     res.status(201).json({ message: msg });
   } catch (err) {
     if (handleAuthError(err, res)) return;
     console.error('Add admin ticket message failed:', err);
-    res.status(500).json({ error: 'Could not send message.' });
+    res.status(400).json({ error: err instanceof Error ? err.message : 'Could not send message.' });
   }
 });
 
@@ -1467,7 +1487,7 @@ app.post('/api/admin/machines', async (req, res) => {
   } catch (err) {
     if (handleAuthError(err, res)) return;
     console.error('Create machine failed:', err);
-    res.status(500).json({ error: 'Could not create machine.' });
+    res.status(400).json({ error: err instanceof Error ? err.message : 'Could not create machine.' });
   }
 });
 
@@ -1479,7 +1499,7 @@ app.put('/api/admin/machines/:id', async (req, res) => {
   } catch (err) {
     if (handleAuthError(err, res)) return;
     console.error('Update machine failed:', err);
-    res.status(500).json({ error: 'Could not update machine.' });
+    res.status(400).json({ error: err instanceof Error ? err.message : 'Could not update machine.' });
   }
 });
 
@@ -1497,7 +1517,7 @@ async function start() {
   try {
     await initSchema();
     await initFinancialSchema();
-    await seedIfEmpty();
+    if (!isProduction) await seedIfEmpty();
   } catch (err) {
     console.error('[finovateck-api] Could not connect to MySQL. Is the MySQL server running, and did you run server/scripts/setup-mysql.sql against it?');
     console.error(err);

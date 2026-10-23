@@ -1,7 +1,7 @@
 import { useCurrency } from '../../lib/currency';
 import React, { useEffect, useState, useCallback } from 'react';
 import { Wallet, Plus, Save, RotateCw, AlertTriangle, X, ShieldCheck } from 'lucide-react';
-import { ApiCompanyWallet, fetchAdminWallets, createAdminWallet, updateAdminWallet } from '../../lib/api';
+import { ApiCompanyWallet, fetchAdminWallets, createAdminWallet, updateAdminWallet, deleteAdminWallet } from '../../lib/api';
 
 interface AdminWalletsViewProps {
   authToken: string;
@@ -24,10 +24,13 @@ export const AdminWalletsView: React.FC<AdminWalletsViewProps> = ({ authToken, s
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreate, setShowCreate] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [isSaving, setIsSaving] = useState(false);
   const [editingBalanceId, setEditingBalanceId] = useState<string | null>(null);
   const [balanceDraft, setBalanceDraft] = useState('0');
+  const [deleteTarget,setDeleteTarget] = useState<ApiCompanyWallet|null>(null);
+  const [deleting,setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -53,7 +56,8 @@ export const AdminWalletsView: React.FC<AdminWalletsViewProps> = ({ authToken, s
     }
     setIsSaving(true);
     try {
-      await createAdminWallet(authToken, form);
+      if (editingId) await updateAdminWallet(authToken, editingId, form);
+      else await createAdminWallet(authToken, form);
       setForm(emptyForm);
       setShowCreate(false);
       await load();
@@ -95,7 +99,7 @@ export const AdminWalletsView: React.FC<AdminWalletsViewProps> = ({ authToken, s
           </p>
         </div>
         <button
-          onClick={() => setShowCreate(true)}
+          onClick={() => { setEditingId(null); setForm(emptyForm); setShowCreate(true); }}
           className="px-5 py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono flex items-center gap-2 cursor-pointer"
         >
           <Plus className="w-4 h-4" /> New Wallet
@@ -121,6 +125,7 @@ export const AdminWalletsView: React.FC<AdminWalletsViewProps> = ({ authToken, s
                 w.status === 'Restricted' ? 'bg-rose-500/20 text-rose-300' : 'bg-blue-500/20 text-blue-300'
               }`}>{w.status}{w.requiresMultisig ? ' • Multi-Sig' : ''}</span>
             </div>
+            <div className="flex gap-4"><button className="text-amber-400" onClick={() => { setEditingId(w.id); setForm(w); setShowCreate(true); }}>Edit wallet</button><button className="text-rose-400" onClick={() => setDeleteTarget(w)}>Delete</button></div>
             {w.address && (
               <div className="p-2 rounded-lg bg-gray-950 border border-gray-800 text-amber-400 break-all text-[11px] select-all">{w.address}</div>
             )}
@@ -150,11 +155,16 @@ export const AdminWalletsView: React.FC<AdminWalletsViewProps> = ({ authToken, s
         )}
       </div>
 
+      {deleteTarget && <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"><div role="dialog" aria-modal="true" aria-label="Delete wallet record" className="bg-gray-900 border border-gray-700 p-6 rounded-2xl max-w-lg space-y-4 text-white">
+        <h3 className="font-bold">Delete {deleteTarget.walletName}?</h3><p>This permanently removes the tracking record. It does not transfer funds.</p>
+        <button disabled={deleting} onClick={()=>setDeleteTarget(null)} className="px-4 py-2 bg-gray-700 rounded-xl">Cancel</button>
+        <button disabled={deleting} className="px-4 py-2 bg-rose-700 rounded-xl ml-3" onClick={async()=>{setDeleting(true);try{await deleteAdminWallet(authToken,deleteTarget.id);setDeleteTarget(null);await load();}catch(err){setError(err instanceof Error?err.message:'Delete failed.');}finally{setDeleting(false);}}}>{deleting?'Deleting...':'Confirm Delete Wallet'}</button>
+      </div></div>}
       {showCreate && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="w-full max-w-lg bg-[#0B1120] border border-gray-700 rounded-3xl shadow-2xl p-6 space-y-4 text-xs font-mono">
             <div className="flex items-center justify-between">
-              <h3 className="text-white font-bold text-base font-sans">New Company Wallet</h3>
+              <h3 className="text-white font-bold text-base font-sans">{editingId ? 'Edit Company Wallet' : 'New Company Wallet'}</h3>
               <button onClick={() => setShowCreate(false)} className="p-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
@@ -163,7 +173,7 @@ export const AdminWalletsView: React.FC<AdminWalletsViewProps> = ({ authToken, s
               className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
             <input placeholder="Wallet address (optional)" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })}
               className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
-            <div className="grid grid-cols-2 gap-3">
+            <label className="block text-gray-400">Status<select aria-label="Wallet status" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as ApiCompanyWallet['status'] })} className="w-full p-2 rounded bg-gray-950 text-white"><option>Active</option><option>Secure</option><option>Restricted</option></select></label><div className="grid grid-cols-2 gap-3">
               <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as ApiCompanyWallet['type'] })}
                 className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white">
                 <option>Cold Vault</option>
@@ -191,7 +201,7 @@ export const AdminWalletsView: React.FC<AdminWalletsViewProps> = ({ authToken, s
               className="w-full py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSaving ? <RotateCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>Create Wallet</span>
+              <span>{editingId ? 'Save Wallet' : 'Create Wallet'}</span>
             </button>
           </div>
         </div>

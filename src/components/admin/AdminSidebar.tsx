@@ -93,7 +93,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       items: [
         { id: 'investment-transactions', label: 'Investment Txns', icon: Receipt },
         { id: 'deposit-requests', label: 'Deposit Requests', icon: ArrowDownToLine, badge: pendingDepositCount, badgeColor: 'bg-amber-500 text-black' },
-        { id: 'all-documents', label: 'Contracts & Vault', icon: FileText }
       ]
     },
     {
@@ -126,7 +125,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     {
       title: 'CRM & COMMUNICATIONS',
       items: [
-        { id: 'support-crm', label: 'Support / CRM Tickets', icon: Headphones, badge: openTicketCount, badgeColor: 'bg-blue-500 text-white', hidden: true },
+        { id: 'support-crm', label: 'Support Inbox', icon: Headphones },
         { id: 'notifications-center', label: 'Communication Center', icon: Bell },
         { id: 'reports-financial', label: 'Reports & Analytics', icon: PieChart, hidden: true }
       ]

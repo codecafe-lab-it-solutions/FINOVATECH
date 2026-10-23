@@ -1,0 +1,13 @@
+[Unit]
+Description=Finovateck daily USD earnings reconciliation
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=finovateck
+WorkingDirectory=/srv/finovateck
+Environment=NODE_ENV=production
+Environment=PLATFORM_TIMEZONE=Asia/Kolkata
+ExecStart=/usr/bin/npm run earnings:run
+TimeoutStartSec=600

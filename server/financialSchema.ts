@@ -5,7 +5,11 @@ export async function initFinancialSchema(): Promise<void> {
   try {
     const [lock] = await conn.query<any[]>("SELECT GET_LOCK('finova_financial_schema_v1', 30) AS acquired");
     if (!lock[0].acquired) throw new Error('Could not lock financial schema migration');
+    await conn.query(`CREATE TABLE IF NOT EXISTS platform_settings (id VARCHAR(20) PRIMARY KEY, settings JSON NOT NULL, updated_at DATETIME NOT NULL) ENGINE=InnoDB`);
+    await conn.query(`CREATE TABLE IF NOT EXISTS earnings_job_runs (id CHAR(36) PRIMARY KEY, started_at DATETIME NOT NULL, completed_at DATETIME NULL, status VARCHAR(20) NOT NULL, credits INT NOT NULL DEFAULT 0, error TEXT NULL, source VARCHAR(30) NOT NULL) ENGINE=InnoDB`);
+    await conn.query(`CREATE TABLE IF NOT EXISTS operating_entries (id CHAR(36) PRIMARY KEY, kind VARCHAR(20) NOT NULL, amount DECIMAL(18,8) NOT NULL, entry_day DATE NOT NULL, note VARCHAR(500) NOT NULL, created_by CHAR(36) NOT NULL, created_at DATETIME NOT NULL) ENGINE=InnoDB`);
     const columns = [
+      ['support_messages', 'image_data', 'MEDIUMTEXT NULL'],
       ['investment_plans', 'direct_referral_percent', 'DECIMAL(7,4) NOT NULL DEFAULT 5'],
       ['investment_plans', 'daily_return_percent', 'DECIMAL(9,5) NOT NULL DEFAULT 0'],
       ['investment_plans', 'payout_request_days', 'INT NOT NULL DEFAULT 7'],

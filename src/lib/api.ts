@@ -56,20 +56,20 @@ export async function registerRequest(
   return handleResponse<AuthResponse>(res);
 }
 
-export async function forgotPasswordRequest(email: string): Promise<{ ok: true; message: string }> {
+export async function forgotPasswordRequest(email: string, username?: string): Promise<{ ok: true; message: string }> {
   const res = await fetch('/api/auth/forgot-password', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email })
+    body: JSON.stringify({ email, username })
   });
   return handleResponse(res);
 }
 
-export async function resetPasswordRequest(email: string, otp: string, newPassword: string): Promise<{ ok: true }> {
+export async function resetPasswordRequest(email: string, otp: string, newPassword: string, username?: string): Promise<{ ok: true }> {
   const res = await fetch('/api/auth/reset-password', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, otp, newPassword })
+    body: JSON.stringify({ email, otp, newPassword, username })
   });
   return handleResponse(res);
 }
@@ -702,6 +702,7 @@ export async function revokeSessionApi(token: string, id: string): Promise<{ ok:
 // --- Investor & Admin: Support Tickets ---
 
 export interface ApiTicketMessage {
+  imageData?: string | null;
   id: string;
   ticketId: string;
   senderRole: 'investor' | 'admin';
@@ -729,7 +730,7 @@ export async function fetchInvestorTickets(token: string): Promise<{ tickets: Ap
 
 export async function createInvestorTicket(
   token: string,
-  ticket: { subject: string; category: string; message: string }
+  ticket: { subject: string; category: string; message: string; imageData?: string | null }
 ): Promise<{ ticket: ApiTicket }> {
   const res = await fetch('/api/investor/tickets', {
     method: 'POST',
@@ -739,11 +740,11 @@ export async function createInvestorTicket(
   return handleResponse(res);
 }
 
-export async function addInvestorTicketMessage(token: string, ticketId: string, message: string): Promise<{ message: ApiTicketMessage }> {
+export async function addInvestorTicketMessage(token: string, ticketId: string, message: string, imageData?: string | null): Promise<{ message: ApiTicketMessage }> {
   const res = await fetch(`/api/investor/tickets/${ticketId}/messages`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
-    body: JSON.stringify({ message })
+    body: JSON.stringify({ message, imageData })
   });
   return handleResponse(res);
 }
@@ -753,11 +754,11 @@ export async function fetchAdminTickets(token: string): Promise<{ tickets: ApiTi
   return handleResponse(res);
 }
 
-export async function addAdminTicketMessage(token: string, ticketId: string, message: string): Promise<{ message: ApiTicketMessage }> {
+export async function addAdminTicketMessage(token: string, ticketId: string, message: string, imageData?: string | null): Promise<{ message: ApiTicketMessage }> {
   const res = await fetch(`/api/admin/tickets/${ticketId}/messages`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
-    body: JSON.stringify({ message })
+    body: JSON.stringify({ message, imageData })
   });
   return handleResponse(res);
 }
@@ -844,3 +845,5 @@ export interface ApiAdminReferral {
 export async function fetchAdminReferrals(token: string): Promise<{ referrals: ApiAdminReferral[] }> {
   return handleResponse(await fetch('/api/admin/referrals', { headers: authHeaders(token) }));
 }
+
+export async function deleteAdminWallet(token: string, id: string): Promise<void> { await handleResponse(await fetch('/api/admin/wallets/' + id, { method: 'DELETE', headers: authHeaders(token) })); }

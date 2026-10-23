@@ -1,0 +1,12 @@
+[Unit]
+Description=Finovateck midnight India earnings and retry timer
+
+[Timer]
+OnCalendar=*-*-* 00:00:00 Asia/Kolkata
+OnBootSec=2min
+OnUnitActiveSec=1min
+Persistent=true
+Unit=finovateck-earnings.service
+
+[Install]
+WantedBy=timers.target

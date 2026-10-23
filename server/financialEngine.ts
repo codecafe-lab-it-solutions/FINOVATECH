@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import {getPlatformSettings} from './platformSettings';
 import type { RowDataPacket } from 'mysql2';
 import { pool } from './database';
 import type { BtcMarketData } from './market';
@@ -25,7 +26,7 @@ export async function submitUsdPayout(params: { investorUserId: string; amountUs
     if (params.amountUsd > Number(settings[0].max_withdrawal_usd)) throw new PolicyError('Requested amount exceeds the global USD transaction limit.');
     const available = Number(p.usd_wallet_balance) - Number(previous[0].reserved);
     if (params.amountUsd > available) throw new PolicyError('Requested amount exceeds your available USD wallet balance.');
-    if (params.amountUsd > maximumWithdrawal(Number(p.total_investment_usd), available, terms.minimumThresholdPercent) + 0.000001) throw new PolicyError('Requested amount would violate the minimum retained wallet threshold.');
+    if (params.amountUsd > maximumWithdrawal(Number(p.total_investment_usd), available, terms.dailyReturnPercent) + 0.000001) throw new PolicyError('Requested amount would violate the 30-day payout obligation.');
     const id = crypto.randomUUID();
     await conn.query("INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, currency, destination_wallet, network, status, requested_at, notes) VALUES (?, ?, ?, 0, ?, 'USD', ?, 'USD bank/payment', 'Requested', ?, '')", [id, p.user_id, p.investment_id, params.amountUsd, params.destination.trim(), nowSql()]);
     await conn.commit(); return id;
@@ -34,6 +35,7 @@ export async function submitUsdPayout(params: { investorUserId: string; amountUs
 }
 
 export async function submitPayout(params: { investorUserId: string; amountBtc: number; destinationWallet: string; network: string }, btcPrice: number): Promise<string> {
+  if (params.amountBtc < (await getPlatformSettings()).minPayoutBtc) throw new PolicyError('Amount is below the configured legacy BTC minimum.');
   if (!Number.isFinite(btcPrice) || btcPrice <= 0 || !Number.isFinite(params.amountBtc) || params.amountBtc <= 0) throw new PolicyError('Invalid withdrawal amount or BTC price.');
   const conn = await pool.getConnection();
   try {
@@ -52,8 +54,8 @@ export async function submitPayout(params: { investorUserId: string; amountBtc: 
     if (requestedUsd > Number(settings[0].max_withdrawal_usd)) throw new PolicyError(`Withdrawal exceeds the $${settings[0].max_withdrawal_usd} transaction limit.`);
     const availableBtc = Number(p.total_btc_allocated) - Number(previous[0].reserved);
     if (params.amountBtc > availableBtc) throw new PolicyError('Requested amount exceeds your available wallet balance, including pending withdrawals.');
-    const max = maximumWithdrawal(Number(p.total_investment_usd), availableBtc * btcPrice, terms.minimumThresholdPercent);
-    if (requestedUsd > max + 0.000001) throw new PolicyError(`Maximum eligible withdrawal is $${Math.floor(max * 100) / 100}. Your wallet must retain ${terms.minimumThresholdPercent}% of the invested amount.`);
+    const max = maximumWithdrawal(Number(p.total_investment_usd), availableBtc * btcPrice, terms.dailyReturnPercent);
+    if (requestedUsd > max + 0.000001) throw new PolicyError(`Maximum eligible withdrawal is $${Math.floor(max * 100) / 100}. Your wallet must retain ${terms.dailyReturnPercent * 30}% of the invested amount across 30 days.`);
     const id = crypto.randomUUID();
     await conn.query(`INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, destination_wallet, network, status, requested_at, notes)
       VALUES (?, ?, ?, ?, ?, ?, ?, 'Requested', ?, '')`, [id, params.investorUserId, p.investment_id, params.amountBtc, usd, params.destinationWallet, params.network, nowSql()]);
@@ -80,7 +82,7 @@ export async function settlePayout(id: string, status: string, notes: string): P
         const [reserved] = await conn.query<RowDataPacket[]>("SELECT COALESCE(SUM(amount_usd), 0) AS usd FROM payouts WHERE investor_user_id = ? AND id <> ? AND currency = 'USD' AND status IN ('Requested', 'Processing') AND (investment_id = ? OR investment_id IS NULL)", [p.investor_user_id, id, profile.investment_id]);
         const available = Number(profile.usd_wallet_balance) - Number(reserved[0].usd);
         const terms = readTerms(profile.plan_terms);
-        if (!terms || amount > maximumWithdrawal(Number(profile.total_investment_usd), available, terms.minimumThresholdPercent) + 0.000001) throw new PolicyError('Insufficient USD funds after pending requests and the minimum wallet threshold.');
+        if (!terms || amount > maximumWithdrawal(Number(profile.total_investment_usd), available, terms.dailyReturnPercent) + 0.000001) throw new PolicyError('Insufficient USD funds after pending requests and the 30-day payout obligation.');
       }
       const delta = p.status === 'Completed' && status !== 'Completed' ? amount : p.status !== 'Completed' && status === 'Completed' ? -amount : 0;
       if (delta) {
@@ -103,7 +105,7 @@ export async function settlePayout(id: string, status: string, notes: string): P
       const terms = readTerms(profile.plan_terms);
       if (terms && Number(p.amount_usd) > 0) {
         const requestPrice = Number(p.amount_usd) / Number(p.amount_btc);
-        const max = maximumWithdrawal(Number(profile.total_investment_usd), availableBtc * requestPrice, terms.minimumThresholdPercent);
+        const max = maximumWithdrawal(Number(profile.total_investment_usd), availableBtc * requestPrice, terms.dailyReturnPercent);
         if (Number(p.amount_usd) > max + 0.000001) throw new PolicyError('Completing this payout would violate the required minimum wallet threshold.');
       }
       await conn.query('UPDATE investor_profiles SET total_btc_allocated = total_btc_allocated - ?, current_portfolio_value_usd = current_portfolio_value_usd - ?, updated_at = ? WHERE user_id = ?', [p.amount_btc, p.amount_usd || 0, nowSql(), p.investor_user_id]);
@@ -120,8 +122,9 @@ let running = false;
 export async function reconcileDailyInterest(options: { now?: Date; investorUserId?: string; getMarket?: () => Promise<BtcMarketData> } = {}): Promise<number> {
   if (running) return 0;
   running = true;
-  let credits = 0;
+  let credits = 0, failures = 0;
   try {
+    if (!(await getPlatformSettings()).autoCalculateDaily) return 0;
     const today = platformDay(options.now);
     const [eligible] = await pool.query<RowDataPacket[]>("SELECT user_id FROM investor_profiles WHERE kyc_status = 'Verified' AND account_status = 'Active' AND kyc_approved_at IS NOT NULL AND plan_terms IS NOT NULL AND total_investment_usd > 0" + (options.investorUserId ? ' AND user_id = ?' : ''), options.investorUserId ? [options.investorUserId] : []);
     if (!eligible.length) return 0;
@@ -131,7 +134,9 @@ export async function reconcileDailyInterest(options: { now?: Date; investorUser
       try {
         await conn.beginTransaction();
         const [rows] = await conn.query<RowDataPacket[]>('SELECT * FROM investor_profiles WHERE user_id = ? FOR UPDATE', [user.user_id]);
-        const p = rows[0], terms = readTerms(p.plan_terms);
+        const p = rows[0];
+        if (!p) { await conn.commit(); continue; }
+        const terms = readTerms(p.plan_terms);
         if (!terms || !p.kyc_approved_at || p.kyc_status !== 'Verified' || p.account_status !== 'Active' || terms.dailyReturnPercent <= 0) { await conn.commit(); continue; }
         const joining = utcDay(p.kyc_approved_at);
         const maturity = maturityDay(joining, terms.durationMonths);
@@ -155,15 +160,16 @@ export async function reconcileDailyInterest(options: { now?: Date; investorUser
           credits++;
         }
         await conn.commit();
-      } catch (err) { await conn.rollback(); console.error('Interest reconciliation failed for investor', user.user_id, err); }
+      } catch (err) { await conn.rollback(); failures++; console.error('Interest reconciliation failed for investor', user.user_id, err); }
       finally { conn.release(); }
     }
+    if (failures) throw new Error(failures + ' investor reconciliations failed; see server logs.');
     return credits;
   } finally { running = false; }
 }
 
 export function startInterestScheduler(options: { investorUserId?: string; getMarket?: () => Promise<BtcMarketData> } = {}): void {
-  const run = () => reconcileDailyInterest(options).catch(err => console.error('Daily interest scheduler failed; will retry', err));
+  const run = () => runDailyEarningsJob(options.investorUserId ? 'scoped-scheduler' : 'api-scheduler', options).catch(err => console.error('Daily interest scheduler failed; will retry', err));
   void run();
   // Checking the calendar boundary every second schedules midnight in the configured timezone;
   // retries and startup reconciliation recover downtime without relying on browser sessions.
@@ -173,4 +179,17 @@ export function startInterestScheduler(options: { investorUserId?: string; getMa
     if (day !== lastDay) { lastDay = day; void run(); }
   }, 1000).unref();
   setInterval(() => void run(), 60_000).unref();
+}
+
+export async function runDailyEarningsJob(source = 'cron', options: Parameters<typeof reconcileDailyInterest>[0] = {}) {
+ const lock=await pool.getConnection();const id=crypto.randomUUID();let acquired=false;
+ try {
+  const [held]=await lock.query<any[]>("SELECT GET_LOCK('finova_daily_earnings_job',0) AS acquired");acquired=!!held[0].acquired;if(!acquired)return 0;
+  await lock.query("INSERT INTO earnings_job_runs(id,started_at,status,source) VALUES (?,UTC_TIMESTAMP(),'Running',?)",[id,source]);
+  const enabled=(await getPlatformSettings()).autoCalculateDaily;
+  const credits=enabled?await reconcileDailyInterest(options):0;
+  await lock.query('UPDATE earnings_job_runs SET completed_at=UTC_TIMESTAMP(),status=?,credits=? WHERE id=?',[enabled?'Succeeded':'Disabled',credits,id]);
+  return credits;
+ }catch(err){if(acquired)await lock.query("UPDATE earnings_job_runs SET completed_at=UTC_TIMESTAMP(),status='Failed',error=? WHERE id=?",[err instanceof Error?err.message:String(err),id]);throw err;}
+ finally{if(acquired)await lock.query("SELECT RELEASE_LOCK('finova_daily_earnings_job')");lock.release();}
 }

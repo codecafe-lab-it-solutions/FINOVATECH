@@ -48,6 +48,7 @@ export const InvestorSidebar: React.FC<InvestorSidebarProps> = ({
       group: 'Core Portfolio',
       items: [
         { id: 'overview' as InvestorTab, label: 'Overview Dashboard', icon: LayoutDashboard },
+        { id: 'support' as InvestorTab, label: 'Support & Helpdesk', icon: HelpCircle },
         { id: 'profile' as InvestorTab, label: 'Investor Profile & KYC', icon: User },
         { id: 'investment' as InvestorTab, label: 'Investment Terms & Docs', icon: FileText },
         { id: 'referrals' as InvestorTab, label: 'Partner / Referrals', icon: Users },
@@ -156,17 +157,17 @@ export const InvestorSidebar: React.FC<InvestorSidebarProps> = ({
         {/* Muscat Node Status Capsule at Bottom of Sidebar */}
         <div className="p-3.5 rounded-2xl bg-gray-900/90 border border-gray-800 text-xs font-mono space-y-2 mt-4">
           <div className="flex items-center justify-between text-[11px]">
-            <span className="text-gray-400">Node Status:</span>
+            <span className="text-gray-400">Data Source:</span>
             <span className="text-emerald-400 font-bold flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              MCT-01 ONLINE
+              ACCOUNT DATA
             </span>
           </div>
           <div className="text-[10px] text-gray-500">
-            {hasActiveAllocation ? 'Assigned: 125 TH/s Dedicated Compute' : 'No compute assigned yet'}
+            Mining readings are available in the dashboard when reported.
           </div>
           <div className="text-[10px] text-[#F7931A] font-bold">
-            {hasActiveAllocation ? 'Foundry USA VIP Pool' : 'Pool: Not Assigned'}
+            Pool details require recorded machine data.
           </div>
         </div>
 

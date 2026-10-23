@@ -9,7 +9,6 @@ export const COMPANY_PROFILE = {
   locationDetail: 'Muscat Tech & Commercial District, Sultanate of Oman',
   industry: 'Digital Assets, Bitcoin Mining & Blockchain Infrastructure',
   primaryFocus: 'Bitcoin mining and digital-asset infrastructure',
-  managingDirector: 'Rayees Ahmad Bhat',
   businessModel: 'Digital-asset mining, technology infrastructure, mining-related services and strategic digital-asset operations',
   operatingTerm: 'Four years under current lease arrangement (2025–2029)',
   operatingTermDetail: 'Operations are planned under the current lease arrangement for four years, after which operations are scheduled to close.',
@@ -292,7 +291,7 @@ export const TIMELINE_ITEMS: TimelineItem[] = [
     title: 'FINOVATECK Established',
     description: 'Company established in Muscat, Sultanate of Oman with a focus on digital-asset infrastructure.',
     status: 'completed',
-    details: 'Incorporation and strategic planning for institutional digital infrastructure in the Sultanate of Oman under Managing Director Rayees Ahmad Bhat.'
+    details: 'Incorporation and strategic planning for institutional digital infrastructure in the Sultanate of Oman.'
   },
   {
     date: '2025–2026',
@@ -350,7 +349,6 @@ export const CORPORATE_TRANSPARENCY_DATA: CorporateInfoRow[] = [
   { label: 'Headquarters', value: 'Muscat, Sultanate of Oman' },
   { label: 'Industry', value: 'Digital Assets, Bitcoin Mining & Blockchain Infrastructure' },
   { label: 'Primary Focus', value: 'Bitcoin mining and digital-asset infrastructure' },
-  { label: 'Managing Director', value: 'Rayees Ahmad Bhat' },
   { label: 'Business Model', value: 'Digital-asset mining, technology infrastructure, mining-related services and strategic digital-asset operations' },
   { label: 'Operating Term', value: 'Four years under current lease arrangement (2025–2029), after which operations are scheduled to close' },
   { label: 'Operational Model', value: 'Integrated Computing, Energy & Cooling Infrastructure' },

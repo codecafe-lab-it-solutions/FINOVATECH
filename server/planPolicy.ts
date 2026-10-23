@@ -1,5 +1,5 @@
 // Calendar days are evaluated in the platform timezone; persisted timestamps are UTC.
-export const platformTimezone = process.env.PLATFORM_TIMEZONE || 'UTC';
+export const platformTimezone = process.env.PLATFORM_TIMEZONE || 'Asia/Kolkata';
 export function platformDay(now = new Date(), timeZone = platformTimezone): string {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now);
   const get = (key: string) => parts.find(p => p.type === key)!.value;
@@ -35,8 +35,11 @@ export function nextEligibleDay(joining: string, latest: string | null, interval
   const day = addDays(base, Math.max(7, interval));
   return manual && manual > day ? manual : day;
 }
-export function maximumWithdrawal(principal: number, wallet: number, threshold: number): number {
-  return Math.max(0, wallet - principal * threshold / 100);
+export function payoutObligation(principal: number, dailyReturnPercent: number): number {
+  return Math.round(principal * dailyReturnPercent * 30) / 100;
+}
+export function maximumWithdrawal(principal: number, wallet: number, dailyReturnPercent: number): number {
+  return Math.max(0, Math.floor((wallet - payoutObligation(principal, dailyReturnPercent)) * 100 + 0.000001) / 100);
 }
 export function validatePlan(params: Record<string, unknown>): void {
   for (const key of ['directReferralPercent', 'minInvestmentUsd', 'maxInvestmentUsd', 'managementFeePercent', 'dailyReturnPercent', 'minimumThresholdPercent', 'withdrawalEntryFeePercent', 'durationMonths', 'payoutRequestDays']) {

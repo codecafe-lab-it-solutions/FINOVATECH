@@ -42,6 +42,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   // Forgot-password flow state
   const [forgotStep, setForgotStep] = useState<ForgotStep>('request');
   const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotUsername, setForgotUsername] = useState('');
   const [forgotOtp, setForgotOtp] = useState('');
   const [forgotNewPassword, setForgotNewPassword] = useState('');
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
@@ -90,7 +91,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
     setError('');
     setIsLoading(true);
     try {
-      const { message } = await forgotPasswordRequest(forgotEmail.trim());
+      const { message } = await forgotPasswordRequest(forgotEmail.trim(), forgotUsername.trim());
       setForgotMessage(message);
       setForgotStep('reset');
     } catch (err) {
@@ -111,7 +112,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
     setIsLoading(true);
     try {
-      await resetPasswordRequest(forgotEmail.trim(), forgotOtp.trim(), forgotNewPassword);
+      await resetPasswordRequest(forgotEmail.trim(), forgotOtp.trim(), forgotNewPassword, forgotUsername.trim());
       setForgotStep('done');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
@@ -195,6 +196,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <>
               {forgotStep === 'request' && (
                 <form onSubmit={handleRequestOtp} className="space-y-4">
+                  <label className="block text-xs text-gray-400">Username (required if your email is shared by multiple accounts)
+                    <input aria-label="Password reset username" value={forgotUsername} onChange={e=>setForgotUsername(e.target.value)} placeholder="Your username" className="w-full mt-2 px-3 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white" />
+                  </label>
                   <div>
                     <label className="block text-xs font-mono font-semibold uppercase text-gray-400 mb-1.5">
                       Registered Email
