@@ -135,11 +135,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           className="flex items-center gap-3 group cursor-pointer focus:outline-hidden"
         >
           <img
-            src="/finovateck_favicon.svg"
+            src="/logoreal.png"
             alt="FINOVATECK"
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl shadow-md shrink-0"
+            className="w-44 h-11 sm:w-[216px] sm:h-12 object-cover rounded-md bg-black shrink-0"
           />
-          <div className="text-left">
+          <div className="sr-only">
             <span className="text-sm sm:text-base font-extrabold tracking-tight text-white group-hover:text-[#F7931A] transition-colors block font-mono">
               FINOVATECK
             </span>

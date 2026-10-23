@@ -167,7 +167,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         <div className="p-4 border-b border-gray-800/80 bg-[#070B14]/80 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
-              src="/finovateck_favicon.svg"
+              src="/favicon.png"
               alt="FINOVATECK"
               className="w-9 h-9 rounded-xl shadow-md shrink-0"
             />

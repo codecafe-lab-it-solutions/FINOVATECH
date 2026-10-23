@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Menu, X, ArrowUpRight, ChevronRight, MapPin, Building2, ShieldCheck, Phone, Mail } from 'lucide-react';
 import { PageRoute } from '../types';
-import finovateckLogo from '../assets/finovateck_logo.svg';
 
 interface NavbarProps {
   currentRoute: PageRoute;
@@ -76,9 +75,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
               aria-label="FINOVATECK Home"
             >
               <img
-                src={finovateckLogo}
+                src="/logoreal.png"
                 alt="FINOVATECK MINING COMPANY"
-                className="h-8 sm:h-9 lg:h-10 w-auto object-contain block"
+                className="w-44 h-11 sm:w-[216px] sm:h-12 object-cover rounded-md bg-black block"
               />
             </button>
 
