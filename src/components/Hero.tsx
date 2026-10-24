@@ -108,15 +108,6 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
             <span>Explore Our Operations</span>
             <ArrowRight className="w-4 h-4 text-gray-950 transition-transform group-hover:translate-x-1" />
           </button>
-
-          <button
-            id="hero-contact-cta"
-            onClick={() => onNavigate('contact')}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl bg-gray-900/90 hover:bg-gray-800 border border-gray-700/90 hover:border-gray-500 text-white text-sm sm:text-base font-semibold tracking-wide transition-all shadow-lg backdrop-blur-md cursor-pointer min-h-[48px]"
-          >
-            <span>Contact FINOVATECK</span>
-            <ArrowUpRight className="w-4 h-4 text-gray-400" />
-          </button>
         </div>
 
         {/* Centered Institutional Telemetry & Key Pillars Grid */}

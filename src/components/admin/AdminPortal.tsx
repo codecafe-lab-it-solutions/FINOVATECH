@@ -1,3 +1,4 @@
+import { AdminSupportInbox } from './AdminSupportInbox';
 import { AdminReferralsView } from './AdminReferralsView';
 import { CurrencySelector } from '../../lib/currency';
 import React, { useState, useEffect } from 'react';
@@ -86,7 +87,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   };
 
   // Operational State
-  const [kpis, setKpis] = useState(initialAdminKpis);
+  const [kpis, setKpis] = useState({...initialAdminKpis, spotBtcPriceUsd:0});
   // No real mining-facility telemetry exists yet, so this stays empty rather
   // than showing the fabricated Muscat/Salalah demo sites.
   const [facilities, setFacilities] = useState<typeof initialMiningFacilities>([]);
@@ -117,54 +118,18 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
       .catch(() => {});
   }, [authToken]);
 
-  // Dashboard KPIs derived from real investor/payout/machine/transaction data.
-  // Monthly OPEX (and therefore Net Monthly Revenue) has no real cost-tracking
-  // source anywhere in the app yet, so those two stay at the honest zeroed
-  // defaults from initialAdminKpis rather than being fabricated.
   useEffect(() => {
-    Promise.all([
-      fetchAdminInvestors(authToken),
-      fetchAdminPayouts(authToken),
-      fetchAdminMachines(authToken),
-      fetchAdminAllTransactions(authToken),
-      fetchBtcMarketData().catch(() => null)
-    ])
-      .then(([{ investors: investorList }, { payouts: payoutList }, { machines: machineList }, { transactions: txList }, market]) => {
-        setPendingKycCount(investorList.filter((i) => i.kycStatus !== 'Verified').length);
-        setPendingPayoutCount(payoutList.filter((p) => p.status === 'Requested').length);
-
-        const currentYearMonth = new Date().toISOString().slice(0, 7);
-        const monthlyRevenueUsd = txList
-          .filter((t) => t.type === 'Mining Credit' && t.createdAt.startsWith(currentYearMonth))
-          .reduce((sum, t) => sum + t.amountUsd, 0);
-
-        setKpis((prev) => ({
-          ...prev,
-          totalInvestors: investorList.length,
-          activeInvestors: investorList.filter((i) => i.accountStatus === 'Active').length,
-          totalInvestmentUsd: investorList.reduce((sum, i) => sum + i.totalInvestmentUsd, 0),
-          totalBtcAllocated: investorList.reduce((sum, i) => sum + i.totalBtcAllocated, 0),
-          totalBtcMined: investorList.reduce((sum, i) => sum + i.btcMined, 0),
-          totalBtcPaidOut: payoutList
-            .filter((p) => p.status === 'Completed')
-            .reduce((sum, p) => sum + p.amountBtc, 0),
-          pendingPayoutBtc: payoutList
-            .filter((p) => p.status === 'Requested')
-            .reduce((sum, p) => sum + p.amountBtc, 0),
-          totalMiners: machineList.length,
-          minersOnline: machineList.filter((m) => m.status === 'Online').length,
-          miningHashratePH: machineList.reduce((sum, m) => sum + m.hashrateTh, 0) / 1000,
-          miningUptimePercent: machineList.length
-            ? Math.round(machineList.reduce((sum, m) => sum + m.uptimePercent, 0) / machineList.length)
-            : 0,
-          monthlyRevenueUsd,
-          // monthlyCostUsd has no real tracking source yet, so it stays 0 —
-          // net profit is therefore just revenue until OPEX tracking exists.
-          netProfitUsd: monthlyRevenueUsd - prev.monthlyCostUsd,
-          spotBtcPriceUsd: market?.usd ?? prev.spotBtcPriceUsd
-        }));
-      })
-      .catch(() => {});
+    const load = async () => {
+      try {
+        const [{investors}, {payouts}, response] = await Promise.all([fetchAdminInvestors(authToken),fetchAdminPayouts(authToken),fetch('/api/operating-metrics',{headers:{Authorization:'Bearer '+authToken}})]);
+        if (!response.ok) return; const {metrics} = await response.json();
+        setKpis(prev=>({...prev,...metrics}));
+        fetchBtcMarketData().then(m=>setKpis(prev=>({...prev,spotBtcPriceUsd:m.usd}))).catch(()=>setKpis(prev=>({...prev,spotBtcPriceUsd:0})));
+        setPendingKycCount(investors.filter(i=>i.kycStatus!=='Verified').length);
+        setPendingPayoutCount(payouts.filter(p=>p.status==='Requested'||p.status==='Processing').length);
+      } catch(err) { console.error('Dashboard refresh failed',err); }
+    };
+    void load();const timer=setInterval(()=>void load(),15000);return()=>clearInterval(timer);
   }, [authToken]);
 
   const handleChangeRole = (newRole: AdminRole) => {
@@ -216,7 +181,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           {/* Dynamic Module View Content */}
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
             {currentTab === 'dashboard' && (
-              <AdminDashboardView
+              <AdminDashboardView authToken={authToken}
                 kpis={kpis}
                 facilities={facilities}
                 pendingPayoutCount={pendingPayoutCount}
@@ -311,7 +276,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             )}
 
             {currentTab === 'support-crm' && (
-              <AdminSupportCrmView tickets={tickets} />
+              <AdminSupportInbox authToken={authToken} />
             )}
 
             {currentTab === 'notifications-center' && (

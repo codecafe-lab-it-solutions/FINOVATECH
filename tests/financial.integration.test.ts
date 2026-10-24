@@ -13,12 +13,14 @@ import { platformDay, addDays } from '../server/planPolicy';
 import { getExchangeRate } from '../server/exchangeRates';
 
 const users: string[] = [], plans: string[] = [];
+let originalWithdrawalLimit: number | null = null;
 const stamp = crypto.randomUUID().slice(0, 8);
 const price = 100000;
 const planInput = { name: `Finova test ${stamp}`, tagline: '', minInvestmentUsd: 100, maxInvestmentUsd: 100000, durationMonths: 12, managementFeePercent: 6.5, dailyReturnPercent: 0.5, payoutRequestDays: 15, minimumThresholdPercent: 2, withdrawalEntryFeePercent: 1.25, payoutFrequency: 'Monthly' as const, status: 'Active' as const };
 const market = async () => ({ usd: price, change24hPercent: 0, difficultyT: 0, updatedAt: new Date().toISOString() });
 
 after(async () => {
+  if (originalWithdrawalLimit !== null) await pool.query("UPDATE withdrawal_settings SET max_withdrawal_usd=? WHERE id='global'",[originalWithdrawalLimit]);
   for (const id of users) await pool.query("DELETE FROM users WHERE id = ? AND username LIKE 'finova_test_%'", [id]);
   for (const id of plans) await pool.query('DELETE FROM investment_plans WHERE id = ? AND name LIKE ?', [id, `%${stamp}%`]);
   await pool.end();
@@ -26,6 +28,9 @@ after(async () => {
 
 test('financial and authentication integration against disposable test investors', async t => {
   await initSchema(); await initFinancialSchema();
+  const [limits] = await pool.query<any[]>("SELECT max_withdrawal_usd FROM withdrawal_settings WHERE id='global'");
+  originalWithdrawalLimit = Number(limits[0].max_withdrawal_usd);
+  await pool.query("UPDATE withdrawal_settings SET max_withdrawal_usd=4000 WHERE id='global'");
   const plan = await createPlan(planInput); plans.push(plan.id);
   const user = await createUser({ username: `finova_test_${stamp}`, password: 'TestPassword123!', name: 'Disposable integration fixture', role: 'investor' }); users.push(user.id);
   let fixture = (await getProfile(user.id))!;
@@ -55,7 +60,7 @@ test('financial and authentication integration against disposable test investors
     await assert.rejects(deletePlan(plan.id), /assigned investors/);
   });
   await t.test('KYC approval becomes joining date and cannot be reset by reapproval', async () => {
-    fixture = await updateProfile(user.id, { kycStatus: 'Verified', accountStatus: 'Active', totalInvestmentUsd: 10000, totalBtcAllocated: 0.0025, currentPortfolioValueUsd: 250 });
+    fixture = await updateProfile(user.id, { kycStatus: 'Verified', accountStatus: 'Active', totalInvestmentUsd: 10000, totalBtcAllocated: 0.02, currentPortfolioValueUsd: 2000 });
     assert.equal(fixture.joiningDate, platformDay());
     const first = fixture.kycApprovedAt;
     await updateProfile(user.id, { kycStatus: 'Pending' });
@@ -68,11 +73,11 @@ test('financial and authentication integration against disposable test investors
   await pool.query('UPDATE investor_profiles SET kyc_approved_at = ? WHERE user_id = ?', [`${join} 00:00:00`, user.id]);
   await pool.query('UPDATE investment_capital_history SET effective_day = ? WHERE investor_user_id = ?', [join, user.id]);
   await t.test('wallet and minimum retained principal are enforced in the backend', async () => {
-    await assert.rejects(submitPayout({ investorUserId: user.id, amountBtc: 0.003, destinationWallet: 'test-wallet', network: 'BTC' }, price), /available wallet/);
-    // $250 wallet - $200 threshold = $50 maximum.
-    await assert.rejects(submitPayout({ investorUserId: user.id, amountBtc: 0.00051, destinationWallet: 'test-wallet', network: 'BTC' }, price), /Maximum eligible/);
+    await assert.rejects(submitPayout({ investorUserId: user.id, amountBtc: 0.03, destinationWallet: 'test-wallet', network: 'BTC' }, price), /available wallet/);
+    // $2000 wallet - $1500 monthly payout obligation = $500 maximum.
+    await assert.rejects(submitPayout({ investorUserId: user.id, amountBtc: 0.00501, destinationWallet: 'test-wallet', network: 'BTC' }, price), /Maximum eligible/);
     const blocked = crypto.randomUUID();
-    await pool.query("INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, destination_wallet, requested_at, status) VALUES (?, ?, ?, 0.0008, 80, 'test-wallet', UTC_TIMESTAMP(), 'Rejected')", [blocked, user.id, fixture.investmentId]);
+    await pool.query("INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, destination_wallet, requested_at, status) VALUES (?, ?, ?, 0.008, 800, 'test-wallet', UTC_TIMESTAMP(), 'Rejected')", [blocked, user.id, fixture.investmentId]);
     await assert.rejects(settlePayout(blocked, 'Completed', 'test'), /minimum wallet threshold/);
     await pool.query('DELETE FROM payouts WHERE id = ? AND investor_user_id = ?', [blocked, user.id]);
   });
@@ -87,16 +92,16 @@ test('financial and authentication integration against disposable test investors
   });
   await t.test('repeated settlement debits once and reversal restores funds exactly once', async () => {
     await Promise.all([settlePayout(payoutId, 'Completed', 'test'), settlePayout(payoutId, 'Completed', 'test')]);
-    assert.equal((await getProfile(user.id))?.totalBtcAllocated, 0.002);
+    assert.equal((await getProfile(user.id))?.totalBtcAllocated, 0.0195);
     await Promise.all([settlePayout(payoutId, 'Requested', 'reversal'), settlePayout(payoutId, 'Requested', 'reversal')]);
-    assert.equal((await getProfile(user.id))?.totalBtcAllocated, 0.0025);
+    assert.equal((await getProfile(user.id))?.totalBtcAllocated, 0.02);
     await settlePayout(payoutId, 'Completed', 'test');
   });
   await t.test('daily interest reconciles missed days once, without applying stored fee deductions', async () => {
     const credited = await reconcileDailyInterest({ investorUserId: user.id, getMarket: market });
     assert.equal(credited, 30);
     assert.equal(await reconcileDailyInterest({ investorUserId: user.id, getMarket: market }), 0);
-    assert.equal((await getProfile(user.id))?.totalBtcAllocated, 0.002);
+    assert.equal((await getProfile(user.id))?.totalBtcAllocated, 0.0195);
     assert.equal((await getProfile(user.id))?.usdWalletBalance, 1500);
     const [rows] = await pool.query<any[]>('SELECT COUNT(*) AS credits, SUM(amount_usd) AS usd FROM daily_interest_credits WHERE investor_user_id = ?', [user.id]);
     assert.equal(rows[0].credits, 30); assert.equal(Number(rows[0].usd), 1500);
@@ -107,25 +112,25 @@ test('financial and authentication integration against disposable test investors
     let calls=0;
     assert.equal(await reconcileDailyInterest({investorUserId:user.id,getMarket:async()=>{calls++;throw Error('Provider unavailable');}}),0);
     assert.equal(calls,0);
-    assert.equal((await getProfile(user.id))?.totalBtcAllocated,0.002);
+    assert.equal((await getProfile(user.id))?.totalBtcAllocated,0.0195);
     assert.equal((await getProfile(user.id))?.usdWalletBalance,1500);
   });
   await t.test('USD withdrawal enforces its own available balance and retained threshold, and settles once without changing BTC', async () => {
     await pool.query('UPDATE payouts SET requested_at = ? WHERE investor_user_id = ?', [addDays(platformDay(), -16) + ' 00:00:00', user.id]);
-    await pool.query('UPDATE investor_profiles SET usd_wallet_balance = 250 WHERE user_id = ?', [user.id]);
+    await pool.query('UPDATE investor_profiles SET usd_wallet_balance = 1550 WHERE user_id = ?', [user.id]);
     const request = (amountUsd: number) => submitUsdPayout({investorUserId: user.id, amountUsd, destination: 'Audit USD bank account'});
-    await assert.rejects(request(251), /available USD/);
-    await assert.rejects(request(51), /minimum retained/);
+    await assert.rejects(request(1551), /available USD/);
+    await assert.rejects(request(51), /30-day/);
     await assert.rejects(request(1.001), /two decimal/);
     const beforeBtc = (await getProfile(user.id))!.totalBtcAllocated;
     const id = await request(50);
     const payout = (await getPayoutById(id))!;
     assert.equal(payout.currency, 'USD'); assert.equal(payout.amountBtc, 0); assert.equal(payout.amountUsd, 50);
     await Promise.all([settlePayout(id, 'Completed', 'USD test'), settlePayout(id, 'Completed', 'USD test')]);
-    assert.equal((await getProfile(user.id))!.usdWalletBalance, 200);
+    assert.equal((await getProfile(user.id))!.usdWalletBalance, 1500);
     assert.equal((await getProfile(user.id))!.totalBtcAllocated, beforeBtc);
     await settlePayout(id, 'Rejected', 'USD reversal');
-    assert.equal((await getProfile(user.id))!.usdWalletBalance, 250);
+    assert.equal((await getProfile(user.id))!.usdWalletBalance, 1550);
   });
   await t.test('OTP purposes are separate and only one concurrent consume succeeds', async () => {
     const otp = await createOtpForUser(user.id);

@@ -112,7 +112,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
         <div className="hidden xl:flex items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-900/90 border border-gray-800 text-xs font-mono">
             <span className="text-gray-400">BTC Spot:</span>
-            <span className="text-emerald-400 font-bold"><Money usd={spotBtcPriceUsd} /></span>
+            <span className="text-emerald-400 font-bold">{spotBtcPriceUsd > 0 ? <Money usd={spotBtcPriceUsd} /> : 'Unavailable'}</span>
           </div>
 
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-900/90 border border-gray-800 text-xs font-mono">

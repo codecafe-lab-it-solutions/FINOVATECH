@@ -223,7 +223,7 @@ export const InfrastructureArchitectureCard: React.FC = () => {
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                   <div>
                     <div className="text-gray-200 font-semibold">Executive Governance</div>
-                    <div className="text-[10px] text-gray-400">Leadership under Rayees Ahmad Bhat</div>
+                    <div className="text-[10px] text-gray-400">Documented operational standards</div>
                   </div>
                 </div>
 

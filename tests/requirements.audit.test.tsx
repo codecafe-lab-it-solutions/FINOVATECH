@@ -100,7 +100,7 @@ test('additional requirement-by-requirement HTTP and rendered-output audit', asy
   const wallet = () => renderToStaticMarkup(<WalletTab user={user} metrics={metrics} reservedPayoutBtc={0} transactions={[]} depositRequests={[]} withdrawalSettings={{ maxWithdrawalUsd: 1000, withdrawalsEnabled: true, updatedAt: '' }} onRequestPayoutOtp={async () => ({ok: true, message: 'test'})} onRequestPayout={async () => {}} onFetchDepositAddress={async () => ({ address: 'test', network: 'BTC' })} onSubmitDeposit={async () => ({referenceNumber: 'test'})} />);
   await t.test('REQ 6 and 11: rendered wallet includes assigned terms, all new fields, and both KYC/joining dates', () => {
     const html = wallet();
-    for (const value of [input.name, 'Request USD Withdrawal', 'Daily interest is credited in USD', 'Daily Return', '0.5%', 'Allow Payout Request', '15 days', 'Minimum Threshold', '2%', 'Withdrawal / Entry Fee', '1.25%', 'KYC Approval Date', 'Joining Date / Start Date', profile.joiningDate!]) assert.ok(html.includes(value), `Wallet does not contain ${value}`);
+    for (const value of [input.name, 'Request USD Withdrawal', 'Daily interest is credited in USD', 'Daily Return', '0.5%', 'Allow Payout Request', '15 days', 'Minimum Threshold', '15%', 'Withdrawal / Entry Fee', '1.25%', 'KYC Approval Date', 'Joining Date / Start Date', profile.joiningDate!]) assert.ok(html.includes(value), `Wallet does not contain ${value}`);
     assert.ok(!html.includes('2.75%'), 'Catalog edits must not replace the saved 0.5% investor rate.');
   });
   await t.test('REQ 10: concurrent new investors receive unique consecutive FINOVA IDs and preserve UUID legacy keys', async () => {
@@ -117,11 +117,11 @@ test('additional requirement-by-requirement HTTP and rendered-output audit', asy
     const html = renderToStaticMarkup(<ReferralPartnerTab joiningDate={user.joiningDate} referralCode="TEST" referredUsers={[]} />);
     assert.match(html, /Start Date:/); assert.ok(html.includes(user.joiningDate!));
   });
-  await t.test('REQ 4: INR conversion covers investment principal and small tariff values without modifying stored amounts', async () => {
+  await t.test('REQ 4: INR conversion covers investment principal without modifying stored amounts or inventing a tariff', async () => {
     const before = (await getProfile(fixture.id))!;
     const html = renderToStaticMarkup(<CurrencyContext.Provider value={{ currency: 'INR', setCurrency: () => {}, rate: {rate: 90, fetchedAt: '', sourceDate: '', source: 'Test fixture', stale: false}, error: '', formatMoney: (value, digits) => formatDisplayMoney(value, 'INR', 90, digits) }}><InvestmentDetailsTab user={user} metrics={metrics} /></CurrencyContext.Provider>);
     assert.ok(!html.includes('$0.042'), 'The investment document still hardcodes $0.042 instead of converting this monetary display.');
-    assert.ok(html.includes('₹9,00,000.00')); assert.ok(html.includes('₹3.78'));
+    assert.ok(html.includes('₹9,00,000.00')); assert.doesNotMatch(html,/0\.042/);
     const after = (await getProfile(fixture.id))!;
     assert.equal(after.totalInvestmentUsd, before.totalInvestmentUsd); assert.equal(after.totalBtcAllocated, before.totalBtcAllocated);
   });
@@ -173,13 +173,13 @@ test('additional requirement-by-requirement HTTP and rendered-output audit', asy
     assert.equal(Number(rows[0].usd), 200); assert.equal(rows[0].credits, 4);
   });
   await t.test('REQ 13: actual server timer detects midnight and automatically credits an investor without any login', async ctx => {
-    if (platformTimezone !== 'UTC') return ctx.skip('The default UTC scheduler test requires PLATFORM_TIMEZONE=UTC. Other timezone boundaries are tested by the calendar cases.');
+    assert.ok(['UTC','Asia/Kolkata'].includes(platformTimezone));
     const plan = await createPlan({ ...input, name: `${input.name} timer` }); plans.push(plan.id);
     const member = await createFixture();
     await updateProfile(member.id, {plan: plan.name, kycStatus: 'Verified', accountStatus: 'Active', totalInvestmentUsd: 10000});
     const originalFetch = globalThis.fetch;
     let quoteRequests = 0;
-    ctx.mock.timers.enable({apis: ['Date', 'setInterval'], now: Date.parse(today + 'T23:59:59Z')});
+    ctx.mock.timers.enable({apis: ['Date', 'setInterval'], now: Date.parse(today + (platformTimezone === 'Asia/Kolkata' ? 'T18:29:59Z' : 'T23:59:59Z'))});
     globalThis.fetch = async (url, options) => {
       if (String(url).includes('api.coingecko.com')) { quoteRequests++; throw new Error('USD interest must not request a BTC price'); }
       if (String(url).includes('blockchain.info')) return new Response('1000000000000');
@@ -202,7 +202,7 @@ test('additional requirement-by-requirement HTTP and rendered-output audit', asy
     } finally { globalThis.fetch = originalFetch; ctx.mock.timers.reset(); }
   });
   await t.test('USD payout HTTP API records dollars and admin approval never changes BTC balances', async () => {
-    await pool.query('UPDATE investor_profiles SET usd_wallet_balance = 1000 WHERE user_id = ?', [fixture.id]);
+    await pool.query('UPDATE investor_profiles SET usd_wallet_balance = 2000 WHERE user_id = ?', [fixture.id]);
     const beforeBtc = (await getProfile(fixture.id))!.totalBtcAllocated;
     const code = await createOtpForUser(fixture.id, 'withdrawal');
     const result = await request('POST', '/api/investor/payouts', {currency: 'USD', amountUsd: 100, destinationWallet: 'Disposable audit bank account', otp: code}, investorToken);
@@ -211,8 +211,8 @@ test('additional requirement-by-requirement HTTP and rendered-output audit', asy
     const settled = await request('PATCH', `/api/admin/payouts/${result.body.payout.id}`, {status: 'Completed', notes: 'USD audit settlement'}, adminToken);
     assert.equal(settled.status, 200, settled.body.error);
     const after = (await getProfile(fixture.id))!;
-    assert.equal(after.usdWalletBalance, 900); assert.equal(after.totalBtcAllocated, beforeBtc);
+    assert.equal(after.usdWalletBalance, 1900); assert.equal(after.totalBtcAllocated, beforeBtc);
     const repeated = await request('PATCH', `/api/admin/payouts/${result.body.payout.id}`, {status: 'Completed'}, adminToken);
-    assert.equal(repeated.status, 200); assert.equal((await getProfile(fixture.id))!.usdWalletBalance, 900);
+    assert.equal(repeated.status, 200); assert.equal((await getProfile(fixture.id))!.usdWalletBalance, 1900);
   });
 });

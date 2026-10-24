@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
 import { HelpCircle, Plus, Send, X } from 'lucide-react';
+import { TicketImageInput } from './TicketImageInput';
 import { ApiTicket } from '../../lib/api';
 
 interface SupportHelpdeskTabProps {
   tickets: ApiTicket[];
-  onAddTicket: (subject: string, category: string, message: string) => Promise<void>;
-  onAddMessage: (ticketId: string, messageText: string) => Promise<void>;
+  adminMode?: boolean;
+  onAddTicket: (subject: string, category: string, message: string, imageData?: string | null) => Promise<void>;
+  onAddMessage: (ticketId: string, messageText: string, imageData?: string | null) => Promise<void>;
 }
 
 const CATEGORIES = ['Payment', 'Withdrawal', 'Wallet', 'Mining earnings', 'KYC', 'Investment agreement', 'Technical issue', 'General'];
 
-export const SupportHelpdeskTab: React.FC<SupportHelpdeskTabProps> = ({ tickets, onAddTicket, onAddMessage }) => {
+export const SupportHelpdeskTab: React.FC<SupportHelpdeskTabProps> = ({ tickets, onAddTicket, onAddMessage, adminMode = false }) => {
   const [selectedTicketId, setSelectedTicketId] = useState<string>(tickets[0]?.id || '');
   const [showNewTicketModal, setShowNewTicketModal] = useState(false);
   const [replyText, setReplyText] = useState('');
+  const [replyImage, setReplyImage] = useState<string | null>(null);
+  const [newImage, setNewImage] = useState<string | null>(null);
+  const [error, setError] = useState('');
   const [isSending, setIsSending] = useState(false);
 
   const [newSubject, setNewSubject] = useState('');
@@ -28,9 +33,11 @@ export const SupportHelpdeskTab: React.FC<SupportHelpdeskTabProps> = ({ tickets,
     if (!replyText.trim() || !selectedTicket) return;
     setIsSending(true);
     try {
-      await onAddMessage(selectedTicket.id, replyText.trim());
+      setError('');
+      await onAddMessage(selectedTicket.id, replyText.trim(), replyImage);
+      setReplyImage(null);
       setReplyText('');
-    } finally {
+    } catch (err) { setError(err instanceof Error ? err.message : 'Could not send support request.'); } finally {
       setIsSending(false);
     }
   };
@@ -40,7 +47,9 @@ export const SupportHelpdeskTab: React.FC<SupportHelpdeskTabProps> = ({ tickets,
     if (!newSubject.trim() || !newInitialMsg.trim()) return;
     setIsCreating(true);
     try {
-      await onAddTicket(newSubject.trim(), newCategory, newInitialMsg.trim());
+      setError('');
+      await onAddTicket(newSubject.trim(), newCategory, newInitialMsg.trim(), newImage);
+      setNewImage(null);
       setShowNewTicketModal(false);
       setNewSubject('');
       setNewInitialMsg('');
@@ -61,6 +70,7 @@ export const SupportHelpdeskTab: React.FC<SupportHelpdeskTabProps> = ({ tickets,
           <p className="text-xs text-gray-400 font-mono mt-0.5">Real support tickets, stored in the database and answered by the admin team.</p>
         </div>
         <button
+          hidden={adminMode}
           onClick={() => setShowNewTicketModal(true)}
           className="px-4 py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono flex items-center gap-2 cursor-pointer transition-colors shadow-md"
         >
@@ -69,6 +79,7 @@ export const SupportHelpdeskTab: React.FC<SupportHelpdeskTabProps> = ({ tickets,
         </button>
       </div>
 
+      {error && <p role="alert" className="p-3 text-rose-300">{error}</p>}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-5 space-y-3 font-mono text-xs">
           <div className="flex items-center justify-between px-2 text-gray-400 text-[11px] uppercase font-bold">
@@ -90,7 +101,7 @@ export const SupportHelpdeskTab: React.FC<SupportHelpdeskTabProps> = ({ tickets,
                     <span className="text-[#F7931A] font-bold">{ticket.id.slice(0, 8).toUpperCase()}</span>
                     <span>{ticket.updatedAt}</span>
                   </div>
-                  <div className="text-xs font-bold text-white line-clamp-1">{ticket.subject}</div>
+                  <div className="text-xs font-bold text-white line-clamp-1">{ticket.subject}</div>{adminMode && <p className="text-gray-400 mt-1">{ticket.investorName}</p>}
                   <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-800 text-[10px]">
                     <span className="px-2 py-0.5 rounded bg-gray-800 text-gray-300">{ticket.category}</span>
                     <span className={`font-bold ${ticket.status === 'Resolved' ? 'text-emerald-400' : 'text-amber-400'}`}>{ticket.status}</span>
@@ -125,13 +136,14 @@ export const SupportHelpdeskTab: React.FC<SupportHelpdeskTabProps> = ({ tickets,
                         <div className="text-[10px] font-mono text-gray-500 mb-1">{msg.senderName} • {msg.createdAt}</div>
                         <div className={`p-3.5 rounded-2xl text-xs max-w-[85%] font-sans leading-relaxed ${
                           isInvestor ? 'bg-[#F7931A] text-gray-950 font-medium rounded-tr-xs' : 'bg-gray-950 border border-gray-800 text-gray-200 rounded-tl-xs'
-                        }`}>{msg.message}</div>
+                        }`}>{msg.message}{msg.imageData && <a href={msg.imageData} download="support-image"><img src={msg.imageData} alt="Support attachment" className="mt-2 max-w-full max-h-64 rounded-lg" /></a>}</div>
                       </div>
                     );
                   })}
                 </div>
               </div>
 
+              <TicketImageInput value={replyImage} onChange={setReplyImage} />
               <form onSubmit={handleSendMessage} className="pt-3 border-t border-gray-800 flex items-center gap-2">
                 <input
                   type="text"
@@ -201,6 +213,7 @@ export const SupportHelpdeskTab: React.FC<SupportHelpdeskTabProps> = ({ tickets,
                   className="w-full px-3 py-2.5 rounded-xl bg-gray-950 border border-gray-700 text-white font-sans focus:outline-hidden focus:border-[#F7931A]"
                 />
               </div>
+              <TicketImageInput value={newImage} onChange={setNewImage} />
               <div className="flex items-center gap-2 pt-2">
                 <button
                   type="submit"

@@ -1,5 +1,6 @@
 import { Money } from '../../lib/currency';
-import React, { useEffect, useState, useCallback } from 'react';
+import { parseAdminAmount } from '../../lib/adminAmount';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Search,
   X,
@@ -43,6 +44,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
   const [transactions, setTransactions] = useState<ApiWalletTransaction[]>([]);
   const [payouts, setPayouts] = useState<ApiPayout[]>([]);
   const [formState, setFormState] = useState<ProfileFormState>({});
+  const historicalApprovalInput = useRef<HTMLInputElement>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
@@ -128,10 +130,18 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
     setSaveMessage('');
     try {
       const payload: ProfileFormState = { ...formState };
+      // Read the submitted date from the native datetime control as well as
+      // React state: some browser date pickers commit only when focus leaves.
+      const historicalDate = historicalApprovalInput.current?.value;
+      if (!detailProfile?.kycApprovedAt && historicalDate) {
+        const parsed = new Date(historicalDate);
+        if (!Number.isFinite(parsed.getTime())) throw new Error('Enter a valid historical approval date.');
+        payload.kycApprovedAt = parsed.toISOString();
+      }
       for (const key of NUMERIC_FIELDS) {
         const raw: unknown = payload[key];
-        const num = Number(raw);
-        payload[key] = raw === '' || raw === null || raw === undefined || Number.isNaN(num) ? 0 : num;
+        const label = key === 'totalInvestmentUsd' ? 'Total Investment (USD)' : key === 'currentPortfolioValueUsd' ? 'Portfolio Value (USD)' : key;
+        payload[key] = parseAdminAmount(raw, label);
       }
       payload.nextWithdrawalDate = payload.nextWithdrawalDate || null;
       const { profile } = await updateAdminInvestorProfile(authToken, selectedId, payload);
@@ -154,12 +164,16 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
     try {
       const { transaction } = await addAdminInvestorTransaction(authToken, selectedId, {
         type: newTxType,
-        amountBtc: Number(newTxBtc) || 0,
-        amountUsd: Number(newTxUsd) || 0,
+        amountBtc: newTxBtc.trim() ? parseAdminAmount(newTxBtc, 'BTC amount', true) : 0,
+        amountUsd: newTxUsd.trim() ? parseAdminAmount(newTxUsd, 'USD amount', true) : 0,
         network: newTxNetwork,
         note: newTxNote
       });
       setTransactions((prev) => [transaction, ...prev]);
+      const fresh = await fetchAdminInvestorDetail(authToken, selectedId);
+      setDetailProfile(fresh.profile);
+      setFormState(fresh.profile);
+      setInvestors(prev => prev.map(p => p.userId === selectedId ? fresh.profile : p));
       setNewTxBtc('');
       setNewTxUsd('');
       setNewTxNote('');
@@ -228,7 +242,6 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                 <th className="py-3.5 px-4">Investor</th>
                 <th className="py-3.5 px-3">KYC Status</th>
                 <th className="py-3.5 px-3 text-right">Investment</th>
-                <th className="py-3.5 px-3 text-right">BTC Allocated</th>
                 <th className="py-3.5 px-3 text-right">Portfolio Value</th>
                 <th className="py-3.5 px-4 text-center">Action</th>
               </tr>
@@ -246,7 +259,6 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                   </td>
                   <td className="py-3.5 px-3">{kycBadge(inv.kycStatus)}</td>
                   <td className="py-3.5 px-3 text-right font-bold text-white"><Money usd={inv.totalInvestmentUsd} /></td>
-                  <td className="py-3.5 px-3 text-right font-semibold text-[#F7931A]">{inv.totalBtcAllocated} BTC</td>
                   <td className="py-3.5 px-3 text-right font-bold text-emerald-400"><Money usd={inv.currentPortfolioValueUsd} /></td>
                   <td className="py-3.5 px-4 text-center">
                     <div className="flex items-center justify-center gap-2">
@@ -276,7 +288,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
               ))}
               {!isLoadingList && filteredInvestors.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-500 font-mono">No investors found.</td>
+                  <td colSpan={5} className="py-8 text-center text-gray-500 font-mono">No investors found.</td>
                 </tr>
               )}
             </tbody>
@@ -319,7 +331,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                     <p>Investor ID: {detailProfile?.investorId} · Legacy Contract ID: {detailProfile?.legacyInvestorId}</p>
                     <p>USD earnings wallet: <Money usd={detailProfile?.usdWalletBalance || 0} /></p>
                     <p>KYC Approval Date: {detailProfile?.joiningDate || 'Not recorded'} · Joining Date: {detailProfile?.joiningDate || 'Awaiting confirmed KYC approval'}</p>
-                    {!detailProfile?.kycApprovedAt && <label className="block text-gray-400">Confirm historical KYC approval date (verified investors only)<input type="datetime-local" value={formState.kycApprovedAt ? new Date(new Date(formState.kycApprovedAt).getTime() - new Date(formState.kycApprovedAt).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''} onChange={e => handleField('kycApprovedAt', e.target.value ? new Date(e.target.value).toISOString() : '')} className="block p-2 bg-gray-950 border border-gray-800 text-white" /><span className="text-amber-400">Use the actual approval record. This date becomes permanent and starts interest eligibility.</span></label>}
+                    {!detailProfile?.kycApprovedAt && <label className="block text-gray-400">Confirm historical KYC approval date (verified investors only)<input ref={historicalApprovalInput} type="datetime-local" value={formState.kycApprovedAt ? new Date(new Date(formState.kycApprovedAt).getTime() - new Date(formState.kycApprovedAt).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''} onChange={e => handleField('kycApprovedAt', e.target.value ? new Date(e.target.value).toISOString() : '')} className="block p-2 bg-gray-950 border border-gray-800 text-white" /><span className="text-amber-400">Use the actual approval record. This date becomes permanent and starts interest eligibility.</span></label>}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <label className="block">
                         <span className="text-gray-400 text-[10px] uppercase block mb-1">Email</span>
@@ -388,12 +400,6 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                           className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
                       </label>
                       <label className="block">
-                        <span className="text-gray-400 text-[10px] uppercase block mb-1">Mining Share %</span>
-                        <input type="text" inputMode="decimal" value={formState.miningSharePercent ?? ''}
-                          onChange={(e) => handleField('miningSharePercent', e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
-                      </label>
-                      <label className="block">
                         <span className="text-gray-400 text-[10px] uppercase block mb-1">Total Investment (USD)</span>
                         <input type="text" inputMode="decimal" value={formState.totalInvestmentUsd ?? ''}
                           onChange={(e) => handleField('totalInvestmentUsd', e.target.value)}
@@ -403,18 +409,6 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                         <span className="text-gray-400 text-[10px] uppercase block mb-1">Portfolio Value (USD)</span>
                         <input type="text" inputMode="decimal" value={formState.currentPortfolioValueUsd ?? ''}
                           onChange={(e) => handleField('currentPortfolioValueUsd', e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
-                      </label>
-                      <label className="block">
-                        <span className="text-gray-400 text-[10px] uppercase block mb-1">Total BTC Allocated</span>
-                        <input type="text" inputMode="decimal" value={formState.totalBtcAllocated ?? ''}
-                          onChange={(e) => handleField('totalBtcAllocated', e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
-                      </label>
-                      <label className="block">
-                        <span className="text-gray-400 text-[10px] uppercase block mb-1">BTC Mined</span>
-                        <input type="text" inputMode="decimal" value={formState.btcMined ?? ''}
-                          onChange={(e) => handleField('btcMined', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
                       </label>
                     </div>
@@ -441,8 +435,8 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                           <span className="text-gray-300">
                             {t.type}{t.network ? <span className="text-gray-500"> · {t.network}</span> : ''}
                           </span>
-                          <span className={t.amountBtc >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
-                            {t.amountBtc >= 0 ? '+' : ''}{t.amountBtc} BTC
+                          <span className={(t.amountBtc === 0 ? t.amountUsd : t.amountBtc) >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
+                            {t.network === 'USD' || t.amountBtc === 0 ? <>{t.amountUsd >= 0 ? '+' : ''}<Money usd={t.amountUsd} /></> : <>{t.amountBtc >= 0 ? '+' : ''}{t.amountBtc} BTC (<Money usd={t.amountUsd} />)</>}
                           </span>
                         </div>
                       ))}
@@ -473,6 +467,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                     <select value={newTxNetwork} onChange={(e) => setNewTxNetwork(e.target.value)}
                       className="w-full px-3 py-2 rounded-lg bg-gray-950 border border-gray-800 text-white text-[11px]">
                       <option value="BTC">Bitcoin (BTC)</option>
+                      <option value="USD">USD earnings wallet (no BTC conversion)</option>
                       <option value="TRC20">USDT Network: TRC20 (Tron)</option>
                       <option value="ERC20">USDT Network: ERC20 (Ethereum)</option>
                       <option value="BEP20">USDT Network: BEP20 (BNB Smart Chain)</option>

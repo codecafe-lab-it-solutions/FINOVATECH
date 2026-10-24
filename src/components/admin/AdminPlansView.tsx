@@ -1,4 +1,5 @@
 import { Money } from '../../lib/currency';
+import {parseAdminAmount} from '../../lib/adminAmount';
 import React, { useEffect, useState, useCallback } from 'react';
 import { Layers, Plus, Save, RotateCw, AlertTriangle, X } from 'lucide-react';
 import { ApiPlan, fetchAdminPlans, createAdminPlan, updateAdminPlan, deleteAdminPlan } from '../../lib/api';
@@ -22,13 +23,17 @@ const emptyForm = {
   payoutFrequency: 'Monthly' as ApiPlan['payoutFrequency'],
   status: 'Draft' as ApiPlan['status']
 };
+const numericPlanFields = ['directReferralPercent','dailyReturnPercent','payoutRequestDays','minimumThresholdPercent','withdrawalEntryFeePercent','minInvestmentUsd','maxInvestmentUsd','durationMonths','managementFeePercent'] as const;
+type NumericPlanKey = typeof numericPlanFields[number];
+type PlanForm = Omit<typeof emptyForm, NumericPlanKey> & Record<NumericPlanKey, number | string>;
 
 export const AdminPlansView: React.FC<AdminPlansViewProps> = ({ authToken }) => {
   const [plans, setPlans] = useState<ApiPlan[]>([]);
+  const [defaultFee,setDefaultFee] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState<PlanForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -37,6 +42,8 @@ export const AdminPlansView: React.FC<AdminPlansViewProps> = ({ authToken }) => 
     try {
       const { plans: list } = await fetchAdminPlans(authToken);
       setPlans(list);
+      const settingsResponse = await fetch('/api/admin/platform-settings',{headers:{Authorization:'Bearer '+authToken}});
+      if(settingsResponse.ok)setDefaultFee((await settingsResponse.json()).settings.defaultManagementFeePercent);
       setError('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load plans.');
@@ -54,14 +61,17 @@ export const AdminPlansView: React.FC<AdminPlansViewProps> = ({ authToken }) => 
       setError('Plan name is required.');
       return;
     }
-    if ([form.minInvestmentUsd, form.maxInvestmentUsd, form.dailyReturnPercent, form.minimumThresholdPercent, form.withdrawalEntryFeePercent, form.managementFeePercent].some(v => !Number.isFinite(v) || v < 0) || [form.dailyReturnPercent, form.minimumThresholdPercent, form.withdrawalEntryFeePercent, form.managementFeePercent].some(v => v > 100) || !Number.isInteger(form.payoutRequestDays) || form.payoutRequestDays < 1 || !Number.isInteger(form.durationMonths) || form.durationMonths < 1 || form.maxInvestmentUsd < form.minInvestmentUsd) {
+    const values = {...form} as typeof emptyForm;
+    try { for (const key of numericPlanFields) values[key] = parseAdminAmount(form[key],key); }
+    catch (err) { setError(err instanceof Error ? err.message : 'Enter valid plan amounts.'); return; }
+    if ([values.dailyReturnPercent, values.minimumThresholdPercent, values.withdrawalEntryFeePercent, values.managementFeePercent].some(v => v > 100) || !Number.isInteger(values.payoutRequestDays) || values.payoutRequestDays < 1 || !Number.isInteger(values.durationMonths) || values.durationMonths < 1 || values.maxInvestmentUsd < values.minInvestmentUsd) {
       setError('Enter valid non-negative amounts, percentages from 0 to 100, whole days/months, and a maximum investment at least equal to the minimum.');
       return;
     }
     setIsSaving(true);
     try {
-      if (editingId) await updateAdminPlan(authToken, editingId, form);
-      else await createAdminPlan(authToken, form);
+      if (editingId) await updateAdminPlan(authToken, editingId, values);
+      else await createAdminPlan(authToken, values);
       setEditingId(null);
       setForm(emptyForm);
       setShowCreate(false);
@@ -102,7 +112,7 @@ export const AdminPlansView: React.FC<AdminPlansViewProps> = ({ authToken }) => 
           </p>
         </div>
         <button
-          onClick={() => { setError(''); setEditingId(null); setForm(emptyForm); setShowCreate(true); }}
+          onClick={() => { setError(''); setEditingId(null); setForm({...emptyForm,managementFeePercent:defaultFee}); setShowCreate(true); }}
           className="px-5 py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono flex items-center gap-2 cursor-pointer"
         >
           <Plus className="w-4 h-4" /> New Plan
@@ -139,7 +149,7 @@ export const AdminPlansView: React.FC<AdminPlansViewProps> = ({ authToken }) => 
             <div className="text-gray-300 space-y-1">
               <div>Per Day Return: {plan.dailyReturnPercent}%</div>
               <div>Allow Payout Request: {plan.payoutRequestDays} days (minimum 7)</div>
-              <div>Minimum Threshold: {plan.minimumThresholdPercent}%</div>
+              <div>Minimum Threshold: {plan.dailyReturnPercent * 30}% of principal (30-day payout obligation)</div>
               <div>Withdrawal / Entry Fee: {plan.withdrawalEntryFeePercent}% (stored only)</div>
             </div>
             <div className="flex gap-3">
@@ -183,26 +193,26 @@ export const AdminPlansView: React.FC<AdminPlansViewProps> = ({ authToken }) => 
             {error && <p role="alert" className="text-rose-400">{error}</p>}
             <p className="text-gray-400">Changes apply to future assignments. Existing investment terms are preserved.</p>
             <div className="grid grid-cols-2 gap-3">
-              {([['dailyReturnPercent', 'Per Day Return Percentage'], ['payoutRequestDays', 'Allow Payout Request (days)'], ['minimumThresholdPercent', 'Minimum Threshold (%)'], ['withdrawalEntryFeePercent', 'Withdrawal / Entry Fee (%)']] as const).map(([key, label]) => <label key={key} className="block text-gray-400">{label}<input type="number" min={key === 'payoutRequestDays' ? 1 : 0} max={key === 'payoutRequestDays' ? 3650 : 100} step={key === 'payoutRequestDays' ? 1 : '0.00001'} value={form[key]} onChange={e => setForm({ ...form, [key]: Number(e.target.value) })} className="w-full mt-1 px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" /></label>)}
+              {([['dailyReturnPercent', 'Per Day Return Percentage'], ['payoutRequestDays', 'Allow Payout Request (days)'], ['withdrawalEntryFeePercent', 'Withdrawal / Entry Fee (%)']] as const).map(([key, label]) => <label key={key} className="block text-gray-400">{label}<input type="number" min={key === 'payoutRequestDays' ? 1 : 0} max={key === 'payoutRequestDays' ? 3650 : 100} step={key === 'payoutRequestDays' ? 1 : '0.00001'} value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} className="w-full mt-1 px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" /></label>)}
 
               <label className="block">
                 <span className="text-gray-400 text-[10px] uppercase block mb-1">Min Investment (USD)</span>
-                <input type="number" value={form.minInvestmentUsd} onChange={(e) => setForm({ ...form, minInvestmentUsd: Number(e.target.value) })}
+                <input type="number" value={form.minInvestmentUsd} onChange={(e) => setForm({ ...form, minInvestmentUsd: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
               </label>
               <label className="block">
                 <span className="text-gray-400 text-[10px] uppercase block mb-1">Max Investment (USD)</span>
-                <input type="number" value={form.maxInvestmentUsd} onChange={(e) => setForm({ ...form, maxInvestmentUsd: Number(e.target.value) })}
+                <input type="number" value={form.maxInvestmentUsd} onChange={(e) => setForm({ ...form, maxInvestmentUsd: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
               </label>
               <label className="block">
                 <span className="text-gray-400 text-[10px] uppercase block mb-1">Duration (months)</span>
-                <input type="number" value={form.durationMonths} onChange={(e) => setForm({ ...form, durationMonths: Number(e.target.value) })}
+                <input type="number" value={form.durationMonths} onChange={(e) => setForm({ ...form, durationMonths: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
               </label>
               <label className="block">
                 <span className="text-gray-400 text-[10px] uppercase block mb-1">Management Fee (%)</span>
-                <input type="number" step="0.1" value={form.managementFeePercent} onChange={(e) => setForm({ ...form, managementFeePercent: Number(e.target.value) })}
+                <input type="number" step="0.1" value={form.managementFeePercent} onChange={(e) => setForm({ ...form, managementFeePercent: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
               </label>
             </div>
@@ -229,7 +239,7 @@ function ReferralRate({ plan, save }: { key?: string; plan: ApiPlan; save: (rate
   const [message, setMessage] = useState('');
   useEffect(() => setRate(plan.directReferralPercent ?? 5), [plan.directReferralPercent]);
   return <form className="flex flex-wrap items-center gap-3 text-xs text-white" onSubmit={async e => { e.preventDefault(); if (!Number.isFinite(rate) || rate < 0 || rate > 100) { setMessage('Enter a rate from 0 to 100.'); return; } setBusy(true); setMessage(''); try { await save(rate); setMessage('Saved'); } catch (err) { setMessage(err instanceof Error ? err.message : 'Save failed'); } finally { setBusy(false); } }}>
-    <label className="flex items-center gap-3">{plan.name} ? Direct Referral (%) <input aria-label={plan.name + ' direct referral percentage'} type="number" min="0" max="100" step="0.0001" required value={rate} onChange={e => setRate(e.target.value === '' ? NaN : Number(e.target.value))} className="w-24 p-2 rounded bg-gray-950 border border-gray-700" /></label>
+    <label className="flex items-center gap-3">{plan.name} / Direct Referral (%) <input aria-label={plan.name + ' direct referral percentage'} type="number" min="0" max="100" step="0.0001" required value={rate} onChange={e => setRate(e.target.value === '' ? NaN : Number(e.target.value))} className="w-24 p-2 rounded bg-gray-950 border border-gray-700" /></label>
     <button disabled={busy} className="px-4 py-2 rounded bg-amber-500 text-black disabled:opacity-50">{busy ? 'Saving...' : 'Save'}</button><span role="status">{message}</span>
   </form>;
 }

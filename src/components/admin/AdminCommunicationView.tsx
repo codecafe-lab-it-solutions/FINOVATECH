@@ -1,3 +1,4 @@
+import { AdminSupportInbox } from './AdminSupportInbox';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Send,
@@ -89,6 +90,7 @@ export const AdminCommunicationView: React.FC<AdminCommunicationViewProps> = ({ 
 
   return (
     <div className="space-y-6 pb-12">
+      <AdminSupportInbox authToken={authToken} />
 
       {/* Header */}
       <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800">

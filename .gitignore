@@ -10,3 +10,13 @@ data/
 !src/data/
 server.js
 server/uploads/
+
+# Local acceptance evidence can contain test credentials and personal email addresses.
+docs/strict-qa-20261023/
+docs/oct23-review-investors.json
+docs/oct23-completion-report.md
+docs/qa-oct23-*
+docs/qa-support-upload.png
+tests/correctManualTestRates.ts
+tests/createOct23Review.ts
+tests/strictQaSnapshot.ts
