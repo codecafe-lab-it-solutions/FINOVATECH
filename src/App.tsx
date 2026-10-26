@@ -156,7 +156,7 @@ export default function App() {
   // While validating a stored session token, avoid flashing the login screen.
   if (!authReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#070B14] text-gray-400 font-mono text-xs">
+      <div className="min-h-screen flex items-center justify-center bg-ink-950 text-fg-muted font-mono text-xs">
         Verifying session...
       </div>
     );
@@ -191,7 +191,7 @@ export default function App() {
   // If in Login Screen, render Login view with both Investor and Admin capabilities
   if (currentRoute === 'login') {
     return (
-      <div className="min-h-screen flex flex-col bg-[#070B14] text-gray-100">
+      <div className="min-h-screen flex flex-col bg-ink-950 text-white">
         <LoginScreen
           onAuthSuccess={handleAuthSuccess}
           onNavigateHome={() => handleNavigate('home')}
@@ -201,7 +201,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8F9FA] text-[#111827] selection:bg-[#F7931A]/20 selection:text-[#111827]">
+    <div className="min-h-screen flex flex-col bg-ink-950 text-white selection:bg-gold-500/30 selection:text-white">
       {/* Sticky Global Navigation */}
       <Navbar currentRoute={currentRoute} onNavigate={handleNavigate} />
 

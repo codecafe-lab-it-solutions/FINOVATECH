@@ -35,21 +35,21 @@ export const AdminProductionLedgerView: React.FC<AdminProductionLedgerViewProps>
     <div className="space-y-6 pb-12">
       
       {/* Top Header */}
-      <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-ink-950 border border-line flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-mono text-blue-400 mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-500/10 border border-gold-500/20 text-[11px] font-mono text-gold-400 mb-2">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>IMMUTABLE SOURCE OF TRUTH • TRIPLE-ENTRY RECONCILIATION</span>
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Daily Mining Production Ledger</h2>
-          <p className="text-xs text-gray-400 mt-1 max-w-2xl">
+          <p className="text-xs text-fg-muted mt-1 max-w-2xl">
             Mathematical waterfall tracing gross SHA-256 pool rewards, power OPEX deductions, investor allocations, and company treasury retention.
           </p>
         </div>
 
         <button
           onClick={handleExportCsv}
-          className="px-4 py-2.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-mono font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-gray-700"
+          className="px-4 py-2.5 rounded-xl bg-ink-800 hover:bg-ink-700 text-fg-body text-xs font-mono font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-line-warm"
         >
           <Download className="w-3.5 h-3.5" />
           <span>{downloadSuccess ? 'Ledger CSV Downloaded' : 'Export Full Ledger (.CSV)'}</span>
@@ -57,39 +57,39 @@ export const AdminProductionLedgerView: React.FC<AdminProductionLedgerViewProps>
       </div>
 
       {/* Waterfall Flow Visualizer Guide */}
-      <div className="p-5 rounded-3xl bg-linear-to-r from-gray-950 via-[#0F172A] to-gray-950 border border-gray-800">
-        <div className="text-[11px] font-mono text-gray-400 uppercase font-bold mb-3">
+      <div className="p-5 rounded-3xl bg-linear-to-r from-ink-950 via-ink-950 to-ink-950 border border-line">
+        <div className="text-[11px] font-mono text-fg-muted uppercase font-bold mb-3">
           Daily Production Reconciliation Waterfall
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center font-mono text-xs">
-          <div className="p-3 rounded-2xl bg-gray-900/90 border border-gray-800">
-            <div className="text-[10px] text-gray-400">1. Pool Received</div>
-            <div className="text-sm font-extrabold text-[#F7931A] mt-1">{totalReceived.toFixed(4)} BTC</div>
-            <div className="text-[9px] text-gray-500">Gross Block Rewards</div>
+          <div className="p-3 rounded-2xl bg-ink-850/90 border border-line">
+            <div className="text-[10px] text-fg-muted">1. Pool Received</div>
+            <div className="text-sm font-extrabold text-gold-500 mt-1">{totalReceived.toFixed(4)} BTC</div>
+            <div className="text-[9px] text-fg-muted">Gross Block Rewards</div>
           </div>
 
-          <div className="p-3 rounded-2xl bg-gray-900/90 border border-gray-800">
-            <div className="text-[10px] text-gray-400">2. Mining Fees</div>
+          <div className="p-3 rounded-2xl bg-ink-850/90 border border-line">
+            <div className="text-[10px] text-fg-muted">2. Mining Fees</div>
             <div className="text-sm font-extrabold text-rose-400 mt-1">-1.5% FPPS</div>
-            <div className="text-[9px] text-gray-500">Pool Retained</div>
+            <div className="text-[9px] text-fg-muted">Pool Retained</div>
           </div>
 
-          <div className="p-3 rounded-2xl bg-gray-900/90 border border-gray-800">
-            <div className="text-[10px] text-gray-400">3. Grid OPEX</div>
+          <div className="p-3 rounded-2xl bg-ink-850/90 border border-line">
+            <div className="text-[10px] text-fg-muted">3. Grid OPEX</div>
             <div className="text-sm font-extrabold text-rose-400 mt-1">-{totalOpexBtc.toFixed(4)} BTC</div>
-            <div className="text-[9px] text-gray-500"><Money usd={0.042} maximumFractionDigits={4} />/kWh Tariff</div>
+            <div className="text-[9px] text-fg-muted"><Money usd={0.042} maximumFractionDigits={4} />/kWh Tariff</div>
           </div>
 
-          <div className="p-3 rounded-2xl bg-gray-900/90 border border-gray-800">
-            <div className="text-[10px] text-gray-400">4. Investor Alloc</div>
+          <div className="p-3 rounded-2xl bg-ink-850/90 border border-line">
+            <div className="text-[10px] text-fg-muted">4. Investor Alloc</div>
             <div className="text-sm font-extrabold text-emerald-400 mt-1">{totalInvestorAllocated.toFixed(4)} BTC</div>
-            <div className="text-[9px] text-gray-500">231 Active Accounts</div>
+            <div className="text-[9px] text-fg-muted">231 Active Accounts</div>
           </div>
 
-          <div className="p-3 rounded-2xl bg-gray-900/90 border border-gray-800">
-            <div className="text-[10px] text-gray-400">5. Company Share</div>
-            <div className="text-sm font-extrabold text-purple-400 mt-1">{totalCompanyShare.toFixed(4)} BTC</div>
-            <div className="text-[9px] text-gray-500">Corporate Retained</div>
+          <div className="p-3 rounded-2xl bg-ink-850/90 border border-line">
+            <div className="text-[10px] text-fg-muted">5. Company Share</div>
+            <div className="text-sm font-extrabold text-gold-600 mt-1">{totalCompanyShare.toFixed(4)} BTC</div>
+            <div className="text-[9px] text-fg-muted">Corporate Retained</div>
           </div>
 
           <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30">
@@ -101,11 +101,11 @@ export const AdminProductionLedgerView: React.FC<AdminProductionLedgerViewProps>
       </div>
 
       {/* Production Ledger Table */}
-      <div className="rounded-3xl bg-[#0F172A] border border-gray-800 overflow-hidden shadow-xl">
+      <div className="rounded-3xl bg-ink-950 border border-line overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-gray-900/90 text-gray-400 font-mono text-[11px] uppercase tracking-wider border-b border-gray-800">
+              <tr className="bg-ink-850/90 text-fg-muted font-mono text-[11px] uppercase tracking-wider border-b border-line">
                 <th className="py-3.5 px-4">Date</th>
                 <th className="py-3.5 px-3 text-right">Pool BTC Received</th>
                 <th className="py-3.5 px-3 text-right">Mining Fees</th>
@@ -117,15 +117,15 @@ export const AdminProductionLedgerView: React.FC<AdminProductionLedgerViewProps>
                 <th className="py-3.5 px-4">Audited By</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/80 font-mono text-gray-300">
+            <tbody className="divide-y divide-line/80 font-mono text-fg-body">
               {ledgerRows.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-800/40 transition-colors">
+                <tr key={row.id} className="hover:bg-ink-800/40 transition-colors">
                   <td className="py-3.5 px-4 font-bold text-white flex items-center gap-2">
-                    <Calendar className="w-3.5 h-3.5 text-[#F7931A]" />
+                    <Calendar className="w-3.5 h-3.5 text-gold-500" />
                     <span>{row.date}</span>
                   </td>
 
-                  <td className="py-3.5 px-3 text-right font-extrabold text-[#F7931A]">
+                  <td className="py-3.5 px-3 text-right font-extrabold text-gold-500">
                     {row.poolBtcReceived.toFixed(4)} BTC
                   </td>
 
@@ -135,14 +135,14 @@ export const AdminProductionLedgerView: React.FC<AdminProductionLedgerViewProps>
 
                   <td className="py-3.5 px-3 text-right text-rose-400">
                     <div>-{row.operationalCostBtc.toFixed(4)} BTC</div>
-                    <div className="text-[10px] text-gray-500"><Money usd={row.operationalCostUsd} /></div>
+                    <div className="text-[10px] text-fg-muted"><Money usd={row.operationalCostUsd} /></div>
                   </td>
 
                   <td className="py-3.5 px-3 text-right font-bold text-emerald-400">
                     {row.investorAllocationBtc.toFixed(4)} BTC
                   </td>
 
-                  <td className="py-3.5 px-3 text-right font-bold text-purple-400">
+                  <td className="py-3.5 px-3 text-right font-bold text-gold-600">
                     {row.companyShareBtc.toFixed(4)} BTC
                   </td>
 
@@ -156,7 +156,7 @@ export const AdminProductionLedgerView: React.FC<AdminProductionLedgerViewProps>
                     </span>
                   </td>
 
-                  <td className="py-3.5 px-4 text-gray-400">
+                  <td className="py-3.5 px-4 text-fg-muted">
                     {row.auditedBy}
                   </td>
                 </tr>

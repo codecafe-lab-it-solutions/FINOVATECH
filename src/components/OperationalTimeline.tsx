@@ -9,21 +9,21 @@ interface OperationalTimelineProps {
 
 export const OperationalTimeline: React.FC<OperationalTimelineProps> = ({ onNavigate }) => {
   return (
-    <section id="timeline-section" className="py-20 lg:py-28 bg-white border-b border-gray-200">
+    <section id="timeline-section" className="py-20 lg:py-28 bg-ink-950 border-b border-line">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
         <div className="max-w-3xl mb-12 lg:mb-16 space-y-4">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#F7931A]"></span>
-            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-gray-500">
+            <span className="w-2 h-2 rounded-full bg-gold-500"></span>
+            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-fg-muted">
               Corporate Horizon
             </span>
           </div>
-          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-[#111827] tracking-tight leading-tight">
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
             Operational Timeline & Lifecycle
           </h2>
-          <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
+          <p className="text-base sm:text-lg text-fg-muted leading-relaxed">
             FINOVATECK executes with transparent roadmaps and defined operational horizons, adhering to scheduled lease commitments and high-standard infrastructure lifecycle management.
           </p>
         </div>
@@ -41,10 +41,10 @@ export const OperationalTimeline: React.FC<OperationalTimelineProps> = ({ onNavi
                 id={`timeline-item-${idx}`}
                 className={`relative rounded-2xl p-6 sm:p-7 border flex flex-col justify-between transition-all duration-300 ${
                   isCurrent
-                    ? 'bg-[#111827] text-white border-gray-900 shadow-lg ring-2 ring-[#F7931A]/30'
+                    ? 'bg-ink-800 text-white border-gold-600/50 shadow-lg ring-2 ring-gold-500/30'
                     : isPlanned
-                    ? 'bg-[#F8F9FA] text-gray-900 border-gray-200 hover:border-gray-300'
-                    : 'bg-white text-gray-900 border-gray-200/90 hover:border-gray-300'
+                    ? 'bg-ink-950 text-white border-line hover:border-gold-700/50'
+                    : 'bg-ink-850 text-white border-line/90 hover:border-gold-700/50'
                 }`}
               >
                 <div>
@@ -52,10 +52,10 @@ export const OperationalTimeline: React.FC<OperationalTimelineProps> = ({ onNavi
                   <div className="flex items-center justify-between mb-4">
                     <span className={`text-xs font-mono font-bold px-2.5 py-1 rounded-md ${
                       isCurrent
-                        ? 'bg-[#F7931A] text-gray-950 font-extrabold'
+                        ? 'bg-gold-500 text-black font-extrabold'
                         : isPlanned
-                        ? 'bg-gray-200 text-gray-800'
-                        : 'bg-gray-100 text-gray-700'
+                        ? 'bg-ink-700 text-fg-body'
+                        : 'bg-ink-800 text-fg-body'
                     }`}>
                       {item.date}
                     </span>
@@ -64,8 +64,8 @@ export const OperationalTimeline: React.FC<OperationalTimelineProps> = ({ onNavi
                       isCurrent
                         ? 'text-emerald-400 font-bold flex items-center gap-1'
                         : isPlanned
-                        ? 'text-gray-500 font-semibold'
-                        : 'text-emerald-600 font-semibold'
+                        ? 'text-fg-muted font-semibold'
+                        : 'text-emerald-400 font-semibold'
                     }`}>
                       {isCurrent && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>}
                       {item.status}
@@ -79,7 +79,7 @@ export const OperationalTimeline: React.FC<OperationalTimelineProps> = ({ onNavi
 
                   {/* Summary */}
                   <p className={`text-sm leading-relaxed mb-4 ${
-                    isCurrent ? 'text-gray-300' : 'text-gray-600'
+                    isCurrent ? 'text-fg-body' : 'text-fg-muted'
                   }`}>
                     {item.description}
                   </p>
@@ -88,8 +88,8 @@ export const OperationalTimeline: React.FC<OperationalTimelineProps> = ({ onNavi
                 {/* Granular Detail Box */}
                 <div className={`mt-4 pt-4 border-t text-xs leading-relaxed ${
                   isCurrent
-                    ? 'border-gray-800 text-gray-400'
-                    : 'border-gray-200 text-gray-500'
+                    ? 'border-line text-fg-muted'
+                    : 'border-line text-fg-muted'
                 }`}>
                   {item.details}
                 </div>
@@ -99,10 +99,10 @@ export const OperationalTimeline: React.FC<OperationalTimelineProps> = ({ onNavi
         </div>
 
         {/* Informational Callout regarding 4-Year Lease Term */}
-        <div className="mt-8 p-5 rounded-xl bg-gray-50 border border-gray-200 flex items-start gap-3.5">
-          <Clock className="w-5 h-5 text-[#F7931A] shrink-0 mt-0.5" />
-          <div className="text-xs sm:text-sm text-gray-700 leading-relaxed">
-            <span className="font-bold text-gray-900">Planned Operating Term Clarity:</span> Operations are planned under the current lease arrangement for four years from Muscat, after which operations are scheduled to close in full alignment with structured corporate planning.
+        <div className="mt-8 p-5 rounded-xl bg-ink-900 border border-line flex items-start gap-3.5">
+          <Clock className="w-5 h-5 text-gold-500 shrink-0 mt-0.5" />
+          <div className="text-xs sm:text-sm text-fg-body leading-relaxed">
+            <span className="font-bold text-white">Planned Operating Term Clarity:</span> Operations are planned under the current lease arrangement for four years from Muscat, after which operations are scheduled to close in full alignment with structured corporate planning.
           </div>
         </div>
 

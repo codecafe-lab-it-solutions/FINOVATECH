@@ -33,9 +33,9 @@ export const FacilityCanvasAnimation: React.FC<{ opacity?: number }> = ({ opacit
 
       // 1. Sky & Cloud Backdrop (Desert Horizon)
       const skyGrad = ctx.createLinearGradient(0, 0, 0, h * 0.65);
-      skyGrad.addColorStop(0, '#1E293B');
-      skyGrad.addColorStop(0.5, '#334155');
-      skyGrad.addColorStop(1, '#64748B');
+      skyGrad.addColorStop(0, '#17181C');
+      skyGrad.addColorStop(0.5, '#2A2A2E');
+      skyGrad.addColorStop(1, '#8A8A93');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, w, h * 0.65);
 
@@ -54,9 +54,9 @@ export const FacilityCanvasAnimation: React.FC<{ opacity?: number }> = ({ opacit
 
       // 2. Far Desert Horizon / Dunes
       const duneGrad = ctx.createLinearGradient(0, h * 0.5, 0, h);
-      duneGrad.addColorStop(0, '#B45309');
-      duneGrad.addColorStop(0.3, '#78350F');
-      duneGrad.addColorStop(1, '#1C1917');
+      duneGrad.addColorStop(0, '#F4E183');
+      duneGrad.addColorStop(0.3, '#745F36');
+      duneGrad.addColorStop(1, '#17181C');
       ctx.fillStyle = duneGrad;
 
       ctx.beginPath();
@@ -69,9 +69,9 @@ export const FacilityCanvasAnimation: React.FC<{ opacity?: number }> = ({ opacit
 
       // Gravel Facility Ground Pad
       const groundGrad = ctx.createLinearGradient(0, h * 0.6, 0, h);
-      groundGrad.addColorStop(0, '#475569');
-      groundGrad.addColorStop(0.3, '#334155');
-      groundGrad.addColorStop(1, '#0F172A');
+      groundGrad.addColorStop(0, '#8A8A93');
+      groundGrad.addColorStop(0.3, '#2A2A2E');
+      groundGrad.addColorStop(1, '#000000');
       ctx.fillStyle = groundGrad;
 
       ctx.beginPath();
@@ -94,7 +94,7 @@ export const FacilityCanvasAnimation: React.FC<{ opacity?: number }> = ({ opacit
         const towerHeight = 110 * scale;
 
         // Tower Mast
-        ctx.fillStyle = '#E2E8F0';
+        ctx.fillStyle = '#B4B4BA';
         ctx.beginPath();
         ctx.moveTo(x - 3 * scale, y);
         ctx.lineTo(x + 3 * scale, y);
@@ -107,14 +107,14 @@ export const FacilityCanvasAnimation: React.FC<{ opacity?: number }> = ({ opacit
         const hubY = y - towerHeight;
         ctx.beginPath();
         ctx.arc(x, hubY, 4 * scale, 0, Math.PI * 2);
-        ctx.fillStyle = '#CBD5E1';
+        ctx.fillStyle = '#B4B4BA';
         ctx.fill();
 
         // Rotating Blades (3 blades at 120 deg)
         const bladeAngle = (time * speed * 1.5) + idx * 2.1;
         const bladeLength = 65 * scale;
 
-        ctx.strokeStyle = '#F8FAFC';
+        ctx.strokeStyle = '#FFFFFF';
         ctx.lineWidth = 2.5 * scale;
         ctx.lineCap = 'round';
 
@@ -133,15 +133,15 @@ export const FacilityCanvasAnimation: React.FC<{ opacity?: number }> = ({ opacit
       // 4. Substation / Transformers on Left
       const subX = w * 0.04;
       const subY = h * 0.65;
-      ctx.fillStyle = '#1E293B';
+      ctx.fillStyle = '#17181C';
       ctx.fillRect(subX, subY, 70, 45);
-      ctx.strokeStyle = '#64748B';
+      ctx.strokeStyle = '#8A8A93';
       ctx.lineWidth = 1.5;
       ctx.strokeRect(subX, subY, 70, 45);
 
       // Transformer coils & blinking indicators
       for (let c = 0; c < 3; c++) {
-        ctx.fillStyle = '#334155';
+        ctx.fillStyle = '#2A2A2E';
         ctx.fillRect(subX + 10 + c * 20, subY - 14, 12, 14);
         // Green power pulse
         ctx.fillStyle = Math.sin(time * 4 + c) > 0 ? '#10B981' : '#059669';
@@ -165,14 +165,14 @@ export const FacilityCanvasAnimation: React.FC<{ opacity?: number }> = ({ opacit
           const podH = 26;
 
           // Cabin Body (White containerized enclosure)
-          ctx.fillStyle = '#F1F5F9';
+          ctx.fillStyle = '#B4B4BA';
           ctx.fillRect(podX, podY, podW, podH);
-          ctx.strokeStyle = '#94A3B8';
+          ctx.strokeStyle = '#8A8A93';
           ctx.lineWidth = 1;
           ctx.strokeRect(podX, podY, podW, podH);
 
           // Roof Sunshade / Awnings (Matching drone footage)
-          ctx.fillStyle = '#CBD5E1';
+          ctx.fillStyle = '#B4B4BA';
           ctx.beginPath();
           ctx.moveTo(podX - 4, podY);
           ctx.lineTo(podX + podW + 4, podY);
@@ -182,13 +182,13 @@ export const FacilityCanvasAnimation: React.FC<{ opacity?: number }> = ({ opacit
           ctx.fill();
 
           // Louver Vents / Exhaust Fans
-          ctx.fillStyle = '#334155';
+          ctx.fillStyle = '#2A2A2E';
           ctx.fillRect(podX + 6, podY + 6, 20, 14);
           ctx.fillRect(podX + 32, podY + 6, 20, 14);
 
           // Active ASIC Activity Glow (Orange/Green LEDs)
           const ledPulse = Math.sin(time * 3 + p + r) > 0.1;
-          ctx.fillStyle = ledPulse ? '#F7931A' : '#10B981';
+          ctx.fillStyle = ledPulse ? '#CCA84F' : '#10B981';
           ctx.beginPath();
           ctx.arc(podX + podW - 8, podY + 12, 1.8, 0, Math.PI * 2);
           ctx.fill();

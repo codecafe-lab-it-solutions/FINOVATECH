@@ -136,26 +136,26 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
     <div className="space-y-6 pb-12">
 
       {/* Header */}
-      <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-ink-950 border border-line flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[11px] font-mono text-amber-400 mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-500/10 border border-gold-500/20 text-[11px] font-mono text-gold-200 mb-2">
             <Settings className="w-3.5 h-3.5" />
             <span>GLOBAL OPERATIONAL CONSTANTS & SYSTEM PARAMETERS</span>
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">System Settings & Mining Parameters</h2>
-          <p className="text-xs text-gray-400 mt-1 max-w-2xl">
+          <p className="text-xs text-fg-muted mt-1 max-w-2xl">
             Manage withdrawal limits, saved operating parameters, and daily earnings job status.
           </p>
         </div>
       </div>
 
       {/* Admin Account Credentials — real, backend-verified */}
-      <form onSubmit={handleUpdateCredentials} className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-4">
-        <h3 className="text-xs font-mono font-bold uppercase text-gray-300 flex items-center gap-2">
-          <KeyRound className="w-4 h-4 text-[#F7931A]" />
+      <form onSubmit={handleUpdateCredentials} className="p-6 rounded-3xl bg-ink-950 border border-line space-y-4">
+        <h3 className="text-xs font-mono font-bold uppercase text-fg-body flex items-center gap-2">
+          <KeyRound className="w-4 h-4 text-gold-500" />
           <span>Admin Account Credentials</span>
         </h3>
-        <p className="text-[11px] text-gray-500 -mt-2">
+        <p className="text-[11px] text-fg-muted -mt-2">
           Change the username and/or password used to sign in to this Admin Console. Your current password is required to confirm the change.
         </p>
 
@@ -174,42 +174,42 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
           <div>
-            <label className="block text-gray-400 text-[10px] uppercase mb-1">Username</label>
+            <label className="block text-fg-muted text-[10px] uppercase mb-1">Username</label>
             <input
               type="text"
               value={newUsername}
               onChange={(e) => setNewUsername(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-xl bg-gray-950 border border-gray-800 text-white focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A]"
+              className="w-full px-3 py-2.5 rounded-xl bg-ink-950 border border-line text-white focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
             />
           </div>
           <div>
-            <label className="block text-gray-400 text-[10px] uppercase mb-1">Current Password (required)</label>
+            <label className="block text-fg-muted text-[10px] uppercase mb-1">Current Password (required)</label>
             <input
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               placeholder="Confirm it's you"
-              className="w-full px-3 py-2.5 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-600 focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A]"
+              className="w-full px-3 py-2.5 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
             />
           </div>
           <div>
-            <label className="block text-gray-400 text-[10px] uppercase mb-1">New Password (optional)</label>
+            <label className="block text-fg-muted text-[10px] uppercase mb-1">New Password (optional)</label>
             <input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Leave blank to keep current"
-              className="w-full px-3 py-2.5 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-600 focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A]"
+              className="w-full px-3 py-2.5 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
             />
           </div>
           <div>
-            <label className="block text-gray-400 text-[10px] uppercase mb-1">Confirm New Password</label>
+            <label className="block text-fg-muted text-[10px] uppercase mb-1">Confirm New Password</label>
             <input
               type="password"
               value={confirmNewPassword}
               onChange={(e) => setConfirmNewPassword(e.target.value)}
               placeholder="Repeat new password"
-              className="w-full px-3 py-2.5 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-600 focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A]"
+              className="w-full px-3 py-2.5 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
             />
           </div>
         </div>
@@ -217,7 +217,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
         <button
           type="submit"
           disabled={isSavingCreds || !currentPassword}
-          className="px-6 py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono flex items-center gap-2 transition-colors cursor-pointer shadow-lg shadow-amber-500/20 disabled:opacity-50"
+          className="px-6 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-xs font-mono flex items-center gap-2 transition-colors cursor-pointer shadow-lg shadow-gold-500/20 disabled:opacity-50"
         >
           {isSavingCreds ? (
             <>
@@ -234,12 +234,12 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
       </form>
 
       {/* Withdrawal Controls — real, backend-enforced global policy */}
-      <form onSubmit={handleSaveWithdrawalSettings} className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-4">
-        <h3 className="text-xs font-mono font-bold uppercase text-gray-300 flex items-center gap-2">
+      <form onSubmit={handleSaveWithdrawalSettings} className="p-6 rounded-3xl bg-ink-950 border border-line space-y-4">
+        <h3 className="text-xs font-mono font-bold uppercase text-fg-body flex items-center gap-2">
           <Ban className="w-4 h-4 text-rose-400" />
           <span>Withdrawal Controls</span>
         </h3>
-        <p className="text-[11px] text-gray-500 -mt-2">
+        <p className="text-[11px] text-fg-muted -mt-2">
           Applies globally to every investor. Changes take effect immediately on the next withdrawal request. To lock a
           specific investor's withdrawals until a chosen date, open their account in Investor Directory instead.
         </p>
@@ -259,27 +259,27 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
           <div>
-            <label className="block text-gray-400 text-[10px] uppercase mb-1">Max Withdrawal Per Transaction (USD)</label>
+            <label className="block text-fg-muted text-[10px] uppercase mb-1">Max Withdrawal Per Transaction (USD)</label>
             <input
               type="number"
               min="1"
               step="1"
               value={maxWithdrawalUsd}
               onChange={(e) => setMaxWithdrawalUsd(Number(e.target.value))}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-gray-950 border border-gray-800 text-white focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A]"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-ink-950 border border-line text-white focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
             />
           </div>
 
-          <label className="flex items-center justify-between p-3.5 rounded-2xl bg-gray-950 border border-gray-800 cursor-pointer">
+          <label className="flex items-center justify-between p-3.5 rounded-2xl bg-ink-950 border border-line cursor-pointer">
             <div>
               <div className="text-white font-bold">Withdrawals Enabled</div>
-              <div className="text-[11px] text-gray-400">Turn off to block all investor withdrawal requests</div>
+              <div className="text-[11px] text-fg-muted">Turn off to block all investor withdrawal requests</div>
             </div>
             <input
               type="checkbox"
               checked={withdrawalsEnabled}
               onChange={(e) => setWithdrawalsEnabled(e.target.checked)}
-              className="w-4 h-4 rounded bg-gray-900 border-gray-700 text-[#F7931A]"
+              className="w-4 h-4 rounded bg-ink-850 border-line-warm text-gold-500"
             />
           </label>
         </div>
@@ -287,7 +287,7 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
         <button
           type="submit"
           disabled={isSavingWithdrawal || !withdrawalSettingsLoaded}
-          className="px-6 py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono flex items-center gap-2 transition-colors cursor-pointer shadow-lg shadow-amber-500/20 disabled:opacity-50"
+          className="px-6 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-xs font-mono flex items-center gap-2 transition-colors cursor-pointer shadow-lg shadow-gold-500/20 disabled:opacity-50"
         >
           {isSavingWithdrawal ? (
             <>

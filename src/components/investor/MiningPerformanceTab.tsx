@@ -13,8 +13,8 @@ interface MiningPerformanceTabProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="p-3 rounded-xl bg-gray-950 border border-gray-800 text-xs font-mono text-white shadow-xl space-y-1">
-        <div className="text-gray-400 font-bold">{label}</div>
+      <div className="p-3 rounded-xl bg-ink-950 border border-line text-xs font-mono text-white shadow-xl space-y-1">
+        <div className="text-fg-muted font-bold">{label}</div>
         {payload.map((item: any, idx: number) => (
           <div key={idx} style={{ color: item.color }} className="flex justify-between gap-4">
             <span>{item.name}:</span>
@@ -43,43 +43,43 @@ export const MiningPerformanceTab: React.FC<MiningPerformanceTabProps> = ({ metr
 
   return (
     <div className="space-y-6 animate-in fade-in">
-      <div className="p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-ink-850 border border-line text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800 border border-gray-700 text-xs font-mono text-emerald-400">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ink-800 border border-line-warm text-xs font-mono text-emerald-400">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span>MINING PERFORMANCE</span>
           </div>
           <h2 className="text-2xl font-extrabold text-white mt-2">Mining Performance</h2>
-          <p className="text-xs text-gray-400 font-mono mt-0.5">Real BTC-mined history from your wallet ledger, plus your assigned machine fleet.</p>
+          <p className="text-xs text-fg-muted font-mono mt-0.5">Real BTC-mined history from your wallet ledger, plus your assigned machine fleet.</p>
         </div>
-        <div className="p-2.5 px-4 rounded-2xl bg-gray-950/80 border border-gray-800 text-right">
-          <div className="text-[10px] text-gray-400 font-mono">NETWORK DIFFICULTY</div>
-          <div className="text-sm font-bold text-amber-400 font-mono mt-0.5">{metrics.networkDifficulty}</div>
+        <div className="p-2.5 px-4 rounded-2xl bg-ink-950/80 border border-line text-right">
+          <div className="text-[10px] text-fg-muted font-mono">NETWORK DIFFICULTY</div>
+          <div className="text-sm font-bold text-gold-200 font-mono mt-0.5">{metrics.networkDifficulty}</div>
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5 text-xs font-mono">
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-[#F7931A]/30 text-white">
-          <div className="text-[10px] text-[#F7931A] uppercase">Your Hashrate</div>
-          <div className="text-lg font-bold text-[#F7931A] mt-1">{totalHashrate.toFixed(2)} TH/s</div>
+        <div className="p-4 rounded-2xl bg-ink-850/90 border border-gold-500/30 text-white">
+          <div className="text-[10px] text-gold-500 uppercase">Your Hashrate</div>
+          <div className="text-lg font-bold text-gold-500 mt-1">{totalHashrate.toFixed(2)} TH/s</div>
         </div>
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 text-white">
-          <div className="text-[10px] text-gray-400 uppercase">Machines Online</div>
+        <div className="p-4 rounded-2xl bg-ink-850/90 border border-line text-white">
+          <div className="text-[10px] text-fg-muted uppercase">Machines Online</div>
           <div className="text-lg font-bold text-emerald-400 mt-1">{onlineCount} / {machines.length}</div>
         </div>
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 text-white">
-          <div className="text-[10px] text-gray-400 uppercase">Avg Uptime</div>
+        <div className="p-4 rounded-2xl bg-ink-850/90 border border-line text-white">
+          <div className="text-[10px] text-fg-muted uppercase">Avg Uptime</div>
           <div className="text-lg font-bold text-emerald-400 mt-1">{avgUptime.toFixed(1)}%</div>
         </div>
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 text-white">
-          <div className="text-[10px] text-gray-400 uppercase">BTC Mined (Lifetime)</div>
-          <div className="text-lg font-bold text-amber-400 mt-1">{metrics.btcMined} BTC</div>
+        <div className="p-4 rounded-2xl bg-ink-850/90 border border-line text-white">
+          <div className="text-[10px] text-fg-muted uppercase">BTC Mined (Lifetime)</div>
+          <div className="text-lg font-bold text-gold-200 mt-1">{metrics.btcMined} BTC</div>
         </div>
       </div>
 
-      <div className="p-6 rounded-3xl bg-gray-900/90 border border-gray-800 text-white space-y-4">
-        <div className="flex items-center gap-2 border-b border-gray-800 pb-4">
-          <Activity className="w-4 h-4 text-[#F7931A]" />
+      <div className="p-6 rounded-3xl bg-ink-850/90 border border-line text-white space-y-4">
+        <div className="flex items-center gap-2 border-b border-line pb-4">
+          <Activity className="w-4 h-4 text-gold-500" />
           <span className="text-sm font-bold uppercase tracking-wider font-mono">BTC Mined Over Time</span>
         </div>
         <div className="h-64 sm:h-72 w-full pt-2">
@@ -88,19 +88,19 @@ export const MiningPerformanceTab: React.FC<MiningPerformanceTabProps> = ({ metr
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="earningsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#F7931A" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#F7931A" stopOpacity={0.0} />
+                    <stop offset="5%" stopColor="#CCA84F" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#CCA84F" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
-                <XAxis dataKey="date" stroke="#64748B" tick={{ fontSize: 11, fontFamily: 'monospace' }} />
-                <YAxis stroke="#64748B" tick={{ fontSize: 11, fontFamily: 'monospace' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#17181C" />
+                <XAxis dataKey="date" stroke="#8A8A93" tick={{ fontSize: 11, fontFamily: 'monospace' }} />
+                <YAxis stroke="#8A8A93" tick={{ fontSize: 11, fontFamily: 'monospace' }} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="btcMined" name="BTC Mined" stroke="#F7931A" strokeWidth={2.5} fillOpacity={1} fill="url(#earningsGradient)" />
+                <Area type="monotone" dataKey="btcMined" name="BTC Mined" stroke="#CCA84F" strokeWidth={2.5} fillOpacity={1} fill="url(#earningsGradient)" />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex items-center justify-center text-gray-500 text-xs font-mono">No mining credits recorded yet.</div>
+            <div className="h-full flex items-center justify-center text-fg-muted text-xs font-mono">No mining credits recorded yet.</div>
           )}
         </div>
       </div>

@@ -60,8 +60,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
         id="main-navbar"
         className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-200 ${
           scrolled || mobileMenuOpen
-            ? 'bg-white/95 backdrop-blur-md border-b border-gray-200/90 shadow-xs'
-            : 'bg-[#F8F9FA]/95 backdrop-blur-xs border-b border-gray-200/60'
+            ? 'bg-ink-900/95 backdrop-blur-md border-b border-line/90 shadow-xs'
+            : 'bg-ink-950/95 backdrop-blur-xs border-b border-line/60'
         }`}
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
@@ -92,8 +92,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                     onClick={() => handleNavClick(item.route)}
                     className={`px-2.5 xl:px-3.5 py-1.5 xl:py-2 text-[12.5px] xl:text-[13.5px] font-medium rounded-md whitespace-nowrap transition-all cursor-pointer ${
                       isActive
-                        ? 'text-[#111827] bg-gray-100 font-semibold shadow-2xs'
-                        : 'text-gray-600 hover:text-[#111827] hover:bg-gray-50'
+                        ? 'text-white bg-ink-800 font-semibold shadow-2xs'
+                        : 'text-fg-muted hover:text-white hover:bg-ink-800'
                     }`}
                   >
                     {item.label}
@@ -104,7 +104,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
 
             {/* Desktop Right Action */}
             <div className="hidden lg:flex items-center gap-2 xl:gap-2.5 shrink-0">
-              <div className="hidden 2xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100/80 border border-gray-200 text-[11px] text-gray-600 font-mono whitespace-nowrap">
+              <div className="hidden 2xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-ink-800/80 border border-line text-[11px] text-fg-muted font-mono whitespace-nowrap">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span>Muscat HQ Active</span>
               </div>
@@ -112,9 +112,9 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
               <button
                 id="navbar-investor-login-btn"
                 onClick={() => handleNavClick('login')}
-                className="inline-flex items-center justify-center gap-1.5 px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-lg bg-[#F7931A]/10 hover:bg-[#F7931A]/20 text-[#D97706] hover:text-[#B45309] border border-[#F7931A]/30 text-xs font-bold font-mono tracking-wide transition-all cursor-pointer whitespace-nowrap min-h-[38px]"
+                className="inline-flex items-center justify-center gap-1.5 px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-lg bg-gold-500/10 hover:bg-gold-500/20 text-gold-400 hover:text-gold-200 border border-gold-500/30 text-xs font-bold font-mono tracking-wide transition-all cursor-pointer whitespace-nowrap min-h-[38px]"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-[#F7931A] shrink-0" />
+                <ShieldCheck className="w-3.5 h-3.5 text-gold-500 shrink-0" />
                 <span>Login</span>
               </button>
             </div>
@@ -124,20 +124,20 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
               <button
                 id="mobile-quick-login"
                 onClick={() => handleNavClick('login')}
-                className="px-2.5 py-1.5 rounded-lg bg-[#F7931A] text-gray-950 text-[11px] sm:text-xs font-bold font-mono tracking-tight flex items-center gap-1 shadow-2xs min-h-[38px] cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg bg-gold-500 text-black text-[11px] sm:text-xs font-bold font-mono tracking-tight flex items-center gap-1 shadow-2xs min-h-[38px] cursor-pointer"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-gray-950" />
+                <ShieldCheck className="w-3.5 h-3.5 text-black" />
                 <span>Login</span>
               </button>
 
               <button
                 id="mobile-menu-toggle"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg text-gray-800 bg-gray-50 hover:bg-gray-100 border border-gray-200 flex items-center justify-center focus:outline-hidden cursor-pointer shrink-0 transition-colors"
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg text-fg-body bg-ink-900 hover:bg-ink-700 border border-line flex items-center justify-center focus:outline-hidden cursor-pointer shrink-0 transition-colors"
                 aria-label={mobileMenuOpen ? 'Close menu' : 'Open navigation menu'}
                 aria-expanded={mobileMenuOpen}
               >
-                {mobileMenuOpen ? <X className="w-5 h-5 text-gray-900" /> : <Menu className="w-5 h-5 text-gray-800" />}
+                {mobileMenuOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5 text-fg-body" />}
               </button>
             </div>
 
@@ -149,14 +149,14 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
       {mobileMenuOpen && (
         <div 
           id="mobile-navigation-overlay"
-          className="fixed inset-x-0 top-14 sm:top-16 bottom-0 z-40 lg:hidden flex flex-col bg-white border-t border-gray-200 overflow-y-auto animate-in fade-in duration-200"
+          className="fixed inset-x-0 top-14 sm:top-16 bottom-0 z-40 lg:hidden flex flex-col bg-ink-850 border-t border-line overflow-y-auto animate-in fade-in duration-200"
           style={{ height: 'calc(100dvh - 56px)' }}
         >
           {/* Menu Items */}
           <div className="flex-1 p-3.5 sm:p-5 space-y-1">
-            <div className="flex items-center justify-between px-2 py-1 mb-1 text-[11px] font-mono font-bold uppercase tracking-wider text-gray-400">
+            <div className="flex items-center justify-between px-2 py-1 mb-1 text-[11px] font-mono font-bold uppercase tracking-wider text-fg-muted">
               <span>Navigation Menu</span>
-              <span className="text-[#F7931A]">7 SECTIONS</span>
+              <span className="text-gold-500">7 SECTIONS</span>
             </div>
 
             {navLinks.map((item, index) => {
@@ -168,42 +168,42 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
                   onClick={() => handleNavClick(item.route)}
                   className={`w-full flex items-center justify-between p-3 sm:p-3.5 rounded-xl text-left transition-all cursor-pointer min-h-[52px] ${
                     isActive
-                      ? 'bg-[#111827] text-white shadow-sm ring-1 ring-[#F7931A]/40'
-                      : 'text-gray-800 hover:bg-gray-50 active:bg-gray-100 border border-transparent'
+                      ? 'bg-ink-800 text-white shadow-sm ring-1 ring-gold-500/40'
+                      : 'text-fg-body hover:bg-ink-800 active:bg-ink-800 border border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-6 h-6 rounded-lg flex items-center justify-center font-mono text-xs font-bold ${
-                      isActive ? 'bg-[#F7931A] text-gray-950' : 'bg-gray-100 text-gray-500'
+                      isActive ? 'bg-gold-500 text-black' : 'bg-ink-800 text-fg-muted'
                     }`}>
                       0{index + 1}
                     </div>
                     <div>
-                      <div className={`text-sm sm:text-base font-bold leading-tight ${isActive ? 'text-white' : 'text-gray-900'}`}>
+                      <div className={`text-sm sm:text-base font-bold leading-tight ${isActive ? 'text-white' : 'text-white'}`}>
                         {item.label}
                       </div>
-                      <div className={`text-[11px] leading-tight mt-0.5 ${isActive ? 'text-gray-300' : 'text-gray-500'}`}>
+                      <div className={`text-[11px] leading-tight mt-0.5 ${isActive ? 'text-fg-body' : 'text-fg-muted'}`}>
                         {item.description}
                       </div>
                     </div>
                   </div>
 
-                  <ChevronRight className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#F7931A]' : 'text-gray-400'}`} />
+                  <ChevronRight className={`w-4 h-4 shrink-0 ${isActive ? 'text-gold-500' : 'text-fg-muted'}`} />
                 </button>
               );
             })}
           </div>
 
           {/* Drawer Footer Information */}
-          <div className="p-3.5 sm:p-5 bg-[#F8FAFC] border-t border-gray-200 space-y-3 shrink-0">
+          <div className="p-3.5 sm:p-5 bg-white border-t border-line space-y-3 shrink-0">
             <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-              <div className="p-2.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
-                <div className="text-[10px] text-gray-500 uppercase">Headquarters</div>
-                <div className="text-gray-900 font-bold mt-0.5 truncate">Muscat, Oman</div>
+              <div className="p-2.5 rounded-xl bg-ink-850 border border-line shadow-2xs">
+                <div className="text-[10px] text-fg-muted uppercase">Headquarters</div>
+                <div className="text-white font-bold mt-0.5 truncate">Muscat, Oman</div>
               </div>
-              <div className="p-2.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
-                <div className="text-[10px] text-gray-500 uppercase">Facility Node</div>
-                <div className="text-emerald-600 font-bold mt-0.5 flex items-center gap-1">
+              <div className="p-2.5 rounded-xl bg-ink-850 border border-line shadow-2xs">
+                <div className="text-[10px] text-fg-muted uppercase">Facility Node</div>
+                <div className="text-emerald-400 font-bold mt-0.5 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                   MCT-01 Active
                 </div>
@@ -214,14 +214,14 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate }) => {
               <button
                 id="mobile-drawer-login-action"
                 onClick={() => handleNavClick('login')}
-                className="w-full py-3 px-3 rounded-xl bg-[#111827] text-white font-bold text-xs font-mono tracking-wide flex items-center justify-center gap-1.5 shadow-xs cursor-pointer min-h-[46px] border border-gray-800"
+                className="w-full py-3 px-3 rounded-xl bg-[linear-gradient(180deg,#F4E183_0%,#E2C873_42%,#CCA84F_100%)] hover:brightness-110 text-black font-bold text-xs font-mono tracking-wide flex items-center justify-center gap-1.5 cursor-pointer min-h-[46px]"
               >
-                <ShieldCheck className="w-4 h-4 text-[#F7931A]" />
+                <ShieldCheck className="w-4 h-4 text-gold-500" />
                 <span>Login</span>
               </button>
             </div>
 
-            <div className="text-center text-[10px] font-mono text-gray-400">
+            <div className="text-center text-[10px] font-mono text-fg-muted">
               FINOVATECK MINING COMPANY • EST. 2025 • SULTANATE OF OMAN
             </div>
           </div>

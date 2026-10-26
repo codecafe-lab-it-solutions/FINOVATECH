@@ -36,10 +36,10 @@ export function Money({ usd, maximumFractionDigits = 2 }: { usd: number; maximum
 }
 export function CurrencySelector() {
   const { currency, setCurrency, rate, error } = useCurrency();
-  return <div className="flex flex-wrap items-center gap-3 px-5 py-2 bg-gray-950 border-b border-gray-800 text-xs text-gray-300">
+  return <div className="flex flex-wrap items-center gap-3 px-5 py-2 bg-ink-950 border-b border-line text-xs text-fg-body">
     <div className="flex items-center gap-3 shrink-0">
       <span className="font-semibold text-white">Display currency</span>
-      <div role="group" aria-label="Display currency" className="inline-flex gap-1 rounded-xl border border-gray-700 bg-gray-900 p-1">
+      <div role="group" aria-label="Display currency" className="inline-flex gap-1 rounded-xl border border-line-warm bg-ink-850 p-1">
         {(['USD', 'INR'] as Currency[]).map(option => <button
           key={option}
           type="button"
@@ -47,11 +47,11 @@ export function CurrencySelector() {
           disabled={option === 'INR' && !rate}
           onClick={() => setCurrency(option)}
           title={option === 'INR' && !rate ? 'INR will be available when the exchange rate loads' : 'Display amounts in ' + option}
-          className={'rounded-lg px-4 py-2 text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 ' + ((rate ? currency : 'USD') === option ? 'bg-[#F7931A] text-gray-950 shadow-sm' : 'text-gray-300 hover:bg-gray-800 hover:text-white')}
+          className={'rounded-lg px-4 py-2 text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 ' + ((rate ? currency : 'USD') === option ? 'bg-gold-500 text-black shadow-sm' : 'text-fg-body hover:bg-ink-800 hover:text-white')}
         >{option === 'USD' ? 'USD ($)' : 'INR (₹)'}</button>)}
       </div>
     </div>
     {rate ? <span>{rate.stale ? 'Last successful rate (provider unavailable)' : 'Latest available rate'}: $1 = ₹{rate.rate.toFixed(4)} · {rate.sourceDate} · {rate.source} · fetched {new Date(rate.fetchedAt).toLocaleString()}</span> : <span>{error || 'Loading exchange rate…'} · displaying USD</span>}
-    <span className="text-gray-500">Display conversion only. Amount entry remains in USD or BTC as labeled.</span>
+    <span className="text-fg-muted">Display conversion only. Amount entry remains in USD or BTC as labeled.</span>
   </div>;
 }

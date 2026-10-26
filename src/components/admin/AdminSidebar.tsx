@@ -82,7 +82,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       title: 'INVESTOR RELATIONS',
       items: [
         { id: 'all-investors', label: 'Investor Management', icon: Users },
-        { id: 'kyc-queue', label: 'KYC & Compliance', icon: ShieldCheck, badge: pendingKycCount, badgeColor: 'bg-amber-500 text-black' },
+        { id: 'kyc-queue', label: 'KYC & Compliance', icon: ShieldCheck, badge: pendingKycCount, badgeColor: 'bg-gold-500 text-black' },
         { id: 'investment-plans', label: 'Investment Plans', icon: Layers },
         { id: 'referrals', label: 'Referral Overview', icon: Users },
         { id: 'investor-allocations', label: 'Hashrate Allocations', icon: PieChart, hidden: true }
@@ -92,7 +92,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       title: 'CAPITAL & TRANSACTIONS',
       items: [
         { id: 'investment-transactions', label: 'Investment Txns', icon: Receipt },
-        { id: 'deposit-requests', label: 'Deposit Requests', icon: ArrowDownToLine, badge: pendingDepositCount, badgeColor: 'bg-amber-500 text-black' },
+        { id: 'deposit-requests', label: 'Deposit Requests', icon: ArrowDownToLine, badge: pendingDepositCount, badgeColor: 'bg-gold-500 text-black' },
       ]
     },
     {
@@ -102,14 +102,14 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         { id: 'mining-overview', label: 'Mining Farms (MCT/SLL)', icon: Zap },
         { id: 'asic-machines', label: 'ASIC Machine Fleet', icon: Cpu, badge: '1,220', badgeColor: 'bg-emerald-500/20 text-emerald-300' },
         { id: 'mining-pools', label: 'Mining Pools', icon: Server },
-        { id: 'production-ledger', label: 'BTC Production Ledger', icon: BookOpen, badge: 'Daily', badgeColor: 'bg-blue-500/20 text-blue-300' },
+        { id: 'production-ledger', label: 'BTC Production Ledger', icon: BookOpen, badge: 'Daily', badgeColor: 'bg-gold-500/20 text-gold-300' },
         { id: 'calculation-engine', label: 'Earnings Engine', icon: Calculator }
       ]
     },
     {
       title: 'TREASURY & PAYOUTS',
       items: [
-        { id: 'company-wallets', label: 'Company Wallets', icon: Wallet, badge: 'Multi-Sig', badgeColor: 'bg-purple-500/20 text-purple-300' },
+        { id: 'company-wallets', label: 'Company Wallets', icon: Wallet, badge: 'Multi-Sig', badgeColor: 'bg-gold-500/20 text-gold-500' },
         { id: 'payout-queue', label: 'Payout Management', icon: ArrowUpRight, badge: pendingPayoutCount, badgeColor: 'bg-rose-500 text-white' }
       ]
     },
@@ -159,12 +159,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       <aside
         id="admin-sidebar"
         className={`
-          fixed lg:static inset-y-0 left-0 z-50 lg:z-30 w-72 shrink-0 bg-[#0B1120] text-gray-300 border-r border-gray-800/80 flex flex-col justify-between transition-transform duration-300 ease-in-out lg:h-screen lg:sticky lg:top-0
+          fixed lg:static inset-y-0 left-0 z-50 lg:z-30 w-72 shrink-0 bg-ink-900 text-fg-body border-r border-line/80 flex flex-col justify-between transition-transform duration-300 ease-in-out lg:h-screen lg:sticky lg:top-0
           ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}
       >
         {/* Brand Header */}
-        <div className="p-4 border-b border-gray-800/80 bg-[#070B14]/80 flex items-center justify-between">
+        <div className="p-4 border-b border-line/80 bg-ink-950/80 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
               src="/favicon.png"
@@ -178,7 +178,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                   ADMIN
                 </span>
               </div>
-              <span className="text-[10px] font-mono text-gray-400 block tracking-wider uppercase">
+              <span className="text-[10px] font-mono text-fg-muted block tracking-wider uppercase">
                 Operations & Control
               </span>
             </div>
@@ -192,7 +192,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             </div>
             <button
               onClick={onCloseMobile}
-              className="lg:hidden p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 cursor-pointer"
+              className="lg:hidden p-1.5 rounded-lg text-fg-muted hover:text-white hover:bg-ink-800 cursor-pointer"
               aria-label="Close sidebar"
             >
               ✕
@@ -201,16 +201,16 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         </div>
 
       {/* Admin Profile Strip */}
-      <div className="px-4 py-3 bg-[#0F172A]/70 border-b border-gray-800/80 flex items-center justify-between">
+      <div className="px-4 py-3 bg-ink-950/70 border-b border-line/80 flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
           <img
             src={adminUser.avatar}
             alt={adminUser.name}
-            className="w-8 h-8 rounded-lg object-cover ring-1 ring-amber-500/40"
+            className="w-8 h-8 rounded-lg object-cover ring-1 ring-gold-500/40"
           />
           <div className="min-w-0">
             <div className="text-xs font-semibold text-white truncate">{adminUser.name}</div>
-            <div className="flex items-center gap-1 text-[10px] font-mono text-amber-400 truncate">
+            <div className="flex items-center gap-1 text-[10px] font-mono text-gold-200 truncate">
               <Shield className="w-2.5 h-2.5 shrink-0" />
               <span>{adminUser.role}</span>
             </div>
@@ -219,7 +219,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         <button
           onClick={onLogout}
           title="Sign Out of Admin Portal"
-          className="p-1.5 rounded-lg text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+          className="p-1.5 rounded-lg text-fg-muted hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
         >
           <LogOut className="w-4 h-4" />
         </button>
@@ -229,7 +229,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       <nav className="flex-1 overflow-y-auto p-3 space-y-5 custom-scrollbar text-xs">
         {sections.filter((sec) => !sec.hidden).map((sec, idx) => (
           <div key={idx} className="space-y-1">
-            <div className="px-3 text-[10px] font-mono font-bold tracking-wider text-gray-500 uppercase">
+            <div className="px-3 text-[10px] font-mono font-bold tracking-wider text-fg-muted uppercase">
               {sec.title}
             </div>
             <div className="space-y-0.5">
@@ -243,15 +243,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     className={`
                       w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all duration-150 group cursor-pointer
                       ${isActive
-                        ? 'bg-linear-to-r from-[#F7931A]/20 to-amber-500/5 text-white font-semibold border-l-3 border-[#F7931A] shadow-sm'
-                        : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                        ? 'bg-linear-to-r from-gold-500/20 to-gold-700/5 text-white font-semibold border-l-3 border-gold-500 shadow-sm'
+                        : 'text-fg-muted hover:text-fg-body hover:bg-ink-800/50'
                       }
                     `}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <Icon
                         className={`w-4 h-4 shrink-0 transition-colors ${
-                          isActive ? 'text-[#F7931A]' : 'text-gray-500 group-hover:text-gray-300'
+                          isActive ? 'text-gold-500' : 'text-fg-muted group-hover:text-fg-body'
                         }`}
                       />
                       <span className="truncate">{item.label}</span>
@@ -260,7 +260,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
                     {item.badge !== undefined && item.badge !== 0 && (
                       <span
                         className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full ${
-                          item.badgeColor || 'bg-gray-800 text-gray-300'
+                          item.badgeColor || 'bg-ink-800 text-fg-body'
                         }`}
                       >
                         {item.badge}
@@ -275,16 +275,16 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       </nav>
 
       {/* Bottom Footer Actions */}
-      <div className="p-3 border-t border-gray-800/80 bg-[#070B14]/80 space-y-2">
+      <div className="p-3 border-t border-line/80 bg-ink-950/80 space-y-2">
         <button
           onClick={onNavigateWebsite}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-gray-800/80 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-medium transition-colors cursor-pointer border border-gray-700"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-ink-800/80 hover:bg-ink-700 text-fg-body hover:text-white text-xs font-medium transition-colors cursor-pointer border border-line-warm"
         >
-          <Globe className="w-3.5 h-3.5 text-gray-400" />
+          <Globe className="w-3.5 h-3.5 text-fg-muted" />
           <span>Switch to Main Website</span>
         </button>
 
-        <div className="flex items-center justify-between text-[10px] font-mono text-gray-500 px-1 pt-1">
+        <div className="flex items-center justify-between text-[10px] font-mono text-fg-muted px-1 pt-1">
           <span>v3.4.0-PROD</span>
           <span>MCT-01 SSL SHA256</span>
         </div>

@@ -11,7 +11,7 @@ interface OperationsPageProps {
 
 export const OperationsPage: React.FC<OperationsPageProps> = ({ onNavigate }) => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-ink-950">
       <PageHeader
         category="Operations & Lifecycle"
         badge="NOC Telemetry & Systematic Governance"

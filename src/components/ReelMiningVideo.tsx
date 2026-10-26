@@ -144,7 +144,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
       {/* Reel Shell Container (9:16 Aspect Ratio) */}
       <div 
         onClick={togglePlay}
-        className="relative w-[290px] sm:w-[320px] lg:w-[340px] aspect-[9/16] rounded-3xl overflow-hidden bg-[#090D16] border-[5px] border-gray-900 shadow-2xl ring-1 ring-gray-800/90 group cursor-pointer select-none transition-all duration-300 hover:shadow-2xl hover:shadow-orange-500/15 hover:border-gray-800"
+        className="relative w-[290px] sm:w-[320px] lg:w-[340px] aspect-[9/16] rounded-3xl overflow-hidden bg-ink-900 border-[5px] border-gold-600/50 shadow-2xl ring-1 ring-ink-800/90 group cursor-pointer select-none transition-all duration-300 hover:shadow-2xl hover:shadow-gold-500/15 hover:border-line"
       >
         
         {/* Layer 1: 60fps High-Density ASIC Mining Pod Animation (Hardware Simulation) */}
@@ -169,7 +169,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
         )}
 
         {/* Ambient Contrast Gradients */}
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-950/90 via-transparent to-gray-950/95 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-ink-950/90 via-transparent to-ink-950/95 pointer-events-none" />
         <div className="absolute inset-0 bg-radial-at-c from-transparent via-transparent to-black/30 pointer-events-none" />
 
         {/* 1. Multi-Segment Stories / Reel Progress Bar */}
@@ -177,7 +177,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
           {REEL_VIDEOS.map((_, idx) => (
             <div key={idx} className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-[#F7931A] transition-all duration-150"
+                className="h-full bg-gold-500 transition-all duration-150"
                 style={{
                   width: idx < activeVideoIndex ? '100%' : idx === activeVideoIndex ? `${progress}%` : '0%'
                 }}
@@ -192,7 +192,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
           <div className="flex items-center gap-2 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/15 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
             <span className="font-bold text-[10px] tracking-wider text-red-400">REC</span>
-            <span className="text-gray-300 text-[10px]">MCT-01</span>
+            <span className="text-fg-body text-[10px]">MCT-01</span>
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -202,7 +202,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
               title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
               className="p-2 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white border border-white/15 transition-transform active:scale-90 cursor-pointer shadow-md"
             >
-              {isMuted ? <VolumeX className="w-3.5 h-3.5 text-gray-300" /> : <Volume2 className="w-3.5 h-3.5 text-[#F7931A]" />}
+              {isMuted ? <VolumeX className="w-3.5 h-3.5 text-fg-body" /> : <Volume2 className="w-3.5 h-3.5 text-gold-500" />}
             </button>
 
             {/* Switch Reel Stream */}
@@ -211,7 +211,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
               title="Next Mining Reel Stream"
               className="p-2 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white border border-white/15 transition-transform active:scale-90 cursor-pointer shadow-md"
             >
-              <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
+              <RotateCcw className="w-3.5 h-3.5 text-gold-400" />
             </button>
           </div>
         </div>
@@ -219,7 +219,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
         {/* 3. Floating Play / Pause Indicator */}
         {!isPlaying && (
           <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/50 backdrop-blur-[2px] transition-all">
-            <div className="w-16 h-16 rounded-full bg-[#F7931A] text-gray-950 flex items-center justify-center shadow-2xl pl-1 scale-110 transition-transform">
+            <div className="w-16 h-16 rounded-full bg-gold-500 text-black flex items-center justify-center shadow-2xl pl-1 scale-110 transition-transform">
               <Play className="w-7 h-7 fill-current" />
             </div>
           </div>
@@ -229,21 +229,21 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
         <div className="absolute top-16 left-4 z-20 space-y-1.5 font-mono text-[10px] text-white">
           
           <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 w-fit shadow-md">
-            <Zap className="w-3.5 h-3.5 text-[#F7931A]" />
-            <span className="text-gray-300">HASH:</span>
-            <span className="font-bold text-[#F7931A]">{liveHashrate} TH/s</span>
+            <Zap className="w-3.5 h-3.5 text-gold-500" />
+            <span className="text-fg-body">HASH:</span>
+            <span className="font-bold text-gold-500">{liveHashrate} TH/s</span>
           </div>
 
           <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 w-fit shadow-md">
             <Flame className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="text-gray-300">CORE:</span>
+            <span className="text-fg-body">CORE:</span>
             <span className="font-bold text-emerald-400">{liveTemp} °C</span>
           </div>
 
           <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 w-fit shadow-md">
-            <Activity className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="text-gray-300">FANS:</span>
-            <span className="font-bold text-cyan-300">{fanRpm} RPM</span>
+            <Activity className="w-3.5 h-3.5 text-gold-400" />
+            <span className="text-fg-body">FANS:</span>
+            <span className="font-bold text-gold-300">{fanRpm} RPM</span>
           </div>
         </div>
 
@@ -253,17 +253,17 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
           {/* Live Node Beacon */}
           <div className="w-10 h-10 rounded-full bg-black/80 backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-white text-[9px] font-mono shadow-lg">
             <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
-            <span className="text-[8px] text-gray-400 font-bold">LIVE</span>
+            <span className="text-[8px] text-fg-muted font-bold">LIVE</span>
           </div>
 
           {/* Reel Feed Switcher Indicator */}
           <div 
             onClick={handleNextVideo}
             title="Next Mining Reel Feed"
-            className="w-10 h-10 rounded-full bg-black/80 hover:bg-black backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-white text-[10px] font-mono shadow-lg cursor-pointer hover:border-[#F7931A] transition-colors"
+            className="w-10 h-10 rounded-full bg-black/80 hover:bg-black backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-white text-[10px] font-mono shadow-lg cursor-pointer hover:border-gold-500 transition-colors"
           >
-            <span className="text-[#F7931A] font-bold">0{activeVideoIndex + 1}</span>
-            <span className="text-[8px] text-gray-400">/03</span>
+            <span className="text-gold-500 font-bold">0{activeVideoIndex + 1}</span>
+            <span className="text-[8px] text-fg-muted">/03</span>
           </div>
 
           {/* Mode Switcher (Hybrid vs Canvas vs Video) */}
@@ -273,9 +273,9 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
               setViewMode((m) => m === 'hybrid' ? 'canvas' : m === 'canvas' ? 'video' : 'hybrid');
             }}
             title={`Current view: ${viewMode}. Tap to change visual mode.`}
-            className="w-10 h-10 rounded-full bg-black/80 hover:bg-black backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-white text-[9px] font-mono shadow-lg cursor-pointer hover:border-cyan-400 transition-colors"
+            className="w-10 h-10 rounded-full bg-black/80 hover:bg-black backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-white text-[9px] font-mono shadow-lg cursor-pointer hover:border-gold-500 transition-colors"
           >
-            <Layers className="w-4 h-4 text-cyan-400" />
+            <Layers className="w-4 h-4 text-gold-400" />
           </button>
 
           {/* Upload Custom Mining Video File */}
@@ -285,7 +285,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
               fileInputRef.current?.click();
             }}
             title="Upload custom mining video file from device"
-            className="w-10 h-10 rounded-full bg-black/80 hover:bg-[#F7931A] hover:text-gray-950 text-white backdrop-blur-md border border-white/15 flex items-center justify-center transition-colors shadow-lg cursor-pointer"
+            className="w-10 h-10 rounded-full bg-black/80 hover:bg-gold-500 hover:text-black text-white backdrop-blur-md border border-white/15 flex items-center justify-center transition-colors shadow-lg cursor-pointer"
           >
             <Upload className="w-4 h-4" />
           </div>
@@ -296,10 +296,10 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
         <div className="absolute bottom-0 left-0 right-0 p-4 pb-4 z-20 text-white space-y-1.5">
           
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-[#F7931A] text-gray-950 text-[10px] font-extrabold uppercase font-mono tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-full bg-gold-500 text-black text-[10px] font-extrabold uppercase font-mono tracking-wider">
               ASIC POD // MCT-01
             </span>
-            <span className="text-[10.5px] font-mono text-gray-300">
+            <span className="text-[10.5px] font-mono text-fg-body">
               Muscat, Oman
             </span>
           </div>
@@ -308,11 +308,11 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
             {currentVideo.title}
           </h4>
 
-          <p className="text-[11.5px] text-gray-300 line-clamp-2 leading-relaxed">
+          <p className="text-[11.5px] text-fg-body line-clamp-2 leading-relaxed">
             High-density containerized Bitcoin computing cluster operating under continuous thermal and electrical modulation.
           </p>
 
-          <div className="text-[10px] font-mono text-[#F7931A] flex items-center gap-2 pt-0.5">
+          <div className="text-[10px] font-mono text-gold-500 flex items-center gap-2 pt-0.5">
             <span>#FINOVATECK</span>
             <span>#BitcoinMining</span>
             <span>#OmanInfrastructure</span>
@@ -332,14 +332,14 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
       </div>
 
       {/* Reel Subtitle Caption / Interaction Helper */}
-      <div className="flex items-center justify-between w-[290px] sm:w-[320px] lg:w-[340px] mt-3 px-1 text-xs text-gray-500 font-mono">
+      <div className="flex items-center justify-between w-[290px] sm:w-[320px] lg:w-[340px] mt-3 px-1 text-xs text-fg-muted font-mono">
         <span className="flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <span>Tap Reel to {isPlaying ? 'Pause' : 'Play'}</span>
         </span>
         <button
           onClick={() => handleNextVideo()}
-          className="text-[#F7931A] hover:underline cursor-pointer flex items-center gap-1 font-semibold"
+          className="text-gold-500 hover:underline cursor-pointer flex items-center gap-1 font-semibold"
         >
           <span>Next Feed ({activeVideoIndex + 1}/3)</span>
           <span>→</span>

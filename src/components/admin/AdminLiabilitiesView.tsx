@@ -32,14 +32,14 @@ export const AdminLiabilitiesView: React.FC<AdminLiabilitiesViewProps> = ({ liab
     <div className="space-y-6 pb-12">
       
       {/* Top Banner */}
-      <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-ink-950 border border-line flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-mono text-blue-400 mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-500/10 border border-gold-500/20 text-[11px] font-mono text-gold-400 mb-2">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>INSTITUTIONAL SOLVENCY & BALANCE SHEET LEDGER</span>
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Investor Liabilities & Accrued Balances</h2>
-          <p className="text-xs text-gray-400 mt-1 max-w-2xl">
+          <p className="text-xs text-fg-muted mt-1 max-w-2xl">
             Real-time balance sheet tracking of investor capital, accrued mining rewards owed, and company 100% reserve backing.
           </p>
         </div>
@@ -47,45 +47,45 @@ export const AdminLiabilitiesView: React.FC<AdminLiabilitiesViewProps> = ({ liab
         <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-right font-mono">
           <div className="text-[10px] text-emerald-400 font-bold uppercase">Solvency Reserve Ratio</div>
           <div className="text-2xl font-black text-emerald-400 mt-0.5">142.8%</div>
-          <div className="text-[11px] text-gray-300">Over-Collateralized</div>
+          <div className="text-[11px] text-fg-body">Over-Collateralized</div>
         </div>
       </div>
 
       {/* Aggregate Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800">
-          <div className="text-[10px] font-mono text-gray-400 uppercase">Total Capital Invested</div>
+        <div className="p-4 rounded-2xl bg-ink-950 border border-line">
+          <div className="text-[10px] font-mono text-fg-muted uppercase">Total Capital Invested</div>
           <div className="text-2xl font-extrabold text-white font-mono mt-1"><Money usd={totalCapital} /></div>
-          <div className="text-[11px] text-gray-400 font-mono mt-0.5">Across 248 accounts</div>
+          <div className="text-[11px] text-fg-muted font-mono mt-0.5">Across 248 accounts</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800">
-          <div className="text-[10px] font-mono text-gray-400 uppercase">Accrued Unpaid Obligations</div>
-          <div className="text-2xl font-extrabold text-amber-400 font-mono mt-1">{totalAccruedOwedBtc.toFixed(4)} BTC</div>
-          <div className="text-[11px] text-gray-400 font-mono mt-0.5">Next Settlement: Scheduled</div>
+        <div className="p-4 rounded-2xl bg-ink-950 border border-line">
+          <div className="text-[10px] font-mono text-fg-muted uppercase">Accrued Unpaid Obligations</div>
+          <div className="text-2xl font-extrabold text-gold-200 font-mono mt-1">{totalAccruedOwedBtc.toFixed(4)} BTC</div>
+          <div className="text-[11px] text-fg-muted font-mono mt-0.5">Next Settlement: Scheduled</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800">
-          <div className="text-[10px] font-mono text-gray-400 uppercase">Total BTC Paid Out to Date</div>
+        <div className="p-4 rounded-2xl bg-ink-950 border border-line">
+          <div className="text-[10px] font-mono text-fg-muted uppercase">Total BTC Paid Out to Date</div>
           <div className="text-2xl font-extrabold text-emerald-400 font-mono mt-1">{totalPaidOutBtc.toFixed(4)} BTC</div>
           <div className="text-[11px] text-emerald-400 font-mono mt-0.5">100% Fulfilled</div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="rounded-3xl bg-[#0F172A] border border-gray-800 overflow-hidden shadow-xl">
-        <div className="p-4 bg-gray-900/90 border-b border-gray-800 flex items-center justify-between">
-          <h3 className="text-xs font-mono font-bold uppercase text-gray-300">
+      <div className="rounded-3xl bg-ink-950 border border-line overflow-hidden shadow-xl">
+        <div className="p-4 bg-ink-850/90 border-b border-line flex items-center justify-between">
+          <h3 className="text-xs font-mono font-bold uppercase text-fg-body">
             Account-by-Account Liability & Reserve Schedule
           </h3>
           <div className="relative w-64">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-fg-muted" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search investor..."
-              className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-gray-950 border border-gray-800 text-white text-xs font-mono"
+              className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-ink-950 border border-line text-white text-xs font-mono"
             />
           </div>
         </div>
@@ -93,7 +93,7 @@ export const AdminLiabilitiesView: React.FC<AdminLiabilitiesViewProps> = ({ liab
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-gray-900/40 text-gray-400 font-mono text-[11px] uppercase tracking-wider border-b border-gray-800">
+              <tr className="bg-ink-850/40 text-fg-muted font-mono text-[11px] uppercase tracking-wider border-b border-line">
                 <th className="py-3.5 px-4">Investor</th>
                 <th className="py-3.5 px-3 text-right">Capital Invested</th>
                 <th className="py-3.5 px-3 text-right">Total Mined to Date</th>
@@ -103,19 +103,19 @@ export const AdminLiabilitiesView: React.FC<AdminLiabilitiesViewProps> = ({ liab
                 <th className="py-3.5 px-4 text-center">Solvency Backing</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/80 font-mono text-gray-300">
+            <tbody className="divide-y divide-line/80 font-mono text-fg-body">
               {filtered.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-800/40 transition-colors">
+                <tr key={item.id} className="hover:bg-ink-800/40 transition-colors">
                   <td className="py-3.5 px-4 font-sans">
                     <div className="font-bold text-white">{item.investorName}</div>
-                    <div className="text-[11px] font-mono text-gray-400">{item.investorId}</div>
+                    <div className="text-[11px] font-mono text-fg-muted">{item.investorId}</div>
                   </td>
 
                   <td className="py-3.5 px-3 text-right font-bold text-white">
                     <Money usd={item.capitalInvestedUsd} />
                   </td>
 
-                  <td className="py-3.5 px-3 text-right text-[#F7931A] font-semibold">
+                  <td className="py-3.5 px-3 text-right text-gold-500 font-semibold">
                     {item.totalMinedToDateBtc.toFixed(4)} BTC
                   </td>
 
@@ -123,11 +123,11 @@ export const AdminLiabilitiesView: React.FC<AdminLiabilitiesViewProps> = ({ liab
                     {item.totalPaidOutBtc.toFixed(4)} BTC
                   </td>
 
-                  <td className="py-3.5 px-3 text-right font-extrabold text-amber-400">
+                  <td className="py-3.5 px-3 text-right font-extrabold text-gold-200">
                     {item.accruedUnpaidBtc.toFixed(4)} BTC
                   </td>
 
-                  <td className="py-3.5 px-3 text-gray-300">
+                  <td className="py-3.5 px-3 text-fg-body">
                     {item.nextPayoutDueDate}
                   </td>
 

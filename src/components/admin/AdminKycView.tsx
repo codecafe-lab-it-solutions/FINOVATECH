@@ -52,13 +52,13 @@ export const AdminKycView: React.FC<AdminKycViewProps> = ({ authToken }) => {
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[11px] font-mono text-amber-400 mb-2">
+      <div className="p-6 rounded-3xl bg-ink-950 border border-line">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-500/10 border border-gold-500/20 text-[11px] font-mono text-gold-200 mb-2">
           <ShieldCheck className="w-3.5 h-3.5" />
           <span>KYC & COMPLIANCE QUEUE</span>
         </div>
         <h2 className="text-2xl font-bold text-white tracking-tight">KYC & Compliance Verification Queue</h2>
-        <p className="text-xs text-gray-400 mt-1">
+        <p className="text-xs text-fg-muted mt-1">
           {isLoading ? 'Loading...' : `${pending.length} investor${pending.length === 1 ? '' : 's'} awaiting verification.`}
         </p>
       </div>
@@ -69,29 +69,29 @@ export const AdminKycView: React.FC<AdminKycViewProps> = ({ authToken }) => {
         </div>
       )}
 
-      <div className="rounded-3xl bg-[#0F172A] border border-gray-800 overflow-hidden shadow-xl">
-        <div className="px-5 py-3 border-b border-gray-800 text-[11px] font-mono font-bold text-amber-400 uppercase">Pending Review</div>
+      <div className="rounded-3xl bg-ink-950 border border-line overflow-hidden shadow-xl">
+        <div className="px-5 py-3 border-b border-line text-[11px] font-mono font-bold text-gold-200 uppercase">Pending Review</div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-gray-900/90 text-gray-400 font-mono text-[11px] uppercase tracking-wider border-b border-gray-800">
+              <tr className="bg-ink-850/90 text-fg-muted font-mono text-[11px] uppercase tracking-wider border-b border-line">
                 <th className="py-3.5 px-4">Investor</th>
                 <th className="py-3.5 px-3">Country</th>
                 <th className="py-3.5 px-3">Status</th>
                 <th className="py-3.5 px-4 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/80 font-mono text-gray-300">
+            <tbody className="divide-y divide-line/80 font-mono text-fg-body">
               {pending.map((inv) => (
-                <tr key={inv.userId} className="hover:bg-gray-800/40">
+                <tr key={inv.userId} className="hover:bg-ink-800/40">
                   <td className="py-3 px-4 font-sans">
                     <div className="font-bold text-white">{inv.name}</div>
-                    <div className="text-[11px] text-gray-400">{inv.username} • {inv.email || 'no email set'}</div>
+                    <div className="text-[11px] text-fg-muted">{inv.username} • {inv.email || 'no email set'}</div>
                   </td>
-                  <td className="py-3 px-3 text-gray-400">{inv.country || 'Not provided'}</td>
+                  <td className="py-3 px-3 text-fg-muted">{inv.country || 'Not provided'}</td>
                   <td className="py-3 px-3">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      inv.kycStatus === 'Action Required' ? 'bg-rose-500/20 text-rose-300' : 'bg-gray-700 text-gray-300'
+                      inv.kycStatus === 'Action Required' ? 'bg-rose-500/20 text-rose-300' : 'bg-ink-700 text-fg-body'
                     }`}>{inv.kycStatus}</span>
                   </td>
                   <td className="py-3 px-4 text-center">
@@ -115,7 +115,7 @@ export const AdminKycView: React.FC<AdminKycViewProps> = ({ authToken }) => {
                 </tr>
               ))}
               {!isLoading && pending.length === 0 && (
-                <tr><td colSpan={4} className="py-8 text-center text-gray-500 font-mono">Nothing pending — all investors verified.</td></tr>
+                <tr><td colSpan={4} className="py-8 text-center text-fg-muted font-mono">Nothing pending — all investors verified.</td></tr>
               )}
             </tbody>
           </table>
@@ -123,13 +123,13 @@ export const AdminKycView: React.FC<AdminKycViewProps> = ({ authToken }) => {
       </div>
 
       {verified.length > 0 && (
-        <div className="rounded-3xl bg-[#0F172A] border border-gray-800 overflow-hidden shadow-xl">
-          <div className="px-5 py-3 border-b border-gray-800 text-[11px] font-mono font-bold text-emerald-400 uppercase flex items-center gap-1.5">
+        <div className="rounded-3xl bg-ink-950 border border-line overflow-hidden shadow-xl">
+          <div className="px-5 py-3 border-b border-line text-[11px] font-mono font-bold text-emerald-400 uppercase flex items-center gap-1.5">
             <CheckCircle2 className="w-3.5 h-3.5" /> Verified
           </div>
           <div className="p-4 flex flex-wrap gap-2 text-xs font-mono">
             {verified.map((inv) => (
-              <span key={inv.userId} className="px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-800 text-gray-300">{inv.name} · {inv.investorId}<br />KYC Approval Date: {inv.joiningDate || 'Not recorded'} · Joining Date: {inv.joiningDate || 'Awaiting confirmation'}</span>
+              <span key={inv.userId} className="px-3 py-1.5 rounded-xl bg-ink-850 border border-line text-fg-body">{inv.name} · {inv.investorId}<br />KYC Approval Date: {inv.joiningDate || 'Not recorded'} · Joining Date: {inv.joiningDate || 'Awaiting confirmation'}</span>
             ))}
           </div>
         </div>

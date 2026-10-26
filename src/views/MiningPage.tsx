@@ -11,7 +11,7 @@ interface MiningPageProps {
 
 export const MiningPage: React.FC<MiningPageProps> = ({ onNavigate }) => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-ink-950">
       <PageHeader
         category="Bitcoin Mining"
         badge="Industrial Proof-of-Work Operations"

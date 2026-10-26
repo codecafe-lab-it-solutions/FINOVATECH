@@ -83,24 +83,24 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
   };
 
   return (
-    <header id="admin-header" className="sticky top-0 z-30 bg-[#0B1120]/95 backdrop-blur-md border-b border-gray-800/80 px-4 sm:px-6 py-3">
+    <header id="admin-header" className="sticky top-0 z-30 bg-ink-900/95 backdrop-blur-md border-b border-line/80 px-4 sm:px-6 py-3">
       <div className="flex items-center justify-between gap-4">
         
         {/* Left Side: Mobile Hamburger + Title / Breadcrumb */}
         <div className="flex items-center gap-3 min-w-0">
           <button
             onClick={onToggleMobileSidebar}
-            className="lg:hidden p-2 rounded-xl bg-gray-800/80 text-gray-300 hover:text-white hover:bg-gray-700 cursor-pointer"
+            className="lg:hidden p-2 rounded-xl bg-ink-800/80 text-fg-body hover:text-white hover:bg-ink-700 cursor-pointer"
             aria-label="Open navigation menu"
           >
             <Menu className="w-5 h-5" />
           </button>
 
           <div>
-            <div className="flex items-center gap-2 text-[11px] font-mono text-gray-400">
+            <div className="flex items-center gap-2 text-[11px] font-mono text-fg-muted">
               <span>FINOVATECK CONTROL</span>
               <span>/</span>
-              <span className="text-[#F7931A] font-semibold uppercase">{currentTab.replace('-', ' ')}</span>
+              <span className="text-gold-500 font-semibold uppercase">{currentTab.replace('-', ' ')}</span>
             </div>
             <h1 className="text-base sm:text-lg font-bold text-white tracking-tight truncate">
               {getTabLabel(currentTab)}
@@ -110,23 +110,23 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
 
         {/* Middle Status Ticker (Desktop) */}
         <div className="hidden xl:flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-900/90 border border-gray-800 text-xs font-mono">
-            <span className="text-gray-400">BTC Spot:</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-ink-850/90 border border-line text-xs font-mono">
+            <span className="text-fg-muted">BTC Spot:</span>
             <span className="text-emerald-400 font-bold">{spotBtcPriceUsd > 0 ? <Money usd={spotBtcPriceUsd} /> : 'Unavailable'}</span>
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-900/90 border border-gray-800 text-xs font-mono">
-            <Zap className="w-3.5 h-3.5 text-[#F7931A]" />
-            <span className="text-gray-400">Fleet Hashrate:</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-ink-850/90 border border-line text-xs font-mono">
+            <Zap className="w-3.5 h-3.5 text-gold-500" />
+            <span className="text-fg-muted">Fleet Hashrate:</span>
             <span className="text-white font-bold">{totalHashratePH.toFixed(1)} PH/s</span>
           </div>
 
           <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono ${
             miningUptimePercent > 0
               ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400'
-              : 'bg-gray-800/60 border border-gray-700 text-gray-400'
+              : 'bg-ink-800/60 border border-line-warm text-fg-muted'
           }`}>
-            <span className={`w-2 h-2 rounded-full ${miningUptimePercent > 0 ? 'bg-emerald-400 animate-pulse' : 'bg-gray-500'}`}></span>
+            <span className={`w-2 h-2 rounded-full ${miningUptimePercent > 0 ? 'bg-emerald-400 animate-pulse' : 'bg-ink-900'}`}></span>
             <span>{miningUptimePercent > 0 ? `MCT-01: ${miningUptimePercent}% SLA` : 'No Active Facility'}</span>
           </div>
         </div>
@@ -138,16 +138,16 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           <div className="relative">
             <button
               onClick={() => setShowRoleDropdown(!showRoleDropdown)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-900 border border-gray-700 hover:border-gray-600 text-xs text-gray-200 font-medium cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-ink-850 border border-line-warm hover:border-line-warm text-xs text-fg-body font-medium cursor-pointer"
             >
-              <Shield className="w-3.5 h-3.5 text-amber-400" />
+              <Shield className="w-3.5 h-3.5 text-gold-200" />
               <span className="hidden md:inline font-mono">{adminUser.role}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+              <ChevronDown className="w-3.5 h-3.5 text-fg-muted" />
             </button>
 
             {showRoleDropdown && (
-              <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#0F172A] border border-gray-700 shadow-2xl p-2 z-50 text-xs">
-                <div className="px-3 py-1.5 text-[10px] font-mono text-gray-400 uppercase font-semibold border-b border-gray-800 mb-1">
+              <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-ink-950 border border-line-warm shadow-2xl p-2 z-50 text-xs">
+                <div className="px-3 py-1.5 text-[10px] font-mono text-fg-muted uppercase font-semibold border-b border-line mb-1">
                   Switch Admin Role (Demo)
                 </div>
                 {rolesList.map((role) => (
@@ -159,12 +159,12 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
                     }}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
                       adminUser.role === role
-                        ? 'bg-amber-500/20 text-amber-300 font-semibold'
-                        : 'text-gray-300 hover:bg-gray-800'
+                        ? 'bg-gold-500/20 text-gold-100 font-semibold'
+                        : 'text-fg-body hover:bg-ink-800'
                     }`}
                   >
                     <span>{role}</span>
-                    {adminUser.role === role && <CheckCircle2 className="w-3.5 h-3.5 text-amber-400" />}
+                    {adminUser.role === role && <CheckCircle2 className="w-3.5 h-3.5 text-gold-200" />}
                   </button>
                 ))}
               </div>
@@ -175,37 +175,37 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 rounded-xl bg-gray-900 border border-gray-700 text-gray-300 hover:text-white cursor-pointer"
+              className="relative p-2 rounded-xl bg-ink-850 border border-line-warm text-fg-body hover:text-white cursor-pointer"
               aria-label="System Alerts"
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-gray-900"></span>
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-ink-850"></span>
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-[#0F172A] border border-gray-700 shadow-2xl p-3 z-50 text-xs">
-                <div className="flex items-center justify-between pb-2 border-b border-gray-800 mb-2">
+              <div className="absolute right-0 mt-2 w-80 rounded-2xl bg-ink-950 border border-line-warm shadow-2xl p-3 z-50 text-xs">
+                <div className="flex items-center justify-between pb-2 border-b border-line mb-2">
                   <span className="font-semibold text-white font-mono">System Alerts</span>
-                  <span className="text-[10px] text-amber-400 font-mono">3 Unresolved</span>
+                  <span className="text-[10px] text-gold-200 font-mono">3 Unresolved</span>
                 </div>
                 <div className="space-y-2">
                   <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-200">
                     <div className="font-semibold flex items-center gap-1.5 text-rose-300">
                       <AlertTriangle className="w-3.5 h-3.5" /> High Temp Alert (Rack B-04)
                     </div>
-                    <p className="text-[11px] text-gray-300 mt-1">ASIC MCT-M60S-R04-12 exceeded 76°C. Fan warning.</p>
+                    <p className="text-[11px] text-fg-body mt-1">ASIC MCT-M60S-R04-12 exceeded 76°C. Fan warning.</p>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-200">
-                    <div className="font-semibold flex items-center gap-1.5 text-amber-300">
+                  <div className="p-2.5 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-100">
+                    <div className="font-semibold flex items-center gap-1.5 text-gold-100">
                       <Shield className="w-3.5 h-3.5" /> 2 KYC Submissions Pending
                     </div>
-                    <p className="text-[11px] text-gray-300 mt-1">Marcus Vance & Elena Rostova waiting review.</p>
+                    <p className="text-[11px] text-fg-body mt-1">Marcus Vance & Elena Rostova waiting review.</p>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200">
-                    <div className="font-semibold flex items-center gap-1.5 text-blue-300">
+                  <div className="p-2.5 rounded-xl bg-gold-500/10 border border-gold-500/20 text-gold-300">
+                    <div className="font-semibold flex items-center gap-1.5 text-gold-300">
                       <ArrowUpRight className="w-3.5 h-3.5" /> Payout Queue: 1.82 BTC
                     </div>
-                    <p className="text-[11px] text-gray-300 mt-1">Daily batch scheduled for 14:00 UTC execution.</p>
+                    <p className="text-[11px] text-fg-body mt-1">Daily batch scheduled for 14:00 UTC execution.</p>
                   </div>
                 </div>
               </div>
@@ -216,7 +216,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           <button
             onClick={onLogout}
             title="Sign Out of Admin"
-            className="p-2 rounded-xl bg-gray-900 border border-gray-700 text-gray-400 hover:text-rose-400 hover:border-rose-500/30 hover:bg-rose-500/10 transition-colors cursor-pointer shrink-0"
+            className="p-2 rounded-xl bg-ink-850 border border-line-warm text-fg-muted hover:text-rose-400 hover:border-rose-500/30 hover:bg-rose-500/10 transition-colors cursor-pointer shrink-0"
             aria-label="Sign Out"
           >
             <LogOut className="w-4 h-4" />

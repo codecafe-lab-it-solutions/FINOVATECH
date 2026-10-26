@@ -30,46 +30,46 @@ export const AdminAllocationsView: React.FC<AdminAllocationsViewProps> = ({ allo
     <div className="space-y-6 pb-12">
       
       {/* Header */}
-      <div className="p-5 rounded-3xl bg-[#0F172A] border border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-5 rounded-3xl bg-ink-950 border border-line flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-white tracking-tight">Investor Hashrate & Revenue Allocation</h2>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-xs text-fg-muted mt-0.5">
             Automated allocation calculation engine based on contracted TH/s share of total fleet output.
           </p>
         </div>
 
         <div className="relative w-full md:w-72">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-fg-muted" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search investor allocations..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-gray-900 border border-gray-700 text-white text-xs font-mono"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-ink-850 border border-line-warm text-white text-xs font-mono"
           />
         </div>
       </div>
 
       {/* Allocation Formula Explainer Box */}
-      <div className="p-4 rounded-2xl bg-gray-950 border border-gray-800 font-mono text-xs text-gray-300 space-y-2">
-        <div className="text-[10px] text-amber-400 uppercase font-bold flex items-center gap-1.5">
+      <div className="p-4 rounded-2xl bg-ink-950 border border-line font-mono text-xs text-fg-body space-y-2">
+        <div className="text-[10px] text-gold-200 uppercase font-bold flex items-center gap-1.5">
           <Calculator className="w-3.5 h-3.5" />
           <span>Defined Calculation Formula:</span>
         </div>
-        <div className="p-3 rounded-xl bg-gray-900/80 border border-gray-800/80 text-white">
+        <div className="p-3 rounded-xl bg-ink-850/80 border border-line/80 text-white">
           <code>Investor Share % = (Allocated TH/s ÷ Fleet Active TH/s) × 100</code>
-          <div className="text-gray-400 mt-1">
+          <div className="text-fg-muted mt-1">
             <code>Net BTC = (Gross Daily BTC × Share %) - (Daily Power kWh × <Money usd={0.042} maximumFractionDigits={4} /> ÷ BTC Price in selected currency) - (Management Fee %)</code>
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="rounded-3xl bg-[#0F172A] border border-gray-800 overflow-hidden shadow-xl">
+      <div className="rounded-3xl bg-ink-950 border border-line overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-gray-900/90 text-gray-400 font-mono text-[11px] uppercase tracking-wider border-b border-gray-800">
+              <tr className="bg-ink-850/90 text-fg-muted font-mono text-[11px] uppercase tracking-wider border-b border-line">
                 <th className="py-3.5 px-4">Investor</th>
                 <th className="py-3.5 px-3 text-right">Investment</th>
                 <th className="py-3.5 px-3 text-right">Allocated Hashrate</th>
@@ -80,19 +80,19 @@ export const AdminAllocationsView: React.FC<AdminAllocationsViewProps> = ({ allo
                 <th className="py-3.5 px-4">Settlement Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/80 font-mono text-gray-300">
+            <tbody className="divide-y divide-line/80 font-mono text-fg-body">
               {filtered.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-800/40 transition-colors">
+                <tr key={item.id} className="hover:bg-ink-800/40 transition-colors">
                   <td className="py-3.5 px-4 font-sans">
                     <div className="font-bold text-white">{item.investorName}</div>
-                    <div className="text-[11px] font-mono text-gray-400">{item.investorId} • {item.date}</div>
+                    <div className="text-[11px] font-mono text-fg-muted">{item.investorId} • {item.date}</div>
                   </td>
 
                   <td className="py-3.5 px-3 text-right font-bold text-white">
                     <Money usd={item.investmentAmountUsd} />
                   </td>
 
-                  <td className="py-3.5 px-3 text-right font-bold text-[#F7931A]">
+                  <td className="py-3.5 px-3 text-right font-bold text-gold-500">
                     {item.allocatedHashrateTH} TH/s
                   </td>
 

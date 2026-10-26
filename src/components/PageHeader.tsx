@@ -27,7 +27,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   metrics,
 }) => {
   return (
-    <div className="relative pt-28 pb-14 sm:pt-36 sm:pb-20 bg-[#070B14] text-white border-b border-gray-800 overflow-hidden">
+    <div className="relative pt-28 pb-14 sm:pt-36 sm:pb-20 bg-ink-950 text-white border-b border-line overflow-hidden">
       {/* Background Hero Image with Dark Gradient Overlays */}
       <div className="absolute inset-0 z-0 select-none pointer-events-none">
         <img
@@ -37,8 +37,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           className="w-full h-full object-cover object-center opacity-30 transform scale-105 transition-transform duration-1000"
         />
         {/* Layered cinematic gradient for perfect text contrast and depth */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#070B14] via-[#0B1120]/90 to-[#0B1120]/75" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#070B14] via-transparent to-[#070B14]/70" />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink-950 via-ink-900/90 to-ink-900/75" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-transparent to-ink-950/70" />
         
         {/* Subtle high-tech grid overlay */}
         <div 
@@ -53,21 +53,21 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-xs font-mono text-gray-400 mb-4">
+        <div className="flex items-center gap-2 text-xs font-mono text-fg-muted mb-4">
           <button
             onClick={() => onNavigate('home')}
-            className="hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer text-gray-400"
+            className="hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer text-fg-muted"
           >
-            <Home className="w-3.5 h-3.5 text-[#F7931A]" />
+            <Home className="w-3.5 h-3.5 text-gold-500" />
             <span>FINOVATECK</span>
           </button>
-          <ChevronRight className="w-3.5 h-3.5 text-gray-600" />
-          <span className="text-gray-200 font-semibold">{category}</span>
+          <ChevronRight className="w-3.5 h-3.5 text-fg-muted" />
+          <span className="text-fg-body font-semibold">{category}</span>
         </div>
 
         {/* Category Pill / Badge */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#111827]/80 backdrop-blur-md border border-gray-700/80 text-xs font-mono font-semibold text-gray-200 shadow-sm mb-4">
-          <span className="w-2 h-2 rounded-full bg-[#F7931A] animate-pulse"></span>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ink-800/80 backdrop-blur-md border border-line-warm/80 text-xs font-mono font-semibold text-fg-body shadow-sm mb-4">
+          <span className="w-2 h-2 rounded-full bg-gold-500 animate-pulse"></span>
           <span className="tracking-wider uppercase">{badge || category.toUpperCase()}</span>
         </div>
 
@@ -75,7 +75,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
           {title}
         </h1>
 
-        <p className="text-base sm:text-lg lg:text-xl text-gray-300 max-w-3xl leading-relaxed mb-6">
+        <p className="text-base sm:text-lg lg:text-xl text-fg-body max-w-3xl leading-relaxed mb-6">
           {subtitle}
         </p>
 
@@ -85,10 +85,10 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             {metrics.map((m, i) => (
               <div
                 key={i}
-                className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-gray-900/80 backdrop-blur-md border border-gray-700/80 text-xs font-mono text-gray-300 shadow-xs"
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-ink-850/80 backdrop-blur-md border border-line-warm/80 text-xs font-mono text-fg-body shadow-xs"
               >
-                <span className="text-gray-400">{m.label}:</span>
-                <span className="font-bold text-[#F7931A]">{m.value}</span>
+                <span className="text-fg-muted">{m.label}:</span>
+                <span className="font-bold text-gold-500">{m.value}</span>
               </div>
             ))}
           </div>

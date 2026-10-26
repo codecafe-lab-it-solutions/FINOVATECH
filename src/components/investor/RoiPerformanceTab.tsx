@@ -13,8 +13,8 @@ interface RoiPerformanceTabProps {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="p-3 rounded-xl bg-gray-950 border border-gray-800 text-xs font-mono text-white shadow-xl space-y-1">
-        <div className="text-[#F7931A] font-bold">{label}</div>
+      <div className="p-3 rounded-xl bg-ink-950 border border-line text-xs font-mono text-white shadow-xl space-y-1">
+        <div className="text-gold-500 font-bold">{label}</div>
         {payload.map((item: any, idx: number) => (
           <div key={idx} style={{ color: item.color }} className="flex justify-between gap-4">
             <span>{item.name}:</span>
@@ -45,14 +45,14 @@ export const RoiPerformanceTab: React.FC<RoiPerformanceTabProps> = ({ metrics, s
 
   return (
     <div className="space-y-6 animate-in fade-in">
-      <div className="p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-ink-850 border border-line text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800 border border-gray-700 text-xs font-mono text-emerald-400">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ink-800 border border-line-warm text-xs font-mono text-emerald-400">
             <TrendingUp className="w-3.5 h-3.5" />
             <span>ROI & GROWTH ANALYTICS</span>
           </div>
           <h2 className="text-2xl font-extrabold text-white mt-2">ROI & Portfolio Growth</h2>
-          <p className="text-xs text-gray-400 font-mono mt-0.5">Computed from your real investment figure and monthly ledger activity.</p>
+          <p className="text-xs text-fg-muted font-mono mt-0.5">Computed from your real investment figure and monthly ledger activity.</p>
         </div>
         <div className="px-5 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-right">
           <div className="text-[10px] text-emerald-400 font-mono font-bold uppercase">NET ROI TO DATE</div>
@@ -60,21 +60,21 @@ export const RoiPerformanceTab: React.FC<RoiPerformanceTabProps> = ({ metrics, s
         </div>
       </div>
 
-      <div className="p-6 rounded-3xl bg-gray-900/90 border border-gray-800 text-white space-y-4">
-        <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
-          <Layers className="w-4 h-4 text-[#F7931A]" />
+      <div className="p-6 rounded-3xl bg-ink-850/90 border border-line text-white space-y-4">
+        <div className="flex items-center gap-2 border-b border-line pb-3">
+          <Layers className="w-4 h-4 text-gold-500" />
           <span className="text-sm font-bold uppercase tracking-wider font-mono">Capital Progression</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-center">
-          <div className="p-4 rounded-2xl bg-gray-950 border border-gray-800 text-center space-y-1">
-            <div className="text-[10px] text-gray-400 font-mono uppercase">Invested Principal</div>
+          <div className="p-4 rounded-2xl bg-ink-950 border border-line text-center space-y-1">
+            <div className="text-[10px] text-fg-muted font-mono uppercase">Invested Principal</div>
             <div className="text-xl font-extrabold text-white font-mono"><Money usd={investedAmount} /></div>
           </div>
-          <div className="hidden lg:flex justify-center text-gray-600">
-            <ArrowRight className="w-5 h-5 text-[#F7931A]" />
+          <div className="hidden lg:flex justify-center text-fg-muted">
+            <ArrowRight className="w-5 h-5 text-gold-500" />
           </div>
-          <div className="p-4 rounded-2xl bg-gray-950 border border-[#F7931A]/40 text-center space-y-1 shadow-lg shadow-[#F7931A]/5">
-            <div className="text-[10px] text-[#F7931A] font-mono font-bold uppercase">Current Value</div>
+          <div className="p-4 rounded-2xl bg-ink-950 border border-gold-500/40 text-center space-y-1 shadow-lg shadow-gold-500/5">
+            <div className="text-[10px] text-gold-500 font-mono font-bold uppercase">Current Value</div>
             <div className="text-xl font-extrabold text-white font-mono"><Money usd={currentPortfolioValue} /></div>
             <div className={`text-[10px] font-mono font-bold ${totalReturnUsd >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
               {totalReturnUsd >= 0 ? '+' : ''}<Money usd={totalReturnUsd} /> Total Return
@@ -83,9 +83,9 @@ export const RoiPerformanceTab: React.FC<RoiPerformanceTabProps> = ({ metrics, s
         </div>
       </div>
 
-      <div className="p-6 rounded-3xl bg-gray-900/90 border border-gray-800 text-white space-y-4">
-        <div className="flex items-center gap-2 border-b border-gray-800 pb-4">
-          <TrendingUp className="w-4 h-4 text-[#F7931A]" />
+      <div className="p-6 rounded-3xl bg-ink-850/90 border border-line text-white space-y-4">
+        <div className="flex items-center gap-2 border-b border-line pb-4">
+          <TrendingUp className="w-4 h-4 text-gold-500" />
           <span className="text-sm font-bold uppercase tracking-wider font-mono">Cumulative Value Trajectory</span>
         </div>
         <div className="h-72 w-full pt-2">
@@ -98,17 +98,17 @@ export const RoiPerformanceTab: React.FC<RoiPerformanceTabProps> = ({ metrics, s
                     <stop offset="95%" stopColor="#10B981" stopOpacity={0.0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1E293B" />
-                <XAxis dataKey="month" stroke="#64748B" tick={{ fontSize: 11, fontFamily: 'monospace' }} />
-                <YAxis stroke="#64748B" width={110} tickFormatter={value => formatMoney(Number(value))} tick={{ fontSize: 11, fontFamily: 'monospace' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#17181C" />
+                <XAxis dataKey="month" stroke="#8A8A93" tick={{ fontSize: 11, fontFamily: 'monospace' }} />
+                <YAxis stroke="#8A8A93" width={110} tickFormatter={value => formatMoney(Number(value))} tick={{ fontSize: 11, fontFamily: 'monospace' }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: '11px', fontFamily: 'monospace' }} />
                 <Area type="monotone" dataKey="portfolioVal" name="Portfolio Value" stroke="#10B981" strokeWidth={2.5} fillOpacity={1} fill="url(#roiGradient)" />
-                <Area type="monotone" dataKey="invested" name="Principal Invested" stroke="#64748B" strokeWidth={1.5} strokeDasharray="4 4" fill="none" />
+                <Area type="monotone" dataKey="invested" name="Principal Invested" stroke="#8A8A93" strokeWidth={1.5} strokeDasharray="4 4" fill="none" />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-full flex items-center justify-center text-gray-500 text-xs font-mono">No monthly activity yet.</div>
+            <div className="h-full flex items-center justify-center text-fg-muted text-xs font-mono">No monthly activity yet.</div>
           )}
         </div>
       </div>

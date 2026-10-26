@@ -140,7 +140,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#070B14] text-gray-100 flex flex-col font-sans selection:bg-[#F7931A]/30 selection:text-[#F7931A]">
+    <div className="min-h-screen bg-ink-950 text-fg-body flex flex-col font-sans selection:bg-gold-500/30 selection:text-gold-500">
       
       <CurrencySelector />
       <div className="flex flex-1 relative overflow-hidden">

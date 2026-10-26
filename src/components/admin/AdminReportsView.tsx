@@ -37,10 +37,10 @@ export const AdminReportsView: React.FC<AdminReportsViewProps> = ({ reports }) =
     <div className="space-y-6 pb-12">
       
       {/* Header */}
-      <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-ink-950 border border-line flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Analytics, Financial & Operational Reports</h2>
-          <p className="text-xs text-gray-400 mt-1 max-w-2xl">
+          <p className="text-xs text-fg-muted mt-1 max-w-2xl">
             Export production datasets, investor tax summaries, hashrate telemetry archives, and solvency audit packages.
           </p>
         </div>
@@ -53,8 +53,8 @@ export const AdminReportsView: React.FC<AdminReportsViewProps> = ({ reports }) =
               onClick={() => setSelectedCategory(c)}
               className={`px-3 py-1.5 rounded-xl transition-colors cursor-pointer ${
                 selectedCategory === c
-                  ? 'bg-[#F7931A] text-gray-950 font-bold'
-                  : 'bg-gray-900 hover:bg-gray-800 text-gray-400 border border-gray-800'
+                  ? 'bg-gold-500 text-black font-bold'
+                  : 'bg-ink-850 hover:bg-ink-800 text-fg-muted border border-line'
               }`}
             >
               {c}
@@ -68,28 +68,28 @@ export const AdminReportsView: React.FC<AdminReportsViewProps> = ({ reports }) =
         {filtered.map((rpt) => (
           <div
             key={rpt.id}
-            className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 hover:border-gray-700 transition-all flex flex-col justify-between space-y-4 shadow-xl"
+            className="p-6 rounded-3xl bg-ink-950 border border-line hover:border-gold-700/60 transition-all flex flex-col justify-between space-y-4 shadow-xl"
           >
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="px-2.5 py-0.5 rounded-lg bg-gray-800 text-gray-300 font-mono text-[10px] font-bold">
+                <span className="px-2.5 py-0.5 rounded-lg bg-ink-800 text-fg-body font-mono text-[10px] font-bold">
                   {rpt.category}
                 </span>
-                <span className="text-[11px] font-mono text-gray-400">{rpt.period}</span>
+                <span className="text-[11px] font-mono text-fg-muted">{rpt.period}</span>
               </div>
 
               <h3 className="text-base font-bold text-white tracking-tight">{rpt.title}</h3>
-              <p className="text-xs text-gray-400">{rpt.description}</p>
+              <p className="text-xs text-fg-muted">{rpt.description}</p>
             </div>
 
-            <div className="pt-4 border-t border-gray-800/80 space-y-3 font-mono text-xs">
-              <div className="flex items-center justify-between text-gray-400">
+            <div className="pt-4 border-t border-line/80 space-y-3 font-mono text-xs">
+              <div className="flex items-center justify-between text-fg-muted">
                 <span>Available Formats:</span>
-                <span className="text-amber-400">{rpt.formats.join(' • ')}</span>
+                <span className="text-gold-200">{rpt.formats.join(' • ')}</span>
               </div>
-              <div className="flex items-center justify-between text-gray-400">
+              <div className="flex items-center justify-between text-fg-muted">
                 <span>Generated:</span>
-                <span className="text-gray-300">{rpt.generatedDate}</span>
+                <span className="text-fg-body">{rpt.generatedDate}</span>
               </div>
 
               <div className="flex items-center gap-2 pt-1">
@@ -97,7 +97,7 @@ export const AdminReportsView: React.FC<AdminReportsViewProps> = ({ reports }) =
                   <button
                     key={fmt}
                     onClick={() => handleDownload(`${rpt.id}-${fmt}`)}
-                    className="flex-1 py-2 rounded-xl bg-gray-800 hover:bg-[#F7931A] hover:text-gray-950 text-gray-200 text-xs font-mono font-semibold transition-colors flex items-center justify-center gap-1 cursor-pointer border border-gray-700"
+                    className="flex-1 py-2 rounded-xl bg-ink-800 hover:bg-gold-500 hover:text-black text-fg-body text-xs font-mono font-semibold transition-colors flex items-center justify-center gap-1 cursor-pointer border border-line-warm"
                   >
                     <Download className="w-3 h-3" />
                     <span>{downloadSuccess === `${rpt.id}-${fmt}` ? 'Ready' : fmt}</span>

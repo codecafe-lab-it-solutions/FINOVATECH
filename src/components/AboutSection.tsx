@@ -10,13 +10,13 @@ interface AboutSectionProps {
 
 export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate, showExtended = false }) => {
   return (
-    <section id="about-section" className="py-20 lg:py-28 bg-[#F8F9FA] border-b border-gray-200">
+    <section id="about-section" className="py-20 lg:py-28 bg-ink-950 border-b border-line">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header Eyebrow */}
         <div className="flex items-center gap-2 mb-3">
-          <span className="w-2 h-2 rounded-full bg-[#F7931A]"></span>
-          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-gray-500">
+          <span className="w-2 h-2 rounded-full bg-gold-500"></span>
+          <span className="text-xs font-mono font-semibold uppercase tracking-widest text-fg-muted">
             Corporate Profile & Operations
           </span>
         </div>
@@ -25,19 +25,19 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate, showExte
           
           {/* Left Column: Editorial Narrative */}
           <div className="lg:col-span-6 space-y-6">
-            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-[#111827] tracking-tight leading-tight">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
               Building Infrastructure for the Digital Asset Economy
             </h2>
 
-            <div className="space-y-4 text-base sm:text-lg text-gray-600 leading-relaxed">
+            <div className="space-y-4 text-base sm:text-lg text-fg-muted leading-relaxed">
               <p>
-                <strong className="font-semibold text-gray-900">FINOVATECK Mining Company</strong> is a Muscat-based digital-assets and Bitcoin-mining enterprise focused on developing and operating high-density technology infrastructure supporting the global digital-asset economy.
+                <strong className="font-semibold text-white">FINOVATECK Mining Company</strong> is a Muscat-based digital-assets and Bitcoin-mining enterprise focused on developing and operating high-density technology infrastructure supporting the global digital-asset economy.
               </p>
               <p>
                 Our approach combines computing infrastructure, operational discipline, and technology-driven execution to build resilient, sovereign digital-asset operations with strict engineering standards and transparent operational horizons.
               </p>
               {showExtended && (
-                <p className="text-gray-600">
+                <p className="text-fg-muted">
                   Operating under a defined four-year lease term from Muscat, FINOVATECK applies systematic facility management, thermal optimization, and institutional governance to ensure every Megawatt of computing power delivers resilient cryptographic integrity.
                 </p>
               )}
@@ -45,49 +45,49 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate, showExte
 
             {/* Core Institutional Highlights */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
-              <div className="p-4 rounded-xl bg-white border border-gray-200/90 shadow-2xs">
+              <div className="p-4 rounded-xl bg-ink-850 border border-line/90 shadow-2xs">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-gray-100 text-gray-800 shrink-0">
+                  <div className="p-2 rounded-lg bg-ink-800 text-fg-body shrink-0">
                     <Building2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-[11px] font-semibold text-gray-400 uppercase font-mono">Headquarters</div>
-                    <div className="text-sm font-bold text-gray-900">Muscat, Oman</div>
+                    <div className="text-[11px] font-semibold text-fg-muted uppercase font-mono">Headquarters</div>
+                    <div className="text-sm font-bold text-white">Muscat, Oman</div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-white border border-gray-200/90 shadow-2xs">
+              <div className="p-4 rounded-xl bg-ink-850 border border-line/90 shadow-2xs">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-gray-100 text-gray-800 shrink-0">
+                  <div className="p-2 rounded-lg bg-ink-800 text-fg-body shrink-0">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-[11px] font-semibold text-gray-400 uppercase font-mono">Operating Term</div>
-                    <div className="text-sm font-bold text-gray-900">4-Year Defined Lease</div>
+                    <div className="text-[11px] font-semibold text-fg-muted uppercase font-mono">Operating Term</div>
+                    <div className="text-sm font-bold text-white">4-Year Defined Lease</div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-white border border-gray-200/90 shadow-2xs">
+              <div className="p-4 rounded-xl bg-ink-850 border border-line/90 shadow-2xs">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-gray-100 text-gray-800 shrink-0">
+                  <div className="p-2 rounded-lg bg-ink-800 text-fg-body shrink-0">
                     <Cpu className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-[11px] font-semibold text-gray-400 uppercase font-mono">Core Discipline</div>
-                    <div className="text-sm font-bold text-gray-900">Bitcoin Mining Compute</div>
+                    <div className="text-[11px] font-semibold text-fg-muted uppercase font-mono">Core Discipline</div>
+                    <div className="text-sm font-bold text-white">Bitcoin Mining Compute</div>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-white border border-gray-200/90 shadow-2xs">
+              <div className="p-4 rounded-xl bg-ink-850 border border-line/90 shadow-2xs">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-gray-100 text-gray-800 shrink-0">
+                  <div className="p-2 rounded-lg bg-ink-800 text-fg-body shrink-0">
                     <Shield className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-gray-900">Established 2 October 2025</div>
+                    <div className="text-sm font-bold text-white">Established 2 October 2025</div>
                   </div>
                 </div>
               </div>
@@ -98,7 +98,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onNavigate, showExte
                 <button
                   id="about-learn-more-btn"
                   onClick={() => onNavigate('about')}
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#111827] hover:text-[#F7931A] transition-colors cursor-pointer group"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-gold-500 transition-colors cursor-pointer group"
                 >
                   <span>Learn more about our governance and corporate standards</span>
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
