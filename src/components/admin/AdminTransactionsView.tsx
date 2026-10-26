@@ -81,20 +81,20 @@ export const AdminTransactionsView: React.FC<AdminTransactionsViewProps> = ({ au
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-ink-950 border border-line flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[11px] font-mono text-blue-300 mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-500/10 border border-gold-500/20 text-[11px] font-mono text-gold-300 mb-2">
             <Receipt className="w-3.5 h-3.5" />
             <span>CAPITAL & WALLET TRANSACTION LEDGER</span>
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Investment Transactions</h2>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-fg-muted mt-1">
             {isLoading ? 'Loading...' : `${transactions.length} transaction${transactions.length === 1 ? '' : 's'} across all investors, live from the database.`}
           </p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="px-5 py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono flex items-center gap-2 cursor-pointer"
+          className="px-5 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-xs font-mono flex items-center gap-2 cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Record Deposit
         </button>
@@ -106,13 +106,13 @@ export const AdminTransactionsView: React.FC<AdminTransactionsViewProps> = ({ au
         </div>
       )}
 
-      <div className="p-4 rounded-2xl bg-[#0F172A] border border-gray-800 flex items-center gap-1.5 overflow-x-auto text-xs font-mono">
+      <div className="p-4 rounded-2xl bg-ink-950 border border-line flex items-center gap-1.5 overflow-x-auto text-xs font-mono">
         {types.map((t) => (
           <button
             key={t}
             onClick={() => setTypeFilter(t)}
             className={`px-3 py-1.5 rounded-xl whitespace-nowrap cursor-pointer ${
-              typeFilter === t ? 'bg-[#F7931A] text-gray-950 font-bold' : 'bg-gray-900 hover:bg-gray-800 text-gray-400 border border-gray-800'
+              typeFilter === t ? 'bg-gold-500 text-black font-bold' : 'bg-ink-850 hover:bg-ink-800 text-fg-muted border border-line'
             }`}
           >
             {t}
@@ -120,11 +120,11 @@ export const AdminTransactionsView: React.FC<AdminTransactionsViewProps> = ({ au
         ))}
       </div>
 
-      <div className="rounded-3xl bg-[#0F172A] border border-gray-800 overflow-hidden shadow-xl">
+      <div className="rounded-3xl bg-ink-950 border border-line overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-gray-900/90 text-gray-400 font-mono text-[11px] uppercase tracking-wider border-b border-gray-800">
+              <tr className="bg-ink-850/90 text-fg-muted font-mono text-[11px] uppercase tracking-wider border-b border-line">
                 <th className="py-3.5 px-4">Date</th>
                 <th className="py-3.5 px-3">Investor</th>
                 <th className="py-3.5 px-3">Type</th>
@@ -134,24 +134,24 @@ export const AdminTransactionsView: React.FC<AdminTransactionsViewProps> = ({ au
                 <th className="py-3.5 px-3">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/80 font-mono text-gray-300">
+            <tbody className="divide-y divide-line/80 font-mono text-fg-body">
               {filtered.map((t) => (
-                <tr key={t.id} className="hover:bg-gray-800/40">
-                  <td className="py-3 px-4 text-[11px] text-gray-400">{t.createdAt}</td>
+                <tr key={t.id} className="hover:bg-ink-800/40">
+                  <td className="py-3 px-4 text-[11px] text-fg-muted">{t.createdAt}</td>
                   <td className="py-3 px-3 font-sans font-semibold text-white">{t.investorName}</td>
                   <td className="py-3 px-3">{t.type}</td>
                   <td className={`py-3 px-3 text-right font-bold ${t.amountBtc >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                     {t.amountBtc >= 0 ? '+' : ''}{t.amountBtc} BTC
                   </td>
-                  <td className="py-3 px-3 text-right text-gray-300"><Money usd={t.amountUsd} /></td>
-                  <td className="py-3 px-3 text-gray-400">{t.network || '—'}</td>
+                  <td className="py-3 px-3 text-right text-fg-body"><Money usd={t.amountUsd} /></td>
+                  <td className="py-3 px-3 text-fg-muted">{t.network || '—'}</td>
                   <td className="py-3 px-3">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-800 text-gray-300">{t.status}</span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-ink-800 text-fg-body">{t.status}</span>
                   </td>
                 </tr>
               ))}
               {!isLoading && filtered.length === 0 && (
-                <tr><td colSpan={7} className="py-8 text-center text-gray-500 font-mono">No transactions found.</td></tr>
+                <tr><td colSpan={7} className="py-8 text-center text-fg-muted font-mono">No transactions found.</td></tr>
               )}
             </tbody>
           </table>
@@ -160,46 +160,46 @@ export const AdminTransactionsView: React.FC<AdminTransactionsViewProps> = ({ au
 
       {showCreate && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-[#0B1120] border border-gray-700 rounded-3xl shadow-2xl p-6 space-y-4 text-xs font-mono">
+          <div className="w-full max-w-lg bg-ink-900 border border-line-warm rounded-3xl shadow-2xl p-6 space-y-4 text-xs font-mono">
             <div className="flex items-center justify-between">
               <h3 className="text-white font-bold text-base font-sans">Record Capital Deposit</h3>
-              <button onClick={() => setShowCreate(false)} className="p-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white cursor-pointer">
+              <button onClick={() => setShowCreate(false)} className="p-1.5 rounded-lg bg-ink-800 text-fg-muted hover:text-white cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
             <select value={selectedInvestorId} onChange={(e) => setSelectedInvestorId(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white">
+              className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white">
               <option value="">Select investor...</option>
               {investors.map((inv) => <option key={inv.userId} value={inv.userId}>{inv.name} ({inv.username})</option>)}
             </select>
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
-                <span className="text-gray-400 text-[10px] uppercase block mb-1">Amount (USD)</span>
+                <span className="text-fg-muted text-[10px] uppercase block mb-1">Amount (USD)</span>
                 <input type="text" inputMode="decimal" value={depositUsd} onChange={(e) => setDepositUsd(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
+                  className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
               </label>
               <label className="block">
-                <span className="text-gray-400 text-[10px] uppercase block mb-1">Amount (BTC, optional)</span>
+                <span className="text-fg-muted text-[10px] uppercase block mb-1">Amount (BTC, optional)</span>
                 <input type="text" inputMode="decimal" value={depositBtc} onChange={(e) => setDepositBtc(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
+                  className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
               </label>
             </div>
             <label className="block">
-              <span className="text-gray-400 text-[10px] uppercase block mb-1">USDT Network</span>
+              <span className="text-fg-muted text-[10px] uppercase block mb-1">USDT Network</span>
               <select value={depositNetwork} onChange={(e) => setDepositNetwork(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white">
+                className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white">
                 <option value="TRC20">TRC20 (Tron)</option>
                 <option value="ERC20">ERC20 (Ethereum)</option>
                 <option value="BEP20">BEP20 (BNB Smart Chain)</option>
               </select>
             </label>
             <input placeholder="Note (e.g. bank wire reference)" value={depositNote} onChange={(e) => setDepositNote(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white" />
-            <p className="text-[10px] text-gray-500">This records the deposit in the wallet ledger. Update the investor's Total Investment figure separately in Investor Management if needed.</p>
+              className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
+            <p className="text-[10px] text-fg-muted">This records the deposit in the wallet ledger. Update the investor's Total Investment figure separately in Investor Management if needed.</p>
             <button
               onClick={handleRecordDeposit}
               disabled={isSaving}
-              className="w-full py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSaving ? <RotateCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               <span>Record Deposit</span>

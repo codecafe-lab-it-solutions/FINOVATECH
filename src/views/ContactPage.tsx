@@ -10,7 +10,7 @@ interface ContactPageProps {
 
 export const ContactPage: React.FC<ContactPageProps> = ({ onNavigate }) => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-ink-950">
       <PageHeader
         category="Corporate Inquiries"
         badge="Institutional Communications Desk"

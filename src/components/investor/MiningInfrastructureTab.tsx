@@ -14,49 +14,49 @@ export const MiningInfrastructureTab: React.FC<MiningInfrastructureTabProps> = (
 
   return (
     <div className="space-y-6 animate-in fade-in">
-      <div className="p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-ink-850 border border-line text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800 border border-gray-700 text-xs font-mono text-emerald-400">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ink-800 border border-line-warm text-xs font-mono text-emerald-400">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span>MUSCAT DATA CENTER MCT-01</span>
           </div>
           <h2 className="text-2xl font-extrabold text-white mt-2">Pod & Miner Fleet</h2>
-          <p className="text-xs text-gray-400 font-mono mt-0.5">
+          <p className="text-xs text-fg-muted font-mono mt-0.5">
             Machines assigned to your account, live from the database — {machines.length} unit{machines.length === 1 ? '' : 's'}.
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 text-white">
-          <div className="text-gray-400 text-[11px] uppercase">Your Machines</div>
+        <div className="p-4 rounded-2xl bg-ink-850/90 border border-line text-white">
+          <div className="text-fg-muted text-[11px] uppercase">Your Machines</div>
           <div className="text-xl font-extrabold text-white mt-1">{machines.length}</div>
           <div className="text-[10px] text-emerald-400 mt-0.5">{onlineCount} Online</div>
         </div>
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 text-white">
-          <div className="text-gray-400 text-[11px] uppercase">Your Hashrate</div>
-          <div className="text-xl font-extrabold text-[#F7931A] mt-1">{totalHashrate.toFixed(1)} TH/s</div>
+        <div className="p-4 rounded-2xl bg-ink-850/90 border border-line text-white">
+          <div className="text-fg-muted text-[11px] uppercase">Your Hashrate</div>
+          <div className="text-xl font-extrabold text-gold-500 mt-1">{totalHashrate.toFixed(1)} TH/s</div>
         </div>
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 text-white">
-          <div className="text-gray-400 text-[11px] uppercase">Power Draw</div>
+        <div className="p-4 rounded-2xl bg-ink-850/90 border border-line text-white">
+          <div className="text-fg-muted text-[11px] uppercase">Power Draw</div>
           <div className="text-xl font-extrabold text-white mt-1">{(totalPower / 1000).toFixed(2)} kW</div>
         </div>
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 text-white">
-          <div className="text-gray-400 text-[11px] uppercase">Avg Uptime</div>
+        <div className="p-4 rounded-2xl bg-ink-850/90 border border-line text-white">
+          <div className="text-fg-muted text-[11px] uppercase">Avg Uptime</div>
           <div className="text-xl font-extrabold text-emerald-400 mt-1">{avgUptime.toFixed(1)}%</div>
         </div>
       </div>
 
-      <div className="p-6 rounded-3xl bg-gray-900/90 border border-gray-800 text-white space-y-4">
-        <div className="flex items-center gap-2 border-b border-gray-800 pb-3">
-          <Gauge className="w-4 h-4 text-[#F7931A]" />
+      <div className="p-6 rounded-3xl bg-ink-850/90 border border-line text-white space-y-4">
+        <div className="flex items-center gap-2 border-b border-line pb-3">
+          <Gauge className="w-4 h-4 text-gold-500" />
           <span className="text-sm font-bold uppercase tracking-wider font-mono">Your Allocated Compute</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-gray-800 text-gray-400 uppercase text-[10px]">
+              <tr className="border-b border-line text-fg-muted uppercase text-[10px]">
                 <th className="pb-3 px-3">Pod</th>
                 <th className="pb-3 px-3">Model</th>
                 <th className="pb-3 px-3">Hashrate</th>
@@ -67,21 +67,21 @@ export const MiningInfrastructureTab: React.FC<MiningInfrastructureTabProps> = (
                 <th className="pb-3 px-3 text-right">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/60">
+            <tbody className="divide-y divide-line/60">
               {machines.map((m) => (
-                <tr key={m.id} className="hover:bg-gray-800/40 transition-colors">
-                  <td className="py-3 px-3 text-gray-300 whitespace-nowrap">{m.podId || '—'}</td>
+                <tr key={m.id} className="hover:bg-ink-800/40 transition-colors">
+                  <td className="py-3 px-3 text-fg-body whitespace-nowrap">{m.podId || '—'}</td>
                   <td className="py-3 px-3 text-white font-bold whitespace-nowrap">{m.model}</td>
-                  <td className="py-3 px-3 text-[#F7931A] font-bold whitespace-nowrap">{m.hashrateTh} TH/s</td>
-                  <td className="py-3 px-3 text-gray-300 whitespace-nowrap">{m.powerDrawWatts} W</td>
+                  <td className="py-3 px-3 text-gold-500 font-bold whitespace-nowrap">{m.hashrateTh} TH/s</td>
+                  <td className="py-3 px-3 text-fg-body whitespace-nowrap">{m.powerDrawWatts} W</td>
                   <td className="py-3 px-3 whitespace-nowrap">
-                    <span className={m.tempCelsius > 65 ? 'text-amber-400' : 'text-emerald-400'}>{m.tempCelsius}°C</span>
+                    <span className={m.tempCelsius > 65 ? 'text-gold-200' : 'text-emerald-400'}>{m.tempCelsius}°C</span>
                   </td>
-                  <td className="py-3 px-3 text-gray-300 whitespace-nowrap">{m.pool || '—'}</td>
+                  <td className="py-3 px-3 text-fg-body whitespace-nowrap">{m.pool || '—'}</td>
                   <td className="py-3 px-3 text-emerald-400 font-bold whitespace-nowrap">{m.uptimePercent}%</td>
                   <td className="py-3 px-3 text-right whitespace-nowrap">
                     <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded border ${
-                      m.status === 'Online' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                      m.status === 'Online' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-gold-500/10 text-gold-200 border-gold-500/20'
                     }`}>
                       {m.status === 'Online' ? <CheckCircle2 className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
                       <span>{m.status}</span>
@@ -90,7 +90,7 @@ export const MiningInfrastructureTab: React.FC<MiningInfrastructureTabProps> = (
                 </tr>
               ))}
               {machines.length === 0 && (
-                <tr><td colSpan={8} className="py-8 text-center text-gray-500">No machines assigned to your account yet.</td></tr>
+                <tr><td colSpan={8} className="py-8 text-center text-fg-muted">No machines assigned to your account yet.</td></tr>
               )}
             </tbody>
           </table>

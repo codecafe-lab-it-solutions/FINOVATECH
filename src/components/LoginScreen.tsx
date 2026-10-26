@@ -122,11 +122,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   };
 
   return (
-    <div id="finovateck-login-screen" className="min-h-screen bg-[#070B14] text-white flex flex-col justify-between pt-8 pb-10 px-4 sm:px-6 relative overflow-hidden font-sans">
+    <div id="finovateck-login-screen" className="min-h-screen bg-ink-950 text-white flex flex-col justify-between pt-8 pb-10 px-4 sm:px-6 relative overflow-hidden font-sans">
 
       {/* Background ambient lighting */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#F7931A]/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-96 h-96 bg-gold-500/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Top Bar Navigation */}
       <div className="w-full max-w-5xl mx-auto flex items-center justify-between z-10">
@@ -140,10 +140,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             className="w-44 h-11 sm:w-[216px] sm:h-12 object-cover rounded-md bg-black shrink-0"
           />
           <div className="sr-only">
-            <span className="text-sm sm:text-base font-extrabold tracking-tight text-white group-hover:text-[#F7931A] transition-colors block font-mono">
+            <span className="text-sm sm:text-base font-extrabold tracking-tight text-white group-hover:text-gold-500 transition-colors block font-mono">
               FINOVATECK
             </span>
-            <span className="text-[9px] sm:text-[10px] font-mono text-gray-400 uppercase tracking-wider block">
+            <span className="text-[9px] sm:text-[10px] font-mono text-fg-muted uppercase tracking-wider block">
               MINING COMPANY • SULTANATE OF OMAN
             </span>
           </div>
@@ -151,7 +151,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
         <button
           onClick={onNavigateHome}
-          className="text-xs font-mono text-gray-400 hover:text-white px-3.5 py-1.5 rounded-xl bg-gray-900 border border-gray-800 hover:border-gray-700 transition-colors cursor-pointer"
+          className="text-xs font-mono text-fg-muted hover:text-white px-3.5 py-1.5 rounded-xl bg-ink-850 border border-line hover:border-gold-700/60 transition-colors cursor-pointer"
         >
           ← Return to Website
         </button>
@@ -162,14 +162,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
         {/* Institutional Pill */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-900 border border-gray-800 shadow-md text-[11px] font-mono text-gray-300">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ink-850 border border-line shadow-md text-[11px] font-mono text-fg-body">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span>SECURE LOGIN</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-3">
             {mode === 'register' ? 'Create Account' : mode === 'forgot' ? 'Reset Password' : 'Login'}
           </h1>
-          <p className="text-xs sm:text-sm text-gray-400 mt-1 max-w-xs mx-auto">
+          <p className="text-xs sm:text-sm text-fg-muted mt-1 max-w-xs mx-auto">
             {mode === 'register'
               ? 'Set up your own investor username and password.'
               : mode === 'forgot'
@@ -183,7 +183,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         </div>
 
         {/* Login / Register / Forgot Password Form Container */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-[#0F172A] border border-gray-800 shadow-2xl backdrop-blur-xl">
+        <div className="p-6 sm:p-8 rounded-3xl bg-ink-950 border border-line shadow-2xl backdrop-blur-xl">
 
           {error && (
             <div className="mb-5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2 font-mono">
@@ -196,15 +196,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <>
               {forgotStep === 'request' && (
                 <form onSubmit={handleRequestOtp} className="space-y-4">
-                  <label className="block text-xs text-gray-400">Username (required if your email is shared by multiple accounts)
-                    <input aria-label="Password reset username" value={forgotUsername} onChange={e=>setForgotUsername(e.target.value)} placeholder="Your username" className="w-full mt-2 px-3 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white" />
+                  <label className="block text-xs text-fg-muted">Username (required if your email is shared by multiple accounts)
+                    <input aria-label="Password reset username" value={forgotUsername} onChange={e=>setForgotUsername(e.target.value)} placeholder="Your username" className="w-full mt-2 px-3 py-3 rounded-xl bg-ink-950 border border-line text-white" />
                   </label>
                   <div>
-                    <label className="block text-xs font-mono font-semibold uppercase text-gray-400 mb-1.5">
+                    <label className="block text-xs font-mono font-semibold uppercase text-fg-muted mb-1.5">
                       Registered Email
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-fg-muted">
                         <Mail className="w-4 h-4" />
                       </div>
                       <input
@@ -213,7 +213,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
                         placeholder="you@example.com"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A] transition-all font-mono"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-mono"
                       />
                     </div>
                   </div>
@@ -221,11 +221,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-3.5 px-4 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-sm tracking-wide transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2 min-h-[48px] font-mono"
+                    className="w-full py-3.5 px-4 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-sm tracking-wide transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2 min-h-[48px] font-mono"
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-gray-950 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-line border-t-transparent rounded-full animate-spin"></div>
                         <span>Sending Code...</span>
                       </div>
                     ) : (
@@ -247,7 +247,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   )}
 
                   <div>
-                    <label className="block text-xs font-mono font-semibold uppercase text-gray-400 mb-1.5">
+                    <label className="block text-xs font-mono font-semibold uppercase text-fg-muted mb-1.5">
                       Reset Code
                     </label>
                     <input
@@ -257,16 +257,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       value={forgotOtp}
                       onChange={(e) => setForgotOtp(e.target.value)}
                       placeholder="6-digit code"
-                      className="w-full px-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-500 text-sm text-center tracking-[0.3em] font-mono focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A] transition-all"
+                      className="w-full px-4 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm text-center tracking-[0.3em] font-mono focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono font-semibold uppercase text-gray-400 mb-1.5">
+                    <label className="block text-xs font-mono font-semibold uppercase text-fg-muted mb-1.5">
                       New Password
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-fg-muted">
                         <Lock className="w-4 h-4" />
                       </div>
                       <input
@@ -275,12 +275,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                         value={forgotNewPassword}
                         onChange={(e) => setForgotNewPassword(e.target.value)}
                         placeholder="At least 5 characters"
-                        className="w-full pl-10 pr-11 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A] transition-all font-mono"
+                        className="w-full pl-10 pr-11 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-mono"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-300 focus:outline-hidden cursor-pointer"
+                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-fg-muted hover:text-fg-body focus:outline-hidden cursor-pointer"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -288,7 +288,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono font-semibold uppercase text-gray-400 mb-1.5">
+                    <label className="block text-xs font-mono font-semibold uppercase text-fg-muted mb-1.5">
                       Confirm New Password
                     </label>
                     <input
@@ -297,18 +297,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       value={forgotConfirmPassword}
                       onChange={(e) => setForgotConfirmPassword(e.target.value)}
                       placeholder="Re-enter your new password"
-                      className="w-full px-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A] transition-all font-mono"
+                      className="w-full px-4 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-mono"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-3.5 px-4 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-sm tracking-wide transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2 min-h-[48px] font-mono"
+                    className="w-full py-3.5 px-4 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-sm tracking-wide transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2 min-h-[48px] font-mono"
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-gray-950 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-4 h-4 border-2 border-line border-t-transparent rounded-full animate-spin"></div>
                         <span>Resetting Password...</span>
                       </div>
                     ) : (
@@ -327,13 +327,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
                   <h4 className="text-base font-bold text-white">Password Reset</h4>
-                  <p className="text-gray-300 text-xs font-mono">
+                  <p className="text-fg-body text-xs font-mono">
                     Your password has been changed. You can now sign in with your new password.
                   </p>
                   <button
                     type="button"
                     onClick={() => switchMode('login')}
-                    className="w-full py-3 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-sm cursor-pointer mt-2"
+                    className="w-full py-3 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-sm cursor-pointer mt-2"
                   >
                     Back to Sign In
                   </button>
@@ -344,7 +344,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 <button
                   type="button"
                   onClick={() => switchMode('login')}
-                  className="mt-5 w-full flex items-center justify-center gap-1.5 text-xs font-mono text-gray-400 hover:text-white cursor-pointer"
+                  className="mt-5 w-full flex items-center justify-center gap-1.5 text-xs font-mono text-fg-muted hover:text-white cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>Back to Sign In</span>
@@ -356,11 +356,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
               {mode === 'register' && (
                 <div>
-                  <label className="block text-xs font-mono font-semibold uppercase text-gray-400 mb-1.5">
+                  <label className="block text-xs font-mono font-semibold uppercase text-fg-muted mb-1.5">
                     Full Name
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-fg-muted">
                       <User className="w-4 h-4" />
                     </div>
                     <input
@@ -370,7 +370,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Your full name"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A] transition-all font-mono"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-mono"
                     />
                   </div>
                 </div>
@@ -378,11 +378,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
               {mode === 'register' && (
                 <div>
-                  <label className="block text-xs font-mono font-semibold uppercase text-gray-400 mb-1.5">
+                  <label className="block text-xs font-mono font-semibold uppercase text-fg-muted mb-1.5">
                     Email Address
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-fg-muted">
                       <Mail className="w-4 h-4" />
                     </div>
                     <input
@@ -392,10 +392,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A] transition-all font-mono"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-mono"
                     />
                   </div>
-                  <p className="text-[10px] text-gray-500 mt-1 font-mono">
+                  <p className="text-[10px] text-fg-muted mt-1 font-mono">
                     Used for account confirmation and password resets.
                   </p>
                 </div>
@@ -403,11 +403,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
               {/* Username Input */}
               <div>
-                <label className="block text-xs font-mono font-semibold uppercase text-gray-400 mb-1.5">
+                <label className="block text-xs font-mono font-semibold uppercase text-fg-muted mb-1.5">
                   Username / Investor ID
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-fg-muted">
                     <User className="w-4 h-4" />
                   </div>
                   <input
@@ -417,7 +417,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     placeholder={mode === 'register' ? 'Choose a username' : 'Enter your username'}
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A] transition-all font-mono"
+                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-mono"
                   />
                 </div>
               </div>
@@ -425,13 +425,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               {/* Password Input */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-mono font-semibold uppercase text-gray-400">
+                  <label className="block text-xs font-mono font-semibold uppercase text-fg-muted">
                     Password
                   </label>
-                  <span className="text-[11px] text-gray-500 font-mono">Encrypted</span>
+                  <span className="text-[11px] text-fg-muted font-mono">Encrypted</span>
                 </div>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-fg-muted">
                     <Lock className="w-4 h-4" />
                   </div>
                   <input
@@ -441,12 +441,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={mode === 'register' ? 'At least 5 characters' : '••••••••'}
-                    className="w-full pl-10 pr-11 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A] transition-all font-mono"
+                    className="w-full pl-10 pr-11 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-300 focus:outline-hidden cursor-pointer"
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-fg-muted hover:text-fg-body focus:outline-hidden cursor-pointer"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -456,7 +456,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     <button
                       type="button"
                       onClick={() => switchMode('forgot')}
-                      className="text-[11px] font-mono text-gray-400 hover:text-[#F7931A] cursor-pointer"
+                      className="text-[11px] font-mono text-fg-muted hover:text-gold-500 cursor-pointer"
                     >
                       Forgot Password?
                     </button>
@@ -466,11 +466,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
               {mode === 'register' && (
                 <div>
-                  <label className="block text-xs font-mono font-semibold uppercase text-gray-400 mb-1.5">
+                  <label className="block text-xs font-mono font-semibold uppercase text-fg-muted mb-1.5">
                     Confirm Password
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-fg-muted">
                       <Lock className="w-4 h-4" />
                     </div>
                     <input
@@ -480,7 +480,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter your password"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A] transition-all font-mono"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-mono"
                     />
                   </div>
                 </div>
@@ -488,7 +488,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
               {mode === 'register' && (
                 <div>
-                  <label className="block text-xs font-mono font-semibold uppercase text-gray-400 mb-1.5">
+                  <label className="block text-xs font-mono font-semibold uppercase text-fg-muted mb-1.5">
                     Referral Code (optional)
                   </label>
                   <input
@@ -497,19 +497,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     value={referralCode}
                     onChange={(e) => setReferralCode(e.target.value)}
                     placeholder="e.g. FINO-XXXXXXXX"
-                    className="w-full px-4 py-3 rounded-xl bg-gray-950 border border-gray-800 text-white placeholder-gray-500 text-sm focus:outline-hidden focus:border-[#F7931A] focus:ring-1 focus:ring-[#F7931A] transition-all font-mono"
+                    className="w-full px-4 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-mono"
                   />
                 </div>
               )}
 
               {/* Remember Me */}
               <div className="flex items-center justify-between text-xs pt-1">
-                <label className="flex items-center gap-2 cursor-pointer text-gray-400 hover:text-gray-200">
+                <label className="flex items-center gap-2 cursor-pointer text-fg-muted hover:text-fg-body">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-700 bg-gray-950 text-[#F7931A] focus:ring-[#F7931A] focus:ring-offset-gray-900"
+                    className="w-4 h-4 rounded border-line-warm bg-ink-950 text-gold-500 focus:ring-gold-500 focus:ring-offset-ink-900"
                   />
                   <span>Remember session</span>
                 </label>
@@ -520,11 +520,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                 id="login-submit-btn"
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 px-4 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-sm tracking-wide transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-4 min-h-[48px] font-mono"
+                className="w-full py-3.5 px-4 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-sm tracking-wide transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-4 min-h-[48px] font-mono"
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-gray-950 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border-2 border-line border-t-transparent rounded-full animate-spin"></div>
                     <span>{mode === 'register' ? 'Creating Account...' : 'Authenticating Session...'}</span>
                   </div>
                 ) : (
@@ -540,26 +540,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
           {/* Mode Toggle */}
           {mode !== 'forgot' && (
-            <div className="mt-5 text-center text-xs font-mono text-gray-400">
+            <div className="mt-5 text-center text-xs font-mono text-fg-muted">
               {mode === 'register' ? (
                 <span>
                   Already have an account?{' '}
                   <button
                     type="button"
                     onClick={() => switchMode('login')}
-                    className="text-[#F7931A] hover:underline cursor-pointer font-semibold"
+                    className="text-gold-500 hover:underline cursor-pointer font-semibold"
                   >
                     Sign in
                   </button>
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5">
-                  <UserPlus className="w-3.5 h-3.5 text-gray-500" />
+                  <UserPlus className="w-3.5 h-3.5 text-fg-muted" />
                   New investor?{' '}
                   <button
                     type="button"
                     onClick={() => switchMode('register')}
-                    className="text-[#F7931A] hover:underline cursor-pointer font-semibold"
+                    className="text-gold-500 hover:underline cursor-pointer font-semibold"
                   >
                     Create an account
                   </button>
@@ -569,9 +569,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           )}
 
           {/* Security Guarantee Footer */}
-          <div className="mt-6 pt-5 border-t border-gray-800/80 text-center">
-            <div className="text-[11px] text-gray-500 flex items-center justify-center gap-1.5 font-mono">
-              <Building2 className="w-3.5 h-3.5 text-gray-400" />
+          <div className="mt-6 pt-5 border-t border-line/80 text-center">
+            <div className="text-[11px] text-fg-muted flex items-center justify-center gap-1.5 font-mono">
+              <Building2 className="w-3.5 h-3.5 text-fg-muted" />
               <span>FINOVATECK Mining Company S.A.O.C • Muscat</span>
             </div>
           </div>
@@ -581,7 +581,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       </div>
 
       {/* Footer Info */}
-      <div className="w-full max-w-5xl mx-auto text-center text-xs text-gray-500 font-mono z-10">
+      <div className="w-full max-w-5xl mx-auto text-center text-xs text-fg-muted font-mono z-10">
         Passwords are hashed and sessions are secured with signed tokens.
       </div>
 

@@ -50,7 +50,7 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0F172A] border-b border-gray-800 text-white">
+    <header className="sticky top-0 z-40 bg-ink-950 border-b border-line text-white">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
@@ -58,7 +58,7 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
           <div className="flex items-center gap-3">
             <button
               onClick={onToggleMobileSidebar}
-              className="lg:hidden p-2 rounded-lg bg-gray-800 text-gray-300 hover:text-white hover:bg-gray-700 focus:outline-hidden cursor-pointer"
+              className="lg:hidden p-2 rounded-lg bg-ink-800 text-fg-body hover:text-white hover:bg-ink-700 focus:outline-hidden cursor-pointer"
               aria-label="Toggle Navigation Sidebar"
             >
               {isMobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -75,11 +75,11 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
                   <span className="text-sm font-extrabold tracking-tight text-white">
                     FINOVATECK
                   </span>
-                  <span className="hidden sm:inline px-1.5 py-0.5 rounded bg-[#F7931A]/20 text-[#F7931A] text-[9px] font-mono font-bold uppercase tracking-wider">
+                  <span className="hidden sm:inline px-1.5 py-0.5 rounded bg-gold-500/20 text-gold-500 text-[9px] font-mono font-bold uppercase tracking-wider">
                     INVESTOR PORTAL
                   </span>
                 </div>
-                <span className="text-[10px] text-gray-400 font-mono hidden sm:inline-block">
+                <span className="text-[10px] text-fg-muted font-mono hidden sm:inline-block">
                   Node: Muscat MCT-01
                 </span>
               </div>
@@ -87,22 +87,22 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
           </div>
 
           {/* Center: Live Bitcoin Price Badge */}
-          <div className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-gray-900/90 border border-gray-800 text-xs font-mono">
-            <div className="flex items-center gap-1.5 text-amber-400 font-bold">
-              <span className="w-2 h-2 rounded-full bg-[#F7931A] animate-pulse" />
+          <div className="hidden md:flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-ink-850/90 border border-line text-xs font-mono">
+            <div className="flex items-center gap-1.5 text-gold-200 font-bold">
+              <span className="w-2 h-2 rounded-full bg-gold-500 animate-pulse" />
               <span>BTC price: {btcMarket ? formatMoney(btcMarket.usd) : 'Loading...'}</span>
             </div>
             {btcMarket && (
               <>
-                <span className="text-gray-600">|</span>
+                <span className="text-fg-muted">|</span>
                 <span className={`flex items-center gap-0.5 ${btcMarket.change24hPercent >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                   <TrendingUp className={`w-3 h-3 ${btcMarket.change24hPercent < 0 ? 'rotate-180' : ''}`} />
                   {btcMarket.change24hPercent >= 0 ? '+' : ''}{btcMarket.change24hPercent}% (24h)
                 </span>
                 {btcMarket.difficultyT > 0 && (
                   <>
-                    <span className="text-gray-600">|</span>
-                    <span className="text-gray-400">Diff: {btcMarket.difficultyT} T</span>
+                    <span className="text-fg-muted">|</span>
+                    <span className="text-fg-muted">Diff: {btcMarket.difficultyT} T</span>
                   </>
                 )}
               </>
@@ -118,25 +118,25 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
               aria-label={`Wallet: ${walletBalanceBtc} BTC`}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-colors cursor-pointer ${
                 currentTab === 'wallet'
-                  ? 'bg-[#F7931A] text-gray-950 font-bold'
-                  : 'bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700'
+                  ? 'bg-gold-500 text-black font-bold'
+                  : 'bg-ink-800 hover:bg-ink-700 text-fg-body border border-line-warm'
               }`}
             >
               <Wallet className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Wallet:</span>
-              <span className="hidden sm:inline text-[#F7931A] group-hover:text-amber-400 font-bold">{walletBalanceBtc} BTC</span>
+              <span className="hidden sm:inline text-gold-500 group-hover:text-gold-200 font-bold">{walletBalanceBtc} BTC</span>
             </button>
 
             {/* Notification Bell with Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 transition-colors cursor-pointer"
+                className="relative p-2 rounded-xl bg-ink-800 hover:bg-ink-700 text-fg-body hover:text-white border border-line-warm transition-colors cursor-pointer"
                 aria-label="View Notifications"
               >
                 <Bell className="w-4 h-4" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#F7931A] text-gray-950 text-[10px] font-bold flex items-center justify-center animate-pulse font-mono">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gold-500 text-black text-[10px] font-bold flex items-center justify-center animate-pulse font-mono">
                     {unreadCount}
                   </span>
                 )}
@@ -144,13 +144,13 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
 
               {/* Notification Popover Dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-gray-900 border border-gray-800 shadow-2xl z-50 p-4 animate-in fade-in">
-                  <div className="flex items-center justify-between pb-3 border-b border-gray-800">
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl bg-ink-850 border border-line shadow-2xl z-50 p-4 animate-in fade-in">
+                  <div className="flex items-center justify-between pb-3 border-b border-line">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-white uppercase tracking-wider font-mono">
                         Investor Notifications
                       </span>
-                      <span className="px-1.5 py-0.5 rounded-full bg-[#F7931A]/20 text-[#F7931A] text-[10px] font-mono font-bold">
+                      <span className="px-1.5 py-0.5 rounded-full bg-gold-500/20 text-gold-500 text-[10px] font-mono font-bold">
                         {unreadCount} New
                       </span>
                     </div>
@@ -159,35 +159,35 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
                         setShowNotifications(false);
                         onSelectTab('notifications');
                       }}
-                      className="text-[11px] text-[#F7931A] hover:underline font-mono cursor-pointer"
+                      className="text-[11px] text-gold-500 hover:underline font-mono cursor-pointer"
                     >
                       View All →
                     </button>
                   </div>
 
-                  <div className="divide-y divide-gray-800/80 max-h-72 overflow-y-auto mt-2 space-y-1">
+                  <div className="divide-y divide-line/80 max-h-72 overflow-y-auto mt-2 space-y-1">
                     {notifications.slice(0, 3).map((item) => (
-                      <div key={item.id} className="py-2.5 px-2 hover:bg-gray-800/50 rounded-lg transition-colors">
-                        <div className="flex items-center justify-between text-[11px] text-gray-400 font-mono mb-1">
-                          <span className="text-[#F7931A] font-semibold uppercase">{item.type}</span>
+                      <div key={item.id} className="py-2.5 px-2 hover:bg-ink-800/50 rounded-lg transition-colors">
+                        <div className="flex items-center justify-between text-[11px] text-fg-muted font-mono mb-1">
+                          <span className="text-gold-500 font-semibold uppercase">{item.type}</span>
                           <span>{item.createdAt}</span>
                         </div>
                         <div className="text-xs font-semibold text-white">{item.title}</div>
-                        <p className="text-[11px] text-gray-400 line-clamp-2 mt-0.5">{item.message}</p>
+                        <p className="text-[11px] text-fg-muted line-clamp-2 mt-0.5">{item.message}</p>
                       </div>
                     ))}
                     {notifications.length === 0 && (
-                      <div className="py-6 text-center text-[11px] text-gray-500">No notifications yet.</div>
+                      <div className="py-6 text-center text-[11px] text-fg-muted">No notifications yet.</div>
                     )}
                   </div>
 
-                  <div className="pt-3 mt-2 border-t border-gray-800 text-center">
+                  <div className="pt-3 mt-2 border-t border-line text-center">
                     <button
                       onClick={() => {
                         setShowNotifications(false);
                         onSelectTab('notifications');
                       }}
-                      className="w-full py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs font-mono text-gray-200 transition-colors cursor-pointer"
+                      className="w-full py-2 rounded-lg bg-ink-800 hover:bg-ink-700 text-xs font-mono text-fg-body transition-colors cursor-pointer"
                     >
                       Open Notification Center
                     </button>
@@ -199,10 +199,10 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
             {/* Back to Website Button */}
             <button
               onClick={onNavigateWebsite}
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-800/70 hover:bg-gray-700 text-gray-300 hover:text-white border border-gray-700 text-xs font-mono transition-colors cursor-pointer"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-ink-800/70 hover:bg-ink-700 text-fg-body hover:text-white border border-line-warm text-xs font-mono transition-colors cursor-pointer"
               title="Return to Public Website"
             >
-              <Globe className="w-3.5 h-3.5 text-[#F7931A]" />
+              <Globe className="w-3.5 h-3.5 text-gold-500" />
               <span>Public Site</span>
             </button>
 
@@ -210,9 +210,9 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
             <div className="relative">
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 rounded-xl bg-gray-800/90 hover:bg-gray-700 border border-gray-700 transition-colors cursor-pointer"
+                className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1 rounded-xl bg-ink-800/90 hover:bg-ink-700 border border-line-warm transition-colors cursor-pointer"
               >
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-500 to-amber-700 text-gray-950 font-bold text-xs flex items-center justify-center shadow-inner">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-gold-400 to-gold-700 text-black font-bold text-xs flex items-center justify-center shadow-inner">
                   TA
                 </div>
                 <div className="text-left hidden sm:block">
@@ -224,21 +224,21 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
                       ? 'text-emerald-400'
                       : user.kycStatus === 'Action Required'
                         ? 'text-rose-400'
-                        : 'text-amber-400'
+                        : 'text-gold-200'
                   }`}>
                     KYC {user.kycStatus}
                   </div>
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 text-gray-400 hidden sm:block" />
+                <ChevronDown className="w-3.5 h-3.5 text-fg-muted hidden sm:block" />
               </button>
 
               {/* User Menu Dropdown */}
               {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-gray-900 border border-gray-800 shadow-2xl z-50 p-2 animate-in fade-in">
-                  <div className="px-3 py-2 border-b border-gray-800">
+                <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-ink-850 border border-line shadow-2xl z-50 p-2 animate-in fade-in">
+                  <div className="px-3 py-2 border-b border-line">
                     <div className="text-xs font-bold text-white">{user.name}</div>
-                    <div className="text-[10px] font-mono text-gray-400 mt-0.5">{user.id}</div>
-                    <div className="text-[10px] font-mono text-[#F7931A] mt-0.5">{user.plan}</div>
+                    <div className="text-[10px] font-mono text-fg-muted mt-0.5">{user.id}</div>
+                    <div className="text-[10px] font-mono text-gold-500 mt-0.5">{user.plan}</div>
                   </div>
 
                   <div className="py-1 space-y-0.5">
@@ -247,9 +247,9 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
                         setShowUserMenu(false);
                         onSelectTab('profile');
                       }}
-                      className="w-full text-left px-3 py-2 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-gray-800 flex items-center gap-2 transition-colors cursor-pointer font-mono"
+                      className="w-full text-left px-3 py-2 rounded-lg text-xs text-fg-body hover:text-white hover:bg-ink-800 flex items-center gap-2 transition-colors cursor-pointer font-mono"
                     >
-                      <User className="w-3.5 h-3.5 text-gray-400" />
+                      <User className="w-3.5 h-3.5 text-fg-muted" />
                       <span>Investor Profile</span>
                     </button>
 
@@ -258,7 +258,7 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
                         setShowUserMenu(false);
                         onSelectTab('security');
                       }}
-                      className="w-full text-left px-3 py-2 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-gray-800 flex items-center gap-2 transition-colors cursor-pointer font-mono"
+                      className="w-full text-left px-3 py-2 rounded-lg text-xs text-fg-body hover:text-white hover:bg-ink-800 flex items-center gap-2 transition-colors cursor-pointer font-mono"
                     >
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                       <span>Security Center</span>
@@ -269,14 +269,14 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
                         setShowUserMenu(false);
                         onNavigateWebsite();
                       }}
-                      className="w-full text-left px-3 py-2 rounded-lg text-xs text-gray-300 hover:text-white hover:bg-gray-800 flex items-center gap-2 transition-colors cursor-pointer font-mono lg:hidden"
+                      className="w-full text-left px-3 py-2 rounded-lg text-xs text-fg-body hover:text-white hover:bg-ink-800 flex items-center gap-2 transition-colors cursor-pointer font-mono lg:hidden"
                     >
-                      <Globe className="w-3.5 h-3.5 text-[#F7931A]" />
+                      <Globe className="w-3.5 h-3.5 text-gold-500" />
                       <span>Return to Public Site</span>
                     </button>
                   </div>
 
-                  <div className="pt-1 mt-1 border-t border-gray-800">
+                  <div className="pt-1 mt-1 border-t border-line">
                     <button
                       onClick={() => {
                         setShowUserMenu(false);

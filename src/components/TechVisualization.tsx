@@ -87,10 +87,10 @@ export const TechVisualization: React.FC = () => {
   const activeStage = pipelineStages[activeStageIndex];
 
   return (
-    <section id="technology-visualization-section" className="py-20 lg:py-28 bg-[#0F172A] text-white border-b border-gray-800 relative overflow-hidden">
+    <section id="technology-visualization-section" className="py-20 lg:py-28 bg-ink-950 text-white border-b border-line relative overflow-hidden">
       
       {/* Background ambient lighting */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#F7931A]/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-gold-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
@@ -98,15 +98,15 @@ export const TechVisualization: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 lg:mb-16 gap-6">
           <div className="max-w-2xl space-y-3">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#F7931A]"></span>
-              <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#F7931A]">
+              <span className="w-2 h-2 rounded-full bg-gold-500"></span>
+              <span className="text-xs font-mono font-semibold uppercase tracking-widest text-gold-500">
                 Interactive Simulation
               </span>
             </div>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
               Technology & Infrastructure Pipeline
             </h2>
-            <p className="text-base text-gray-400">
+            <p className="text-base text-fg-muted">
               Visualizing the end-to-end operational flow from ASIC silicon computation in Muscat to global Bitcoin network consensus.
             </p>
           </div>
@@ -115,9 +115,9 @@ export const TechVisualization: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-xs font-mono text-gray-300 transition-colors cursor-pointer border border-gray-700"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-ink-800 hover:bg-ink-700 text-xs font-mono text-fg-body transition-colors cursor-pointer border border-line-warm"
             >
-              {isPlaying ? <Pause className="w-3.5 h-3.5 text-[#F7931A]" /> : <Play className="w-3.5 h-3.5 text-emerald-400" />}
+              {isPlaying ? <Pause className="w-3.5 h-3.5 text-gold-500" /> : <Play className="w-3.5 h-3.5 text-emerald-400" />}
               <span>{isPlaying ? 'Pause Auto-Cycle' : 'Resume Auto-Cycle'}</span>
             </button>
           </div>
@@ -138,27 +138,27 @@ export const TechVisualization: React.FC = () => {
                 }}
                 className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between relative ${
                   isActive
-                    ? 'bg-gray-900 border-[#F7931A] text-white shadow-lg ring-1 ring-[#F7931A]/30'
-                    : 'bg-gray-950/70 border-gray-800 text-gray-400 hover:bg-gray-900/80 hover:border-gray-700'
+                    ? 'bg-ink-850 border-gold-500 text-white shadow-lg ring-1 ring-gold-500/30'
+                    : 'bg-ink-950/70 border-line text-fg-muted hover:bg-ink-850/80 hover:border-gold-700/60'
                 }`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <div className={`p-2 rounded-lg ${isActive ? 'bg-[#F7931A]/20 text-[#F7931A]' : 'bg-gray-900 text-gray-400'}`}>
+                    <div className={`p-2 rounded-lg ${isActive ? 'bg-gold-500/20 text-gold-500' : 'bg-ink-850 text-fg-muted'}`}>
                       <Icon className="w-4 h-4" />
                     </div>
-                    <span className="text-[10px] font-mono text-gray-500">0{idx + 1}</span>
+                    <span className="text-[10px] font-mono text-fg-muted">0{idx + 1}</span>
                   </div>
                   <div className="text-xs sm:text-sm font-bold tracking-tight text-white mb-0.5">
                     {stage.title}
                   </div>
-                  <div className="text-[11px] text-gray-400 truncate">
+                  <div className="text-[11px] text-fg-muted truncate">
                     {stage.subtitle}
                   </div>
                 </div>
 
                 {isActive && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#F7931A]"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gold-500"></div>
                 )}
               </button>
             );
@@ -166,28 +166,28 @@ export const TechVisualization: React.FC = () => {
         </div>
 
         {/* Selected Stage Detail & Real-Time Telemetry Monitor */}
-        <div className="rounded-2xl bg-gray-950 border border-gray-800 p-6 sm:p-8">
+        <div className="rounded-2xl bg-ink-950 border border-line p-6 sm:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
             {/* Left Detail Description */}
             <div className="lg:col-span-7 space-y-4">
-              <div className="flex items-center gap-2 font-mono text-xs text-[#F7931A]">
+              <div className="flex items-center gap-2 font-mono text-xs text-gold-500">
                 <span>STAGE 0{activeStageIndex + 1} INSPECTOR</span>
                 <span>•</span>
-                <span className="text-gray-400">{activeStage.telemetryKey}</span>
+                <span className="text-fg-muted">{activeStage.telemetryKey}</span>
               </div>
 
               <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                 {activeStage.title}: {activeStage.subtitle}
               </h3>
 
-              <p className="text-sm sm:text-base text-gray-300 leading-relaxed">
+              <p className="text-sm sm:text-base text-fg-body leading-relaxed">
                 {activeStage.detail}
               </p>
 
               {/* Data Flow Animation Bar */}
-              <div className="p-3 rounded-xl bg-gray-900/80 border border-gray-800 flex items-center justify-between text-xs font-mono">
-                <span className="text-gray-400">Data Synchronization</span>
+              <div className="p-3 rounded-xl bg-ink-850/80 border border-line flex items-center justify-between text-xs font-mono">
+                <span className="text-fg-muted">Data Synchronization</span>
                 <span className="text-emerald-400 flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
                   Active Stream MCT-01 → Global Consensus
@@ -196,30 +196,30 @@ export const TechVisualization: React.FC = () => {
             </div>
 
             {/* Right Live Simulation Telemetry Matrix */}
-            <div className="lg:col-span-5 p-5 rounded-xl bg-gray-900 border border-gray-800 font-mono text-xs space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-gray-800 text-gray-400">
-                <span className="font-bold text-gray-300">FACILITY TELEMETRY</span>
-                <span className="text-[10px] text-gray-500">LIVE FEED</span>
+            <div className="lg:col-span-5 p-5 rounded-xl bg-ink-850 border border-line font-mono text-xs space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-line text-fg-muted">
+                <span className="font-bold text-fg-body">FACILITY TELEMETRY</span>
+                <span className="text-[10px] text-fg-muted">LIVE FEED</span>
               </div>
 
-              <div className="flex justify-between items-center text-gray-300">
-                <span className="text-gray-400">Voltage Stability:</span>
+              <div className="flex justify-between items-center text-fg-body">
+                <span className="text-fg-muted">Voltage Stability:</span>
                 <span className="text-emerald-400 font-bold">{telemetry.voltageStability}%</span>
               </div>
 
-              <div className="flex justify-between items-center text-gray-300">
-                <span className="text-gray-400">Local Stratum RTT:</span>
+              <div className="flex justify-between items-center text-fg-body">
+                <span className="text-fg-muted">Local Stratum RTT:</span>
                 <span className="text-emerald-400 font-bold">{telemetry.rttLatency} ms</span>
               </div>
 
-              <div className="flex justify-between items-center text-gray-300">
-                <span className="text-gray-400">Hash Execution Rate:</span>
-                <span className="text-[#F7931A] font-bold">{telemetry.hashRateTH} TH/s (Nominal)</span>
+              <div className="flex justify-between items-center text-fg-body">
+                <span className="text-fg-muted">Hash Execution Rate:</span>
+                <span className="text-gold-500 font-bold">{telemetry.hashRateTH} TH/s (Nominal)</span>
               </div>
 
-              <div className="flex justify-between items-center text-gray-300">
-                <span className="text-gray-400">Operating Standard:</span>
-                <span className="text-gray-200">Muscat Facility MCT-01</span>
+              <div className="flex justify-between items-center text-fg-body">
+                <span className="text-fg-muted">Operating Standard:</span>
+                <span className="text-fg-body">Muscat Facility MCT-01</span>
               </div>
             </div>
 

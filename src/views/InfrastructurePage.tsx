@@ -10,7 +10,7 @@ interface InfrastructurePageProps {
 
 export const InfrastructurePage: React.FC<InfrastructurePageProps> = ({ onNavigate }) => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-ink-950">
       <PageHeader
         category="Computing & Energy Infrastructure"
         badge="High-Density Power & Thermal Systems"

@@ -13,7 +13,7 @@ interface AboutPageProps {
 
 export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-ink-950">
       <PageHeader
         category="About FINOVATECK"
         badge="Corporate Profile & Infrastructure"

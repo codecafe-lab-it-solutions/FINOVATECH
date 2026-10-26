@@ -32,31 +32,31 @@ export const MonthlyStatementsTab: React.FC<MonthlyStatementsTabProps> = ({ stat
 
   return (
     <div className="space-y-6 animate-in fade-in">
-      <div className="p-5 sm:p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-5 sm:p-6 rounded-3xl bg-ink-850 border border-line text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800 border border-gray-700 text-xs font-mono text-[#F7931A]">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ink-800 border border-line-warm text-xs font-mono text-gold-500">
             <FileSpreadsheet className="w-3.5 h-3.5" />
             <span>MONTHLY STATEMENTS</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold text-white mt-2">Monthly Statements</h2>
-          <p className="text-xs text-gray-400 mt-1">
+          <p className="text-xs text-fg-muted mt-1">
             Computed live from your real wallet ledger, grouped by month — {statements.length} month{statements.length === 1 ? '' : 's'} of activity.
           </p>
         </div>
         <button
           onClick={handleExportCsv}
           disabled={statements.length === 0}
-          className="px-4 py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold text-xs font-mono flex items-center gap-2 cursor-pointer disabled:opacity-50"
+          className="px-4 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-xs font-mono flex items-center gap-2 cursor-pointer disabled:opacity-50"
         >
           <Download className="w-3.5 h-3.5" /> Export CSV
         </button>
       </div>
 
-      <div className="rounded-3xl bg-gray-900 border border-gray-800 overflow-hidden shadow-xl">
+      <div className="rounded-3xl bg-ink-850 border border-line overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-gray-950/60 text-gray-400 font-mono text-[11px] uppercase tracking-wider border-b border-gray-800">
+              <tr className="bg-ink-950/60 text-fg-muted font-mono text-[11px] uppercase tracking-wider border-b border-line">
                 <th className="py-3.5 px-4">Month</th>
                 <th className="py-3.5 px-3 text-right">Mining Credits</th>
                 <th className="py-3.5 px-3 text-right">Payouts</th>
@@ -64,20 +64,20 @@ export const MonthlyStatementsTab: React.FC<MonthlyStatementsTabProps> = ({ stat
                 <th className="py-3.5 px-3 text-right">Transactions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/80 font-mono text-gray-300">
+            <tbody className="divide-y divide-line/80 font-mono text-fg-body">
               {statements.map((s) => (
-                <tr key={s.month} className="hover:bg-gray-800/40">
+                <tr key={s.month} className="hover:bg-ink-800/40">
                   <td className="py-3 px-4 font-sans font-bold text-white">{monthLabel(s.month)}</td>
                   <td className="py-3 px-3 text-right text-emerald-400">+{s.miningCreditsBtc.toFixed(6)} BTC (<Money usd={s.miningCreditsUsd} />)</td>
                   <td className="py-3 px-3 text-right text-rose-400">-{s.payoutsBtc.toFixed(6)} BTC (<Money usd={s.payoutsUsd} />)</td>
                   <td className={`py-3 px-3 text-right font-bold ${s.netUsd >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                     {s.netUsd >= 0 ? '+' : ''}<Money usd={s.netUsd} />
                   </td>
-                  <td className="py-3 px-3 text-right text-gray-400">{s.transactionCount}</td>
+                  <td className="py-3 px-3 text-right text-fg-muted">{s.transactionCount}</td>
                 </tr>
               ))}
               {statements.length === 0 && (
-                <tr><td colSpan={5} className="py-8 text-center text-gray-500 font-mono">No activity yet — statements appear once you have wallet transactions.</td></tr>
+                <tr><td colSpan={5} className="py-8 text-center text-fg-muted font-mono">No activity yet — statements appear once you have wallet transactions.</td></tr>
               )}
             </tbody>
           </table>

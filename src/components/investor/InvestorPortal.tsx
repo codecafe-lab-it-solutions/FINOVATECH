@@ -259,13 +259,13 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
 
   if (isLoading || !user || !metrics) {
     return (
-      <div className="min-h-screen bg-[#0B1120] text-gray-400 flex items-center justify-center font-mono text-xs">
+      <div className="min-h-screen bg-ink-900 text-fg-muted flex items-center justify-center font-mono text-xs">
         {loadError ? (
           <div className="text-center space-y-3">
             <p className="text-rose-400">{loadError}</p>
             <button
               onClick={onLogout}
-              className="px-4 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-ink-800 hover:bg-ink-700 text-fg-body cursor-pointer"
             >
               Back to Login
             </button>
@@ -278,7 +278,7 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
   }
 
   return (
-    <div id="investor-portal-root" className="min-h-screen bg-[#0B1120] text-gray-100 flex flex-col">
+    <div id="investor-portal-root" className="min-h-screen bg-ink-900 text-fg-body flex flex-col">
 
       <CurrencySelector />
       {/* Top Navbar */}
@@ -312,14 +312,14 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
         {/* Mobile Sidebar Overlay Drawer */}
         {isMobileSidebarOpen && (
           <div className="lg:hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex">
-            <div className="w-80 max-w-[85vw] h-full bg-[#0F172A] shadow-2xl flex flex-col">
-              <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-                <span className="text-xs font-mono font-bold text-[#F7931A] uppercase">
+            <div className="w-80 max-w-[85vw] h-full bg-ink-950 shadow-2xl flex flex-col">
+              <div className="p-4 border-b border-line flex items-center justify-between">
+                <span className="text-xs font-mono font-bold text-gold-500 uppercase">
                   Investor Navigation
                 </span>
                 <button
                   onClick={() => setIsMobileSidebarOpen(false)}
-                  className="p-1 rounded-lg text-gray-400 hover:text-white"
+                  className="p-1 rounded-lg text-fg-muted hover:text-white"
                 >
                   ✕
                 </button>

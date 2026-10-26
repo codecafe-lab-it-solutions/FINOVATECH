@@ -100,7 +100,7 @@ export const InvestorSidebar: React.FC<InvestorSidebarProps> = ({
   let visibleItemNumber = 0;
 
   return (
-    <aside className="w-full lg:w-72 bg-[#0F172A] border-r border-gray-800 text-gray-300 flex flex-col justify-between shrink-0 select-none">
+    <aside className="w-full lg:w-72 bg-ink-950 border-r border-line text-fg-body flex flex-col justify-between shrink-0 select-none">
       
       {/* Scrollable Navigation List */}
       <div className="p-3 sm:p-4 space-y-6 overflow-y-auto max-h-[calc(100dvh-4rem)]">
@@ -109,7 +109,7 @@ export const InvestorSidebar: React.FC<InvestorSidebarProps> = ({
           <div key={gIdx} className="space-y-1">
 
             {/* Group Category Header */}
-            <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-gray-500 px-3 py-1">
+            <div className="text-[10px] font-mono font-bold uppercase tracking-wider text-fg-muted px-3 py-1">
               {group.group}
             </div>
 
@@ -125,26 +125,26 @@ export const InvestorSidebar: React.FC<InvestorSidebarProps> = ({
                   onClick={() => onSelectTab(item.id)}
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer group text-left min-h-[42px] ${
                     isActive
-                      ? 'bg-[#F7931A] text-gray-950 font-bold shadow-md shadow-[#F7931A]/10'
-                      : 'text-gray-300 hover:bg-gray-800/80 hover:text-white'
+                      ? 'bg-gold-500 text-black font-bold shadow-md shadow-gold-500/10'
+                      : 'text-fg-body hover:bg-ink-800/80 hover:text-white'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 truncate">
                     <Icon className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-110 ${
-                      isActive ? 'text-gray-950' : 'text-gray-400 group-hover:text-[#F7931A]'
+                      isActive ? 'text-black' : 'text-fg-muted group-hover:text-gold-500'
                     }`} />
                     <span className="truncate">{visibleItemNumber}. {item.label}</span>
                   </div>
 
                   {item.badge ? (
                     <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold shrink-0 ${
-                      isActive ? 'bg-gray-950 text-[#F7931A]' : 'bg-gray-800 text-[#F7931A] border border-gray-700'
+                      isActive ? 'bg-ink-950 text-gold-500' : 'bg-ink-800 text-gold-500 border border-line-warm'
                     }`}>
                       {item.badge}
                     </span>
                   ) : (
                     <ChevronRight className={`w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity ${
-                      isActive ? 'opacity-100 text-gray-950' : 'text-gray-500'
+                      isActive ? 'opacity-100 text-black' : 'text-fg-muted'
                     }`} />
                   )}
                 </button>
@@ -155,18 +155,18 @@ export const InvestorSidebar: React.FC<InvestorSidebarProps> = ({
         ))}
 
         {/* Muscat Node Status Capsule at Bottom of Sidebar */}
-        <div className="p-3.5 rounded-2xl bg-gray-900/90 border border-gray-800 text-xs font-mono space-y-2 mt-4">
+        <div className="p-3.5 rounded-2xl bg-ink-850/90 border border-line text-xs font-mono space-y-2 mt-4">
           <div className="flex items-center justify-between text-[11px]">
-            <span className="text-gray-400">Data Source:</span>
+            <span className="text-fg-muted">Data Source:</span>
             <span className="text-emerald-400 font-bold flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               ACCOUNT DATA
             </span>
           </div>
-          <div className="text-[10px] text-gray-500">
+          <div className="text-[10px] text-fg-muted">
             Mining readings are available in the dashboard when reported.
           </div>
-          <div className="text-[10px] text-[#F7931A] font-bold">
+          <div className="text-[10px] text-gold-500 font-bold">
             Pool details require recorded machine data.
           </div>
         </div>

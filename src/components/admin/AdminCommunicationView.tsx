@@ -93,9 +93,9 @@ export const AdminCommunicationView: React.FC<AdminCommunicationViewProps> = ({ 
       <AdminSupportInbox authToken={authToken} />
 
       {/* Header */}
-      <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800">
+      <div className="p-6 rounded-3xl bg-ink-950 border border-line">
         <h2 className="text-2xl font-bold text-white tracking-tight">Communication Center</h2>
-        <p className="text-xs text-gray-400 mt-1 max-w-2xl">
+        <p className="text-xs text-fg-muted mt-1 max-w-2xl">
           Send a real in-app notification (and optionally an email) to some or all investors — e.g. a top-up reminder or platform announcement.
         </p>
       </div>
@@ -114,70 +114,70 @@ export const AdminCommunicationView: React.FC<AdminCommunicationViewProps> = ({ 
       )}
 
       {/* Broadcast Composer */}
-      <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-4">
-        <h3 className="text-xs font-mono font-bold uppercase text-gray-300 flex items-center gap-2">
-          <Send className="w-4 h-4 text-[#F7931A]" />
+      <div className="p-6 rounded-3xl bg-ink-950 border border-line space-y-4">
+        <h3 className="text-xs font-mono font-bold uppercase text-fg-body flex items-center gap-2">
+          <Send className="w-4 h-4 text-gold-500" />
           <span>Compose Message</span>
         </h3>
 
         <form onSubmit={handleSend} className="space-y-4 text-xs">
           <div>
-            <label className="block text-gray-400 font-mono text-[10px] uppercase mb-1">Title</label>
+            <label className="block text-fg-muted font-mono text-[10px] uppercase mb-1">Title</label>
             <input
               type="text"
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Reminder: Top up your account"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-gray-950 border border-gray-800 text-white font-mono"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-ink-950 border border-line text-white font-mono"
             />
           </div>
 
           <div>
-            <label className="block text-gray-400 font-mono text-[10px] uppercase mb-1">Message</label>
+            <label className="block text-fg-muted font-mono text-[10px] uppercase mb-1">Message</label>
             <textarea
               rows={4}
               required
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Write your message to investors..."
-              className="w-full px-3.5 py-2.5 rounded-xl bg-gray-950 border border-gray-800 text-white font-mono"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-ink-950 border border-line text-white font-mono"
             />
           </div>
 
           <div>
-            <label className="block text-gray-400 font-mono text-[10px] uppercase mb-2">Recipients</label>
+            <label className="block text-fg-muted font-mono text-[10px] uppercase mb-2">Recipients</label>
             <div className="flex items-center gap-4 mb-3">
-              <label className="flex items-center gap-1.5 text-gray-300 font-mono cursor-pointer">
+              <label className="flex items-center gap-1.5 text-fg-body font-mono cursor-pointer">
                 <input
                   type="radio"
                   checked={recipientType === 'All'}
                   onChange={() => setRecipientType('All')}
-                  className="text-[#F7931A]"
+                  className="text-gold-500"
                 />
                 <span>All Investors ({investors.length})</span>
               </label>
-              <label className="flex items-center gap-1.5 text-gray-300 font-mono cursor-pointer">
+              <label className="flex items-center gap-1.5 text-fg-body font-mono cursor-pointer">
                 <input
                   type="radio"
                   checked={recipientType === 'Specific'}
                   onChange={() => setRecipientType('Specific')}
-                  className="text-[#F7931A]"
+                  className="text-gold-500"
                 />
                 <span>Specific Investors</span>
               </label>
             </div>
 
             {recipientType === 'Specific' && (
-              <div className="max-h-40 overflow-y-auto rounded-xl bg-gray-950 border border-gray-800 p-2 space-y-1">
-                {investors.length === 0 && <div className="text-gray-500 p-2">No investors found.</div>}
+              <div className="max-h-40 overflow-y-auto rounded-xl bg-ink-950 border border-line p-2 space-y-1">
+                {investors.length === 0 && <div className="text-fg-muted p-2">No investors found.</div>}
                 {investors.map((inv) => (
-                  <label key={inv.userId} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-900 cursor-pointer text-gray-300 font-mono">
+                  <label key={inv.userId} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-ink-850 cursor-pointer text-fg-body font-mono">
                     <input
                       type="checkbox"
                       checked={selectedInvestorIds.includes(inv.userId)}
                       onChange={() => toggleInvestor(inv.userId)}
-                      className="text-[#F7931A]"
+                      className="text-gold-500"
                     />
                     <span>{inv.name} ({inv.username})</span>
                   </label>
@@ -187,12 +187,12 @@ export const AdminCommunicationView: React.FC<AdminCommunicationViewProps> = ({ 
           </div>
 
           <div className="flex items-center justify-between pt-2">
-            <label className="flex items-center gap-1.5 text-gray-300 font-mono cursor-pointer">
+            <label className="flex items-center gap-1.5 text-fg-body font-mono cursor-pointer">
               <input
                 type="checkbox"
                 checked={sendEmail}
                 onChange={(e) => setSendEmail(e.target.checked)}
-                className="rounded bg-gray-900 border-gray-700 text-[#F7931A]"
+                className="rounded bg-ink-850 border-line-warm text-gold-500"
               />
               <span>Also send email to registered addresses</span>
             </label>
@@ -200,7 +200,7 @@ export const AdminCommunicationView: React.FC<AdminCommunicationViewProps> = ({ 
             <button
               type="submit"
               disabled={isSending}
-              className="px-6 py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold font-mono text-xs transition-colors cursor-pointer shadow-md disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold font-mono text-xs transition-colors cursor-pointer shadow-md disabled:opacity-50"
             >
               {isSending ? 'Sending...' : 'Send Now'}
             </button>
@@ -209,12 +209,12 @@ export const AdminCommunicationView: React.FC<AdminCommunicationViewProps> = ({ 
       </div>
 
       {/* Broadcast History Table */}
-      <div className="rounded-3xl bg-[#0F172A] border border-gray-800 overflow-hidden shadow-xl">
-        <div className="p-4 bg-gray-900/90 border-b border-gray-800 flex items-center justify-between">
-          <h3 className="text-xs font-mono font-bold uppercase text-gray-300">
+      <div className="rounded-3xl bg-ink-950 border border-line overflow-hidden shadow-xl">
+        <div className="p-4 bg-ink-850/90 border-b border-line flex items-center justify-between">
+          <h3 className="text-xs font-mono font-bold uppercase text-fg-body">
             Broadcast History
           </h3>
-          <span className="text-[11px] text-gray-500 font-mono">
+          <span className="text-[11px] text-fg-muted font-mono">
             {isLoading ? 'Loading...' : `${broadcasts.length} sent, live from the database`}
           </span>
         </div>
@@ -222,7 +222,7 @@ export const AdminCommunicationView: React.FC<AdminCommunicationViewProps> = ({ 
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-gray-900/40 text-gray-400 font-mono text-[11px] uppercase tracking-wider border-b border-gray-800">
+              <tr className="bg-ink-850/40 text-fg-muted font-mono text-[11px] uppercase tracking-wider border-b border-line">
                 <th className="py-3.5 px-4">Title & Message</th>
                 <th className="py-3.5 px-3">Recipients</th>
                 <th className="py-3.5 px-3">Email Sent</th>
@@ -230,15 +230,15 @@ export const AdminCommunicationView: React.FC<AdminCommunicationViewProps> = ({ 
                 <th className="py-3.5 px-4">Timestamp</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/80 font-mono text-gray-300">
+            <tbody className="divide-y divide-line/80 font-mono text-fg-body">
               {broadcasts.map((b) => (
-                <tr key={b.id} className="hover:bg-gray-800/40 transition-colors">
+                <tr key={b.id} className="hover:bg-ink-800/40 transition-colors">
                   <td className="py-3.5 px-4">
                     <div className="font-bold text-white">{b.title}</div>
-                    <div className="text-[11px] text-gray-400 font-sans mt-0.5 line-clamp-1">{b.message}</div>
+                    <div className="text-[11px] text-fg-muted font-sans mt-0.5 line-clamp-1">{b.message}</div>
                   </td>
                   <td className="py-3.5 px-3">
-                    <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold text-[10px] inline-flex items-center gap-1">
+                    <span className="px-2 py-0.5 rounded bg-gold-500/20 text-gold-300 font-bold text-[10px] inline-flex items-center gap-1">
                       <Users className="w-3 h-3" /> {b.recipientCount} ({b.recipientType})
                     </span>
                   </td>
@@ -246,15 +246,15 @@ export const AdminCommunicationView: React.FC<AdminCommunicationViewProps> = ({ 
                     {b.emailSent ? (
                       <span className="text-emerald-400">Yes</span>
                     ) : (
-                      <span className="text-gray-500">No</span>
+                      <span className="text-fg-muted">No</span>
                     )}
                   </td>
-                  <td className="py-3.5 px-3 text-gray-400">{b.sentBy}</td>
-                  <td className="py-3.5 px-3 text-gray-400">{b.createdAt}</td>
+                  <td className="py-3.5 px-3 text-fg-muted">{b.sentBy}</td>
+                  <td className="py-3.5 px-3 text-fg-muted">{b.createdAt}</td>
                 </tr>
               ))}
               {!isLoading && broadcasts.length === 0 && (
-                <tr><td colSpan={5} className="py-8 text-center text-gray-500 font-mono">No broadcasts sent yet.</td></tr>
+                <tr><td colSpan={5} className="py-8 text-center text-fg-muted font-mono">No broadcasts sent yet.</td></tr>
               )}
             </tbody>
           </table>

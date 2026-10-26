@@ -45,9 +45,9 @@ export const MiningPodReelCanvas: React.FC<{ activeMode?: number }> = ({ activeM
 
       // 1. Data Center Dark Backdrop & Isometric Depth
       const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
-      bgGrad.addColorStop(0, '#090D16');
-      bgGrad.addColorStop(0.5, '#0B1120');
-      bgGrad.addColorStop(1, '#05070D');
+      bgGrad.addColorStop(0, '#0A0A0A');
+      bgGrad.addColorStop(0.5, '#0A0A0A');
+      bgGrad.addColorStop(1, '#000000');
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, w, h);
 
@@ -75,9 +75,9 @@ export const MiningPodReelCanvas: React.FC<{ activeMode?: number }> = ({ activeM
       const rackHeight = h * 0.70;
 
       // Outer Rack Steel Cabinet
-      ctx.fillStyle = '#111827';
+      ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(rackLeft, rackTop, rackWidth, rackHeight);
-      ctx.strokeStyle = '#1F2937';
+      ctx.strokeStyle = '#2A2A2E';
       ctx.lineWidth = 2;
       ctx.strokeRect(rackLeft, rackTop, rackWidth, rackHeight);
 
@@ -96,9 +96,9 @@ export const MiningPodReelCanvas: React.FC<{ activeMode?: number }> = ({ activeM
         const mx = rackLeft + 10;
 
         // Miner Metal Casing
-        ctx.fillStyle = '#1E293B';
+        ctx.fillStyle = '#17181C';
         ctx.fillRect(mx, my, mw, minerHeight - 6);
-        ctx.strokeStyle = '#334155';
+        ctx.strokeStyle = '#2A2A2E';
         ctx.lineWidth = 1;
         ctx.strokeRect(mx, my, mw, minerHeight - 6);
 
@@ -112,9 +112,9 @@ export const MiningPodReelCanvas: React.FC<{ activeMode?: number }> = ({ activeM
           // Fan Bezel Housing
           ctx.beginPath();
           ctx.arc(fx, fanY, fanRadius, 0, Math.PI * 2);
-          ctx.fillStyle = '#0F172A';
+          ctx.fillStyle = '#000000';
           ctx.fill();
-          ctx.strokeStyle = '#475569';
+          ctx.strokeStyle = '#8A8A93';
           ctx.stroke();
 
           // Rotating Fan Blades (High-Speed Blur Effect)
@@ -132,14 +132,14 @@ export const MiningPodReelCanvas: React.FC<{ activeMode?: number }> = ({ activeM
           // Fan Hub
           ctx.beginPath();
           ctx.arc(fx, fanY, 3, 0, Math.PI * 2);
-          ctx.fillStyle = '#CBD5E1';
+          ctx.fillStyle = '#B4B4BA';
           ctx.fill();
         });
 
         // ASIC Hashing Control Board & Status LEDs
         const cbX = mx + 88;
         const cbW = mw - 96;
-        ctx.fillStyle = '#0B1120';
+        ctx.fillStyle = '#0A0A0A';
         ctx.fillRect(cbX, my + 6, cbW, minerHeight - 18);
 
         // Blinking Green & Orange Hashing Activity Lights
@@ -153,15 +153,15 @@ export const MiningPodReelCanvas: React.FC<{ activeMode?: number }> = ({ activeM
           if (led === 0) {
             ctx.fillStyle = isBlinking ? '#10B981' : '#047857'; // Normal Run (Green)
           } else if (led === 1) {
-            ctx.fillStyle = isBlinking ? '#F7931A' : '#7C2D12'; // Hash Activity (Orange)
+            ctx.fillStyle = isBlinking ? '#CCA84F' : '#745F36'; // Hash Activity (Orange)
           } else {
-            ctx.fillStyle = isBlinking ? '#38BDF8' : '#0369A1'; // Network Stratum (Cyan)
+            ctx.fillStyle = isBlinking ? '#E2C873' : '#9B752A'; // Network Stratum (Cyan)
           }
           ctx.fill();
         }
 
         // Ethernet Port Clip Indicator
-        ctx.fillStyle = '#E2E8F0';
+        ctx.fillStyle = '#B4B4BA';
         ctx.fillRect(cbX + cbW - 14, my + (minerHeight - 6) / 2 - 4, 8, 8);
       }
 

@@ -37,23 +37,23 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts, nex
     <div className="space-y-6 animate-in fade-in">
       
       {/* Header Banner */}
-      <div className="p-6 rounded-3xl bg-gray-900 border border-gray-800 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-ink-850 border border-line text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800 border border-gray-700 text-xs font-mono text-[#F7931A]">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ink-800 border border-line-warm text-xs font-mono text-gold-500">
             <CreditCard className="w-3.5 h-3.5" />
             <span>INSTITUTIONAL SETTLEMENT LOG</span>
           </div>
           <h2 className="text-2xl font-extrabold text-white mt-2">
             Disbursed Payouts & Settlement History
           </h2>
-          <p className="text-xs text-gray-400 font-mono mt-0.5">
+          <p className="text-xs text-fg-muted font-mono mt-0.5">
             Real payout records reviewed and approved by an administrator
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="p-2.5 px-4 rounded-2xl bg-gray-950/80 border border-gray-800 text-right">
-            <div className="text-[10px] text-gray-400 font-mono">LIFETIME DISBURSED</div>
+          <div className="p-2.5 px-4 rounded-2xl bg-ink-950/80 border border-line text-right">
+            <div className="text-[10px] text-fg-muted font-mono">LIFETIME DISBURSED</div>
             <div className="text-sm font-bold text-emerald-400 font-mono mt-0.5">
               <Money usd={totalPayoutsUsd} /> ({totalPayoutsBtc.toFixed(4)} BTC)
             </div>
@@ -64,39 +64,39 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts, nex
       {/* 4 Status Counters */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 text-xs font-mono">
         
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 text-white">
-          <div className="text-[10px] text-gray-400 uppercase">Total Payouts</div>
+        <div className="p-4 rounded-2xl bg-ink-850/90 border border-line text-white">
+          <div className="text-[10px] text-fg-muted uppercase">Total Payouts</div>
           <div className="text-xl font-bold text-white mt-1">{payouts.length} Batches</div>
-          <div className="text-[10px] text-gray-500 mt-0.5">Requests follow assigned plan conditions</div>
+          <div className="text-[10px] text-fg-muted mt-0.5">Requests follow assigned plan conditions</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-emerald-500/30 text-white">
+        <div className="p-4 rounded-2xl bg-ink-850/90 border border-emerald-500/30 text-white">
           <div className="text-[10px] text-emerald-400 uppercase">Successful Payouts</div>
           <div className="text-xl font-bold text-emerald-400 mt-1">{successfulCount} Confirmed</div>
-          <div className="text-[10px] text-gray-500 mt-0.5">Marked completed by administrator</div>
+          <div className="text-[10px] text-fg-muted mt-0.5">Marked completed by administrator</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 text-white">
-          <div className="text-[10px] text-gray-400 uppercase">Pending Batches</div>
-          <div className="text-xl font-bold text-amber-400 mt-1">{pendingCount} In Queue</div>
-          <div className="text-[10px] text-gray-500 mt-0.5">{nextWithdrawalDate ? `Next eligible request: ${nextWithdrawalDate}` : 'Requires confirmed KYC date and assigned plan'}</div>
+        <div className="p-4 rounded-2xl bg-ink-850/90 border border-line text-white">
+          <div className="text-[10px] text-fg-muted uppercase">Pending Batches</div>
+          <div className="text-xl font-bold text-gold-200 mt-1">{pendingCount} In Queue</div>
+          <div className="text-[10px] text-fg-muted mt-0.5">{nextWithdrawalDate ? `Next eligible request: ${nextWithdrawalDate}` : 'Requires confirmed KYC date and assigned plan'}</div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-gray-900/90 border border-gray-800 text-white">
-          <div className="text-[10px] text-gray-400 uppercase">Failed / Reversed</div>
-          <div className="text-xl font-bold text-gray-400 mt-1">{failedCount} Failed</div>
-          <div className="text-[10px] text-gray-500 mt-0.5">{failedCount ? 'Review rejected request details' : 'No rejected requests'}</div>
+        <div className="p-4 rounded-2xl bg-ink-850/90 border border-line text-white">
+          <div className="text-[10px] text-fg-muted uppercase">Failed / Reversed</div>
+          <div className="text-xl font-bold text-fg-muted mt-1">{failedCount} Failed</div>
+          <div className="text-[10px] text-fg-muted mt-0.5">{failedCount ? 'Review rejected request details' : 'No rejected requests'}</div>
         </div>
 
       </div>
 
       {/* Payout Records Table */}
-      <div className="p-6 rounded-3xl bg-gray-900/90 border border-gray-800 text-white space-y-4">
-        <div className="flex items-center justify-between border-b border-gray-800 pb-3">
+      <div className="p-6 rounded-3xl bg-ink-850/90 border border-line text-white space-y-4">
+        <div className="flex items-center justify-between border-b border-line pb-3">
           <span className="text-sm font-bold uppercase tracking-wider font-mono">
             Settlement Audit Registry
           </span>
-          <span className="text-xs text-gray-400 font-mono">
+          <span className="text-xs text-fg-muted font-mono">
             Real Payout Records
           </span>
         </div>
@@ -104,7 +104,7 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts, nex
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-mono">
             <thead>
-              <tr className="border-b border-gray-800 text-gray-400 uppercase text-[10px]">
+              <tr className="border-b border-line text-fg-muted uppercase text-[10px]">
                 <th className="pb-3 px-3">Payout ID</th>
                 <th className="pb-3 px-3">Date</th>
                 <th className="pb-3 px-3">Amount (BTC)</th>
@@ -115,19 +115,19 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts, nex
                 <th className="pb-3 px-3 text-right">Transaction</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/60">
+            <tbody className="divide-y divide-line/60">
               {payouts.map((row) => (
-                <tr key={row.id} className="hover:bg-gray-800/40 transition-colors">
-                  <td className="py-3.5 px-3 text-[#F7931A] font-bold whitespace-nowrap">{row.payoutId}</td>
-                  <td className="py-3.5 px-3 text-gray-300 whitespace-nowrap">{row.date}</td>
+                <tr key={row.id} className="hover:bg-ink-800/40 transition-colors">
+                  <td className="py-3.5 px-3 text-gold-500 font-bold whitespace-nowrap">{row.payoutId}</td>
+                  <td className="py-3.5 px-3 text-fg-body whitespace-nowrap">{row.date}</td>
                   <td className="py-3.5 px-3 text-white font-bold whitespace-nowrap">{row.currency === 'USD' ? 'USD' : `${row.amountBtc} BTC`}</td>
                   <td className="py-3.5 px-3 text-emerald-400 whitespace-nowrap"><Money usd={row.amountUsd} /></td>
-                  <td className="py-3.5 px-3 text-gray-400 whitespace-nowrap">
-                    <span className="font-mono select-all text-[11px] text-amber-200/80">
+                  <td className="py-3.5 px-3 text-fg-muted whitespace-nowrap">
+                    <span className="font-mono select-all text-[11px] text-gold-100/80">
                       {row.destinationWallet.slice(0, 8)}...{row.destinationWallet.slice(-6)}
                     </span>
                   </td>
-                  <td className="py-3.5 px-3 text-gray-400 whitespace-nowrap">
+                  <td className="py-3.5 px-3 text-fg-muted whitespace-nowrap">
                     {row.network || '—'}
                   </td>
                   <td className="py-3.5 px-3 whitespace-nowrap">
@@ -136,7 +136,7 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts, nex
                         ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
                         : row.status === 'Failed'
                           ? 'text-rose-400 bg-rose-500/10 border-rose-500/20'
-                          : 'text-amber-400 bg-amber-500/10 border-amber-500/20'
+                          : 'text-gold-200 bg-gold-500/10 border-gold-500/20'
                     }`}>
                       {row.status === 'Successful' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                       <span>{row.status}</span>
@@ -149,21 +149,21 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts, nex
                           href={row.explorerUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[#F7931A] hover:underline flex items-center gap-1 font-mono text-[11px]"
+                          className="text-gold-500 hover:underline flex items-center gap-1 font-mono text-[11px]"
                         >
                           <span>{row.txid.slice(0, 6)}...{row.txid.slice(-6)}</span>
                           <ExternalLink className="w-3 h-3" />
                         </a>
                         <button
                           onClick={() => handleCopy(row.txid, row.id)}
-                          className="text-gray-500 hover:text-white cursor-pointer"
+                          className="text-fg-muted hover:text-white cursor-pointer"
                           title="Copy TXID"
                         >
                           {copiedId === row.id ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                         </button>
                       </div>
                     ) : (
-                      <span className="text-gray-600 font-mono text-[11px]">Internal record</span>
+                      <span className="text-fg-muted font-mono text-[11px]">Internal record</span>
                     )}
                   </td>
                 </tr>

@@ -219,25 +219,25 @@ export const FacilityReelsViewer: React.FC = () => {
   };
 
   return (
-    <section className="py-16 bg-[#0B1120] text-white relative overflow-hidden border-b border-gray-800">
+    <section className="py-16 bg-ink-900 text-white relative overflow-hidden border-b border-line">
       
       {/* Subtle Background Glows */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#F7931A]/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-900 border border-gray-800 text-[#F7931A] text-xs font-mono font-semibold mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ink-850 border border-line text-gold-500 text-xs font-mono font-semibold mb-3">
               <Radio className="w-3.5 h-3.5 animate-pulse" />
               <span>FACILITY REELS • 8 OPERATIONAL STREAMS</span>
             </div>
             <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
               Muscat Mining Operations in Motion
             </h3>
-            <p className="text-sm sm:text-base text-gray-400 mt-2 max-w-2xl">
+            <p className="text-sm sm:text-base text-fg-muted mt-2 max-w-2xl">
               Swipe or scroll horizontally through real operational footage from FINOVATECK’s containerized computing pods, ASIC clusters, and electrical infrastructure.
             </p>
           </div>
@@ -247,7 +247,7 @@ export const FacilityReelsViewer: React.FC = () => {
             <button
               id="reels-scroll-left"
               onClick={() => scroll('left')}
-              className="p-3 rounded-xl bg-gray-900/90 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white transition-all cursor-pointer shadow-lg active:scale-95"
+              className="p-3 rounded-xl bg-ink-850/90 hover:bg-ink-800 border border-line-warm text-fg-body hover:text-white transition-all cursor-pointer shadow-lg active:scale-95"
               aria-label="Scroll left"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -255,7 +255,7 @@ export const FacilityReelsViewer: React.FC = () => {
             <button
               id="reels-scroll-right"
               onClick={() => scroll('right')}
-              className="p-3 rounded-xl bg-gray-900/90 hover:bg-gray-800 border border-gray-700 text-gray-300 hover:text-white transition-all cursor-pointer shadow-lg active:scale-95"
+              className="p-3 rounded-xl bg-ink-850/90 hover:bg-ink-800 border border-line-warm text-fg-body hover:text-white transition-all cursor-pointer shadow-lg active:scale-95"
               aria-label="Scroll right"
             >
               <ChevronRight className="w-5 h-5" />
@@ -277,11 +277,11 @@ export const FacilityReelsViewer: React.FC = () => {
             return (
               <div
                 key={reel.id}
-                className="shrink-0 w-[270px] sm:w-[300px] snap-start group relative rounded-3xl bg-gray-900 border border-gray-800 hover:border-[#F7931A]/60 overflow-hidden shadow-2xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col"
+                className="shrink-0 w-[270px] sm:w-[300px] snap-start group relative rounded-3xl bg-ink-850 border border-line hover:border-gold-500/60 overflow-hidden shadow-2xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col"
               >
                 {/* 9:16 Vertical Video Frame */}
                 <div 
-                  className="relative aspect-[9/16] w-full bg-gray-950 overflow-hidden cursor-pointer"
+                  className="relative aspect-[9/16] w-full bg-ink-950 overflow-hidden cursor-pointer"
                   onClick={() => togglePlay(idx)}
                 >
                   <video
@@ -297,11 +297,11 @@ export const FacilityReelsViewer: React.FC = () => {
                   />
 
                   {/* Gradient overlays for readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/20 to-gray-950/60 pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/20 to-ink-950/60 pointer-events-none" />
 
                   {/* Top Bar: Feed Tag & Fullscreen trigger */}
                   <div className="absolute top-3 inset-x-3 flex items-center justify-between z-10">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-950/80 backdrop-blur-md border border-gray-700/80 text-[10px] font-mono text-gray-200">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-ink-950/80 backdrop-blur-md border border-line-warm/80 text-[10px] font-mono text-fg-body">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                       <span>FEED 0{idx + 1}</span>
                     </div>
@@ -310,10 +310,10 @@ export const FacilityReelsViewer: React.FC = () => {
                       {/* Audio Toggle */}
                       <button
                         onClick={(e) => toggleMute(idx, e)}
-                        className="p-1.5 rounded-full bg-gray-950/80 backdrop-blur-md border border-gray-700 text-gray-300 hover:text-[#F7931A] transition-colors cursor-pointer"
+                        className="p-1.5 rounded-full bg-ink-950/80 backdrop-blur-md border border-line-warm text-fg-body hover:text-gold-500 transition-colors cursor-pointer"
                         title={isMuted ? 'Unmute' : 'Mute'}
                       >
-                        {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-[#F7931A]" />}
+                        {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-gold-500" />}
                       </button>
 
                       {/* Expand / Fullscreen */}
@@ -322,7 +322,7 @@ export const FacilityReelsViewer: React.FC = () => {
                           e.stopPropagation();
                           openFullscreenReel(reel);
                         }}
-                        className="p-1.5 rounded-full bg-gray-950/80 backdrop-blur-md border border-gray-700 text-gray-300 hover:text-white transition-colors cursor-pointer"
+                        className="p-1.5 rounded-full bg-ink-950/80 backdrop-blur-md border border-line-warm text-fg-body hover:text-white transition-colors cursor-pointer"
                         title="Expand Reel"
                       >
                         <Maximize2 className="w-3.5 h-3.5" />
@@ -336,7 +336,7 @@ export const FacilityReelsViewer: React.FC = () => {
                       isPlaying ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
                     }`}
                   >
-                    <div className="w-14 h-14 rounded-full bg-[#F7931A] text-gray-950 flex items-center justify-center shadow-2xl backdrop-blur-md transform transition-transform group-hover:scale-110">
+                    <div className="w-14 h-14 rounded-full bg-gold-500 text-black flex items-center justify-center shadow-2xl backdrop-blur-md transform transition-transform group-hover:scale-110">
                       {isPlaying ? (
                         <Pause className="w-6 h-6 fill-current" />
                       ) : (
@@ -347,7 +347,7 @@ export const FacilityReelsViewer: React.FC = () => {
 
                   {/* Bottom Video Overlays */}
                   <div className="absolute bottom-3 inset-x-3 z-10 pointer-events-none space-y-1.5">
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#F7931A]/20 border border-[#F7931A]/40 text-[#F7931A] text-[10px] font-mono font-bold">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-gold-500/20 border border-gold-500/40 text-gold-500 text-[10px] font-mono font-bold">
                       <IconComponent className="w-3 h-3" />
                       <span>{reel.category}</span>
                     </div>
@@ -364,19 +364,19 @@ export const FacilityReelsViewer: React.FC = () => {
                 </div>
 
                 {/* Card Bottom Control Bar with explicit Play/Pause button & caption */}
-                <div className="p-4 bg-gray-900 border-t border-gray-800 grow flex flex-col justify-between space-y-3">
-                  <p className="text-xs text-gray-400 leading-relaxed line-clamp-2 font-normal">
+                <div className="p-4 bg-ink-850 border-t border-line grow flex flex-col justify-between space-y-3">
+                  <p className="text-xs text-fg-muted leading-relaxed line-clamp-2 font-normal">
                     {reel.caption}
                   </p>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-800/80 gap-2">
+                  <div className="flex items-center justify-between pt-2 border-t border-line/80 gap-2">
                     <button
                       id={`reel-play-btn-${idx + 1}`}
                       onClick={(e) => togglePlay(idx, e)}
                       className={`w-full py-2 px-3 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                         isPlaying
-                          ? 'bg-gray-800 hover:bg-gray-700 text-amber-400 border border-gray-700'
-                          : 'bg-[#F7931A] hover:bg-[#E58514] text-gray-950 shadow-md'
+                          ? 'bg-ink-800 hover:bg-ink-700 text-gold-200 border border-line-warm'
+                          : 'bg-gold-500 hover:bg-gold-600 text-black shadow-md'
                       }`}
                     >
                       {isPlaying ? (
@@ -400,12 +400,12 @@ export const FacilityReelsViewer: React.FC = () => {
         </div>
 
         {/* Scroll Progress / Status Prompt */}
-        <div className="mt-4 flex flex-wrap items-center justify-between text-xs font-mono text-gray-500 gap-2 border-t border-gray-800/60 pt-4">
+        <div className="mt-4 flex flex-wrap items-center justify-between text-xs font-mono text-fg-muted gap-2 border-t border-line/60 pt-4">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span>8 High-Definition Telemetry Feeds Active (video_1 through video_8)</span>
           </div>
-          <div className="text-gray-400">
+          <div className="text-fg-muted">
             Scroll or drag horizontally • Tap any reel to play/pause
           </div>
         </div>
@@ -419,11 +419,11 @@ export const FacilityReelsViewer: React.FC = () => {
           onClick={closeFullscreenReel}
         >
           <div 
-            className="relative w-full max-w-md max-h-[90vh] bg-gray-950 rounded-3xl border border-gray-800 shadow-2xl overflow-hidden flex flex-col"
+            className="relative w-full max-w-md max-h-[90vh] bg-ink-950 rounded-3xl border border-line shadow-2xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-800 bg-gray-900/90 z-10">
+            <div className="flex items-center justify-between p-4 border-b border-line bg-ink-850/90 z-10">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <span className="text-xs font-mono font-bold text-white truncate max-w-[240px]">
@@ -432,7 +432,7 @@ export const FacilityReelsViewer: React.FC = () => {
               </div>
               <button
                 onClick={closeFullscreenReel}
-                className="p-1.5 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white cursor-pointer transition-colors"
+                className="p-1.5 rounded-full bg-ink-800 hover:bg-ink-700 text-fg-body hover:text-white cursor-pointer transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -464,7 +464,7 @@ export const FacilityReelsViewer: React.FC = () => {
                       }
                     }
                   }}
-                  className="px-4 py-2 rounded-xl bg-[#F7931A] text-gray-950 font-mono font-bold text-xs flex items-center gap-2 shadow-lg cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-gold-500 text-black font-mono font-bold text-xs flex items-center gap-2 shadow-lg cursor-pointer"
                 >
                   {isModalPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
                   <span>{isModalPlaying ? 'Pause' : 'Play'}</span>
@@ -477,21 +477,21 @@ export const FacilityReelsViewer: React.FC = () => {
                       setIsModalMuted(modalVideoRef.current.muted);
                     }
                   }}
-                  className="p-2.5 rounded-xl bg-gray-900/90 border border-gray-700 text-gray-200 hover:text-[#F7931A] font-mono text-xs flex items-center gap-1.5 cursor-pointer shadow-lg"
+                  className="p-2.5 rounded-xl bg-ink-850/90 border border-line-warm text-fg-body hover:text-gold-500 font-mono text-xs flex items-center gap-1.5 cursor-pointer shadow-lg"
                 >
-                  {isModalMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-[#F7931A]" />}
+                  {isModalMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-gold-500" />}
                   <span>{isModalMuted ? 'Muted' : 'Audio On'}</span>
                 </button>
               </div>
             </div>
 
             {/* Modal Info Footer */}
-            <div className="p-4 bg-gray-900/95 border-t border-gray-800 space-y-1.5">
+            <div className="p-4 bg-ink-850/95 border-t border-line space-y-1.5">
               <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-[#F7931A] font-semibold">{selectedModalReel.category}</span>
+                <span className="text-gold-500 font-semibold">{selectedModalReel.category}</span>
                 <span className="text-emerald-400">{selectedModalReel.stats}</span>
               </div>
-              <p className="text-xs text-gray-300 leading-relaxed">
+              <p className="text-xs text-fg-body leading-relaxed">
                 {selectedModalReel.caption}
               </p>
             </div>

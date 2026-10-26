@@ -151,9 +151,9 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
 
   return (
     <div className="space-y-6 pb-12">
-      <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800">
+      <div className="p-6 rounded-3xl bg-ink-950 border border-line">
         <h2 className="text-2xl font-bold text-white tracking-tight">Deposit Requests</h2>
-        <p className="text-xs text-gray-400 mt-1 max-w-2xl">
+        <p className="text-xs text-fg-muted mt-1 max-w-2xl">
           Configure the active USDT deposit address and review investor-submitted deposit proofs.
         </p>
       </div>
@@ -165,61 +165,61 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
       )}
 
       {/* Active Deposit Address */}
-      <div className="p-6 rounded-3xl bg-[#0F172A] border border-gray-800 space-y-4">
+      <div className="p-6 rounded-3xl bg-ink-950 border border-line space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-mono font-bold uppercase text-gray-300">Active Deposit Address</h3>
+          <h3 className="text-xs font-mono font-bold uppercase text-fg-body">Active Deposit Address</h3>
           <button
             onClick={() => setShowAddressForm(true)}
-            className="px-4 py-2 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold font-mono text-xs flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold font-mono text-xs flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" /> Set New Address
           </button>
         </div>
 
         {activeAddress ? (
-          <div className="p-4 rounded-2xl bg-gray-950 border border-gray-800 text-xs font-mono space-y-2">
+          <div className="p-4 rounded-2xl bg-ink-950 border border-line text-xs font-mono space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-amber-400 font-bold break-all">{activeAddress.address}</span>
-              <button onClick={() => handleCopy(activeAddress.address, activeAddress.id)} className="text-gray-400 hover:text-white cursor-pointer shrink-0 ml-2">
+              <span className="text-gold-200 font-bold break-all">{activeAddress.address}</span>
+              <button onClick={() => handleCopy(activeAddress.address, activeAddress.id)} className="text-fg-muted hover:text-white cursor-pointer shrink-0 ml-2">
                 {copiedId === activeAddress.id ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
               </button>
             </div>
-            <div className="flex items-center gap-3 text-gray-400">
-              <span className="px-2 py-0.5 rounded bg-gray-800 text-gray-300 font-bold">{activeAddress.network}</span>
+            <div className="flex items-center gap-3 text-fg-muted">
+              <span className="px-2 py-0.5 rounded bg-ink-800 text-fg-body font-bold">{activeAddress.network}</span>
               <span>
                 Visible to: {activeAddress.visibility === 'All' ? 'All Investors' : `${activeAddress.visibleInvestorIds.length} specific investor(s)`}
               </span>
             </div>
           </div>
         ) : (
-          <div className="p-4 rounded-2xl bg-gray-950 border border-gray-800 text-xs text-gray-500 font-mono">
+          <div className="p-4 rounded-2xl bg-ink-950 border border-line text-xs text-fg-muted font-mono">
             No deposit address configured yet — investors won't see a deposit option until you set one.
           </div>
         )}
       </div>
 
       {/* Pending Requests */}
-      <div className="rounded-3xl bg-[#0F172A] border border-gray-800 overflow-hidden shadow-xl">
-        <div className="p-4 bg-gray-900/90 border-b border-gray-800 flex items-center justify-between">
-          <h3 className="text-xs font-mono font-bold uppercase text-gray-300">Pending Review</h3>
-          <span className="text-[11px] text-amber-400 font-mono">{pendingRequests.length} awaiting review</span>
+      <div className="rounded-3xl bg-ink-950 border border-line overflow-hidden shadow-xl">
+        <div className="p-4 bg-ink-850/90 border-b border-line flex items-center justify-between">
+          <h3 className="text-xs font-mono font-bold uppercase text-fg-body">Pending Review</h3>
+          <span className="text-[11px] text-gold-200 font-mono">{pendingRequests.length} awaiting review</span>
         </div>
-        <div className="divide-y divide-gray-800/80">
+        <div className="divide-y divide-line/80">
           {pendingRequests.length === 0 && (
-            <div className="p-6 text-center text-gray-500 text-xs font-mono">No pending deposit requests.</div>
+            <div className="p-6 text-center text-fg-muted text-xs font-mono">No pending deposit requests.</div>
           )}
           {pendingRequests.map((r) => (
             <div key={r.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono">
               <div>
                 <div className="font-sans font-bold text-white">{r.investorName}</div>
-                <div className="text-gray-400 mt-0.5">
+                <div className="text-fg-muted mt-0.5">
                   {r.referenceNumber} • <Money usd={r.amountUsd} /> • {r.network} • {r.createdAt}
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handleViewProof(r.id)}
-                  className="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-ink-800 hover:bg-ink-700 text-fg-body flex items-center gap-1.5 cursor-pointer"
                 >
                   <ImageIcon className="w-3.5 h-3.5" /> View Proof
                 </button>
@@ -248,16 +248,16 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
       </div>
 
       {/* Full History */}
-      <div className="rounded-3xl bg-[#0F172A] border border-gray-800 overflow-hidden shadow-xl">
-        <div className="p-4 bg-gray-900/90 border-b border-gray-800">
-          <h3 className="text-xs font-mono font-bold uppercase text-gray-300">
+      <div className="rounded-3xl bg-ink-950 border border-line overflow-hidden shadow-xl">
+        <div className="p-4 bg-ink-850/90 border-b border-line">
+          <h3 className="text-xs font-mono font-bold uppercase text-fg-body">
             {isLoading ? 'Loading...' : `${requests.length} Deposit Request${requests.length === 1 ? '' : 's'}, Live From The Database`}
           </h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-gray-900/40 text-gray-400 font-mono text-[11px] uppercase tracking-wider border-b border-gray-800">
+              <tr className="bg-ink-850/40 text-fg-muted font-mono text-[11px] uppercase tracking-wider border-b border-line">
                 <th className="py-3.5 px-4">Reference</th>
                 <th className="py-3.5 px-3">Investor</th>
                 <th className="py-3.5 px-3 text-right">Amount</th>
@@ -267,10 +267,10 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
                 <th className="py-3.5 px-4 text-right">Proof</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-800/80 font-mono text-gray-300">
+            <tbody className="divide-y divide-line/80 font-mono text-fg-body">
               {requests.map((r) => (
-                <tr key={r.id} className="hover:bg-gray-800/40">
-                  <td className="py-3 px-4 text-[#F7931A] font-bold">{r.referenceNumber}</td>
+                <tr key={r.id} className="hover:bg-ink-800/40">
+                  <td className="py-3 px-4 text-gold-500 font-bold">{r.referenceNumber}</td>
                   <td className="py-3 px-3 font-sans text-white">{r.investorName}</td>
                   <td className="py-3 px-3 text-right"><Money usd={r.amountUsd} /></td>
                   <td className="py-3 px-3">{r.network}</td>
@@ -278,19 +278,19 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                       r.status === 'Approved' ? 'bg-emerald-500/20 text-emerald-300' :
                       r.status === 'Rejected' ? 'bg-rose-500/20 text-rose-300' :
-                      'bg-amber-500/20 text-amber-300'
+                      'bg-gold-500/20 text-gold-100'
                     }`}>{r.status}</span>
                   </td>
-                  <td className="py-3 px-3 text-gray-400 text-[11px]">{r.createdAt}</td>
+                  <td className="py-3 px-3 text-fg-muted text-[11px]">{r.createdAt}</td>
                   <td className="py-3 px-4 text-right">
-                    <button onClick={() => handleViewProof(r.id)} className="text-[#F7931A] hover:underline cursor-pointer text-[11px]">
+                    <button onClick={() => handleViewProof(r.id)} className="text-gold-500 hover:underline cursor-pointer text-[11px]">
                       View
                     </button>
                   </td>
                 </tr>
               ))}
               {!isLoading && requests.length === 0 && (
-                <tr><td colSpan={7} className="py-8 text-center text-gray-500 font-mono">No deposit requests yet.</td></tr>
+                <tr><td colSpan={7} className="py-8 text-center text-fg-muted font-mono">No deposit requests yet.</td></tr>
               )}
             </tbody>
           </table>
@@ -300,32 +300,32 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
       {/* New Address Modal */}
       {showAddressForm && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-[#0B1120] border border-gray-700 rounded-3xl shadow-2xl p-6 space-y-4 text-xs font-mono">
+          <div className="w-full max-w-lg bg-ink-900 border border-line-warm rounded-3xl shadow-2xl p-6 space-y-4 text-xs font-mono">
             <div className="flex items-center justify-between">
               <h3 className="text-white font-bold text-base font-sans">Set New Deposit Address</h3>
-              <button onClick={() => setShowAddressForm(false)} className="p-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white cursor-pointer">
+              <button onClick={() => setShowAddressForm(false)} className="p-1.5 rounded-lg bg-ink-800 text-fg-muted hover:text-white cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleCreateAddress} className="space-y-3.5">
               <div>
-                <label className="block text-gray-400 mb-1">USDT Address</label>
+                <label className="block text-fg-muted mb-1">USDT Address</label>
                 <input
                   type="text"
                   required
                   value={newAddress}
                   onChange={(e) => setNewAddress(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white"
+                  className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-gray-400 mb-1">Network</label>
+                <label className="block text-fg-muted mb-1">Network</label>
                 <select
                   value={newNetwork}
                   onChange={(e) => setNewNetwork(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-gray-950 border border-gray-800 text-white"
+                  className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white"
                 >
                   <option value="TRC20">TRC20 (Tron)</option>
                   <option value="ERC20">ERC20 (Ethereum)</option>
@@ -334,23 +334,23 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
               </div>
 
               <div>
-                <label className="block text-gray-400 mb-2">Visible To</label>
+                <label className="block text-fg-muted mb-2">Visible To</label>
                 <div className="flex items-center gap-4 mb-2">
-                  <label className="flex items-center gap-1.5 text-gray-300 cursor-pointer">
-                    <input type="radio" checked={newVisibility === 'All'} onChange={() => setNewVisibility('All')} className="text-[#F7931A]" />
+                  <label className="flex items-center gap-1.5 text-fg-body cursor-pointer">
+                    <input type="radio" checked={newVisibility === 'All'} onChange={() => setNewVisibility('All')} className="text-gold-500" />
                     <span>All Investors</span>
                   </label>
-                  <label className="flex items-center gap-1.5 text-gray-300 cursor-pointer">
-                    <input type="radio" checked={newVisibility === 'Specific'} onChange={() => setNewVisibility('Specific')} className="text-[#F7931A]" />
+                  <label className="flex items-center gap-1.5 text-fg-body cursor-pointer">
+                    <input type="radio" checked={newVisibility === 'Specific'} onChange={() => setNewVisibility('Specific')} className="text-gold-500" />
                     <span>Specific Investors</span>
                   </label>
                 </div>
 
                 {newVisibility === 'Specific' && (
-                  <div className="max-h-32 overflow-y-auto rounded-xl bg-gray-950 border border-gray-800 p-2 space-y-1">
+                  <div className="max-h-32 overflow-y-auto rounded-xl bg-ink-950 border border-line p-2 space-y-1">
                     {investors.map((inv) => (
-                      <label key={inv.userId} className="flex items-center gap-2 p-1 rounded hover:bg-gray-900 cursor-pointer text-gray-300">
-                        <input type="checkbox" checked={newVisibleIds.includes(inv.userId)} onChange={() => toggleVisibleId(inv.userId)} className="text-[#F7931A]" />
+                      <label key={inv.userId} className="flex items-center gap-2 p-1 rounded hover:bg-ink-850 cursor-pointer text-fg-body">
+                        <input type="checkbox" checked={newVisibleIds.includes(inv.userId)} onChange={() => toggleVisibleId(inv.userId)} className="text-gold-500" />
                         <span>{inv.name} ({inv.username})</span>
                       </label>
                     ))}
@@ -358,14 +358,14 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
                 )}
               </div>
 
-              <p className="text-[10px] text-gray-500">
+              <p className="text-[10px] text-fg-muted">
                 Setting a new address deactivates the current one — only one address is ever active at a time.
               </p>
 
               <button
                 type="submit"
                 disabled={isSavingAddress}
-                className="w-full py-2.5 rounded-xl bg-[#F7931A] hover:bg-[#E58514] text-gray-950 font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 {isSavingAddress ? <RotateCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                 <span>Save & Activate</span>
@@ -381,11 +381,11 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
           <div className="relative max-w-2xl w-full" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setProofModalUrl(null)}
-              className="absolute -top-10 right-0 p-1.5 rounded-lg bg-gray-800 text-gray-300 hover:text-white cursor-pointer"
+              className="absolute -top-10 right-0 p-1.5 rounded-lg bg-ink-800 text-fg-body hover:text-white cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
-            <img src={proofModalUrl} alt="Payment proof" className="w-full rounded-2xl border border-gray-700" />
+            <img src={proofModalUrl} alt="Payment proof" className="w-full rounded-2xl border border-line-warm" />
           </div>
         </div>
       )}
