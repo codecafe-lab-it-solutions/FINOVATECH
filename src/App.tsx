@@ -3,20 +3,13 @@ import { PageRoute } from './types';
 import { AuthUser, fetchCurrentUser } from './lib/api';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
-import { HeroStats } from './components/HeroStats';
 import { AboutSection } from './components/AboutSection';
 import { FacilityReelsViewer } from './components/FacilityReelsViewer';
 import { BusinessPillars } from './components/BusinessPillars';
 import { BitcoinMiningSection } from './components/BitcoinMiningSection';
 import { MiningInfrastructure } from './components/MiningInfrastructure';
-import { TechVisualization } from './components/TechVisualization';
-import { OperatingFramework } from './components/OperatingFramework';
 import { OmanMuscatSection } from './components/OmanMuscatSection';
-import { LeadershipSection } from './components/LeadershipSection';
-import { OperationalTimeline } from './components/OperationalTimeline';
 import { WhyFinovateck } from './components/WhyFinovateck';
-import { CorporateTransparency } from './components/CorporateTransparency';
-import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 
 import { AboutPage } from './views/AboutPage';
@@ -210,20 +203,13 @@ export default function App() {
         {currentRoute === 'home' && (
           <>
             <Hero onNavigate={handleNavigate} />
-            <HeroStats />
             <AboutSection onNavigate={handleNavigate} />
             <FacilityReelsViewer />
             <BusinessPillars onNavigate={handleNavigate} />
             <BitcoinMiningSection onNavigate={handleNavigate} />
             <MiningInfrastructure onNavigate={handleNavigate} />
-            <TechVisualization />
-            <OperatingFramework onNavigate={handleNavigate} />
             <OmanMuscatSection onNavigate={handleNavigate} />
-            <LeadershipSection onNavigate={handleNavigate} />
-            <OperationalTimeline onNavigate={handleNavigate} />
             <WhyFinovateck onNavigate={handleNavigate} />
-            <CorporateTransparency onNavigate={handleNavigate} />
-            <ContactSection />
           </>
         )}
 

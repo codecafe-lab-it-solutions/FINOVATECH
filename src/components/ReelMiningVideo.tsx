@@ -144,7 +144,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
       {/* Reel Shell Container (9:16 Aspect Ratio) */}
       <div 
         onClick={togglePlay}
-        className="relative w-[290px] sm:w-[320px] lg:w-[340px] aspect-[9/16] rounded-3xl overflow-hidden bg-ink-900 border-[5px] border-gold-600/50 shadow-2xl ring-1 ring-ink-800/90 group cursor-pointer select-none transition-all duration-300 hover:shadow-2xl hover:shadow-gold-500/15 hover:border-line"
+        className="relative w-[290px] sm:w-[320px] lg:w-[340px] aspect-[9/16] rounded-2xl overflow-hidden bg-ink-900 border-[5px] border-gold-600/50 shadow-2xl ring-1 ring-ink-800/90 group cursor-pointer select-none transition-all duration-300 hover:shadow-2xl hover:shadow-gold-500/15 hover:border-line"
       >
         
         {/* Layer 1: 60fps High-Density ASIC Mining Pod Animation (Hardware Simulation) */}
@@ -187,12 +187,12 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
         </div>
 
         {/* 2. Top Header Bar */}
-        <div className="absolute top-6 left-0 right-0 px-4 pt-2 z-20 flex items-center justify-between text-white font-mono text-[11px]">
+        <div className="absolute top-6 left-0 right-0 px-4 pt-2 z-20 flex items-center justify-between text-white font-mono text-xs">
           
           <div className="flex items-center gap-2 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/15 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-            <span className="font-bold text-[10px] tracking-wider text-red-400">REC</span>
-            <span className="text-fg-body text-[10px]">MCT-01</span>
+            <span className="font-bold text-xs tracking-wider text-red-400">REC</span>
+            <span className="text-fg-body text-xs">MCT-01</span>
           </div>
 
           <div className="flex items-center gap-1.5">
@@ -226,7 +226,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
         )}
 
         {/* 4. Live Mining Telemetry HUD Overlay */}
-        <div className="absolute top-16 left-4 z-20 space-y-1.5 font-mono text-[10px] text-white">
+        <div className="absolute top-16 left-4 z-20 space-y-1.5 font-mono text-xs text-white">
           
           <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 w-fit shadow-md">
             <Zap className="w-3.5 h-3.5 text-gold-500" />
@@ -251,7 +251,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
         <div className="absolute right-3 bottom-24 z-20 flex flex-col items-center gap-3">
           
           {/* Live Node Beacon */}
-          <div className="w-10 h-10 rounded-full bg-black/80 backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-white text-[9px] font-mono shadow-lg">
+          <div className="w-10 h-10 rounded-full bg-black/80 backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-white text-xs font-mono shadow-lg">
             <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
             <span className="text-[8px] text-fg-muted font-bold">LIVE</span>
           </div>
@@ -260,7 +260,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
           <div 
             onClick={handleNextVideo}
             title="Next Mining Reel Feed"
-            className="w-10 h-10 rounded-full bg-black/80 hover:bg-black backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-white text-[10px] font-mono shadow-lg cursor-pointer hover:border-gold-500 transition-colors"
+            className="w-10 h-10 rounded-full bg-black/80 hover:bg-black backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-white text-xs font-mono shadow-lg cursor-pointer hover:border-gold-500 transition-colors"
           >
             <span className="text-gold-500 font-bold">0{activeVideoIndex + 1}</span>
             <span className="text-[8px] text-fg-muted">/03</span>
@@ -273,7 +273,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
               setViewMode((m) => m === 'hybrid' ? 'canvas' : m === 'canvas' ? 'video' : 'hybrid');
             }}
             title={`Current view: ${viewMode}. Tap to change visual mode.`}
-            className="w-10 h-10 rounded-full bg-black/80 hover:bg-black backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-white text-[9px] font-mono shadow-lg cursor-pointer hover:border-gold-500 transition-colors"
+            className="w-10 h-10 rounded-full bg-black/80 hover:bg-black backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-white text-xs font-mono shadow-lg cursor-pointer hover:border-gold-500 transition-colors"
           >
             <Layers className="w-4 h-4 text-gold-400" />
           </button>
@@ -296,7 +296,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
         <div className="absolute bottom-0 left-0 right-0 p-4 pb-4 z-20 text-white space-y-1.5">
           
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-gold-500 text-black text-[10px] font-extrabold uppercase font-mono tracking-wider">
+            <span className="px-2.5 py-0.5 rounded-full bg-gold-500 text-black text-xs font-extrabold uppercase font-mono tracking-wider">
               ASIC POD // MCT-01
             </span>
             <span className="text-[10.5px] font-mono text-fg-body">
@@ -312,7 +312,7 @@ export const ReelMiningVideo: React.FC<ReelMiningVideoProps> = ({ className = ''
             High-density containerized Bitcoin computing cluster operating under continuous thermal and electrical modulation.
           </p>
 
-          <div className="text-[10px] font-mono text-gold-500 flex items-center gap-2 pt-0.5">
+          <div className="text-xs font-mono text-gold-500 flex items-center gap-2 pt-0.5">
             <span>#FINOVATECK</span>
             <span>#BitcoinMining</span>
             <span>#OmanInfrastructure</span>

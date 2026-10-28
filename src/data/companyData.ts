@@ -1,4 +1,4 @@
-import { BusinessCard, CorporateInfoRow, FrameworkNode, InfrastructurePillar, MiningStep, StatItem, TimelineItem, ValuePillar } from '../types';
+import { BusinessCard, CorporateInfoRow, FrameworkNode, InfrastructurePillar, MiningStep, TimelineItem, ValuePillar } from '../types';
 
 export const COMPANY_PROFILE = {
   name: 'FINOVATECK Mining Company',
@@ -16,12 +16,18 @@ export const COMPANY_PROFILE = {
   seoDescription: 'FINOVATECK Mining Company is a Muscat-based digital-asset and Bitcoin-mining company focused on technology infrastructure, mining operations and strategic digital-asset capabilities.'
 };
 
-export const HERO_STATS: StatItem[] = [
-  { value: 'EST. 2025', label: 'Founded', sublabel: '2 October 2025' },
-  { value: 'MUSCAT', label: 'Headquarters', sublabel: 'Sultanate of Oman' },
-  { value: '4 YEARS', label: 'Planned Operating Term', sublabel: 'Lease Arrangement' },
-  { value: 'DIGITAL ASSETS', label: 'Core Industry', sublabel: 'Infrastructure Focused' },
-];
+/* Single source for the operational figures that appear in more than one
+   section. They were drifting (uptime shown as 99.88 / 99.87 / 99.8 / 99.9,
+   coordinates given in two forms that did not resolve to the same point),
+   which institutional readers notice. */
+export const OPERATING_FACTS = {
+  uptimeTarget: '99.9%',
+  coordinates: '23.5880° N, 58.3829° E',
+  nodeId: 'MCT-01',
+  perRackHashrate: '112 TH/s',
+  timezone: 'GST (UTC+4)',
+  thermalDelta: '14.2°C',
+};
 
 export const BUSINESS_CARDS: BusinessCard[] = [
   {
@@ -145,7 +151,7 @@ export const INFRASTRUCTURE_PILLARS: InfrastructurePillar[] = [
     specs: [
       { label: 'Workload Architecture', value: 'SHA-256 Specialized Silicon' },
       { label: 'Deployment Layout', value: 'High-Density Modular Racks' },
-      { label: 'Uptime Target', value: '99.8% Availability' },
+      { label: 'Uptime Target', value: '99.9% Availability' },
       { label: 'Operation Cycle', value: 'Continuous (24/7/365)' }
     ],
     keyPoints: [

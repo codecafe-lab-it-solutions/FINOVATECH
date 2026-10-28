@@ -135,15 +135,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           className="flex items-center gap-3 group cursor-pointer focus:outline-hidden"
         >
           <img
-            src="/logoreal.png"
-            alt="FINOVATECK"
-            className="w-44 h-11 sm:w-[216px] sm:h-12 object-cover rounded-md bg-black shrink-0"
+            src="/logo-wordmark.png"
+            alt="FINOVATECK Mining Company"
+            width={1040}
+            height={199}
+            className="h-8 sm:h-9 w-auto object-contain shrink-0"
           />
           <div className="sr-only">
             <span className="text-sm sm:text-base font-extrabold tracking-tight text-white group-hover:text-gold-500 transition-colors block font-mono">
               FINOVATECK
             </span>
-            <span className="text-[9px] sm:text-[10px] font-mono text-fg-muted uppercase tracking-wider block">
+            <span className="text-xs sm:text-xs font-mono text-fg-muted uppercase tracking-wider block">
               MINING COMPANY • SULTANATE OF OMAN
             </span>
           </div>
@@ -162,7 +164,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
         {/* Institutional Pill */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ink-850 border border-line shadow-md text-[11px] font-mono text-fg-body">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ink-850 border border-line shadow-md text-xs font-mono text-fg-body">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span>SECURE LOGIN</span>
           </div>
@@ -183,7 +185,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         </div>
 
         {/* Login / Register / Forgot Password Form Container */}
-        <div className="p-6 sm:p-8 rounded-3xl bg-ink-950 border border-line shadow-2xl backdrop-blur-xl">
+        <div className="p-6 sm:p-8 rounded-2xl bg-ink-950 border border-line shadow-2xl backdrop-blur-xl">
 
           {error && (
             <div className="mb-5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2 font-mono">
@@ -395,7 +397,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                       className="w-full pl-10 pr-4 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-mono"
                     />
                   </div>
-                  <p className="text-[10px] text-fg-muted mt-1 font-mono">
+                  <p className="text-xs text-fg-muted mt-1 font-mono">
                     Used for account confirmation and password resets.
                   </p>
                 </div>
@@ -428,7 +430,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                   <label className="block text-xs font-mono font-semibold uppercase text-fg-muted">
                     Password
                   </label>
-                  <span className="text-[11px] text-fg-muted font-mono">Encrypted</span>
+                  <span className="text-xs text-fg-muted font-mono">Encrypted</span>
                 </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-fg-muted">
@@ -456,7 +458,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     <button
                       type="button"
                       onClick={() => switchMode('forgot')}
-                      className="text-[11px] font-mono text-fg-muted hover:text-gold-500 cursor-pointer"
+                      className="text-xs font-mono text-fg-muted hover:text-gold-500 cursor-pointer"
                     >
                       Forgot Password?
                     </button>
@@ -570,7 +572,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
           {/* Security Guarantee Footer */}
           <div className="mt-6 pt-5 border-t border-line/80 text-center">
-            <div className="text-[11px] text-fg-muted flex items-center justify-center gap-1.5 font-mono">
+            <div className="text-xs text-fg-muted flex items-center justify-center gap-1.5 font-mono">
               <Building2 className="w-3.5 h-3.5 text-fg-muted" />
               <span>FINOVATECK Mining Company S.A.O.C • Muscat</span>
             </div>

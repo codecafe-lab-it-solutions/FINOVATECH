@@ -77,7 +77,7 @@ export const MiningPodReelCanvas: React.FC<{ activeMode?: number }> = ({ activeM
       // Outer Rack Steel Cabinet
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(rackLeft, rackTop, rackWidth, rackHeight);
-      ctx.strokeStyle = '#2A2A2E';
+      ctx.strokeStyle = '#2A2F38';
       ctx.lineWidth = 2;
       ctx.strokeRect(rackLeft, rackTop, rackWidth, rackHeight);
 
@@ -98,7 +98,7 @@ export const MiningPodReelCanvas: React.FC<{ activeMode?: number }> = ({ activeM
         // Miner Metal Casing
         ctx.fillStyle = '#17181C';
         ctx.fillRect(mx, my, mw, minerHeight - 6);
-        ctx.strokeStyle = '#2A2A2E';
+        ctx.strokeStyle = '#2A2F38';
         ctx.lineWidth = 1;
         ctx.strokeRect(mx, my, mw, minerHeight - 6);
 

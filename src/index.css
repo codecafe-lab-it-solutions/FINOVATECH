@@ -1,56 +1,114 @@
 @import "tailwindcss";
 
 /* ───────────────────────────────────────────────────────────────
-   FINOVATECK brand theme — sampled from the investor deck.
-   Canvas is true black; gold is a garnish (<8% of any surface)
-   and always rendered as a gradient so it reads as metal.
+   FINOVATECK brand theme.
+
+   One accent: gold. Green is reserved for live/status dots only,
+   and there is no blue. The ladder below is the audit's 13-token
+   system expressed through the token names the components already
+   use, so repointing a value here fixes every call site at once.
    ─────────────────────────────────────────────────────────────── */
 @theme {
-  /* Canvas — warm-tinted blacks, matching the deck's panel cast */
-  --color-ink-950: #000000;
-  --color-ink-900: #0A0A0A;
-  --color-ink-850: #0F1012;
-  --color-ink-800: #17181C;
-  --color-ink-700: #262524;
-  --color-line: #2A2A2E;
-  --color-line-warm: #34312A;
+  /* Type. Tailwind's own font-sans / font-mono utilities resolve to
+     these, which is what actually pins the label font — a base-layer
+     rule loses to the utility and silently falls back to Courier. */
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Gold ramp */
-  --color-gold-100: #FFE456;
-  --color-gold-200: #F4E183;
-  --color-gold-300: #E9CF78;
-  --color-gold-400: #E2C873;
-  --color-gold-500: #CCA84F;
-  --color-gold-600: #B28E45;
-  --color-gold-700: #9B752A;
-  --color-gold-800: #745F36;
+  /* Canvas. Every dark band is one colour now; separation comes from
+     the band seam and from cards, not from a background flip. */
+  --color-ink-950: #0B0D11;   /* bg-dark — hero, footer, sections */
+  --color-ink-900: #0B0D11;
+  --color-ink-880: #0B0D11;
+  --color-ink-850: #151922;   /* surface-dark — cards */
+  --color-ink-800: #1C2029;   /* elevated card / hover */
+  --color-ink-700: #262B36;
+  --color-line: #262B36;      /* border-dark */
+  --color-line-warm: #3A3426;
 
-  /* Type */
-  --color-fg: #FFFFFF;
-  --color-fg-body: #B4B4BA;
-  --color-fg-muted: #8A8A93;
+  /* Gold ramp — brand, CTA and active state only. The ramp is kept so
+     existing utilities resolve, but it only carries two real values:
+     #D4AF37 on dark and #8A6B1E for gold text on paper. */
+  --color-gold-100: #E3C04F;  /* hover only */
+  --color-gold-200: #D4AF37;
+  --color-gold-300: #D4AF37;
+  --color-gold-400: #D4AF37;
+  --color-gold-500: #D4AF37;
+  --color-gold-600: #D4AF37;
+  --color-gold-700: #8A6B1E;  /* hairlines and borders on dark */
+  --color-gold-800: #8A6B1E;
+
+  /* Steel was a second accent; it is now a neutral slate so no call
+     site can reintroduce blue. */
+  --color-steel-300: #B4B9C3;
+  --color-steel-400: #949AA6;
+  --color-steel-500: #6E7686;
+  --color-steel-600: #4C5564;
+  --color-steel-700: #39414E;
+
+  /* Type colours — two per surface, nothing between. */
+  --color-fg: #FFFFFF;        /* text-dark-primary */
+  --color-fg-body: #B4B9C3;   /* text-dark-secondary */
+  --color-fg-muted: #B4B9C3;
+
+  /* Live / Operational / Active dots. Nothing else. */
+  --color-emerald-400: #22C55E;
+  --color-emerald-500: #22C55E;
 
   /* Bitcoin orange — reserved for literal BTC asset references only */
   --color-btc: #F7931A;
 }
 
 @layer base {
-  body {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
-
-  code, pre, .font-mono {
-    font-family: 'JetBrains Mono', monospace;
-  }
-
   h1, h2, h3 {
     letter-spacing: -0.02em;
   }
+
+  /* Uppercase eyebrows and chips read as noise without tracking */
+  .tracking-eyebrow {
+    letter-spacing: 0.08em;
+  }
+}
+
+/* ── Buttons ────────────────────────────────────────────────────
+   One primary and one secondary, used everywhere. Previously the
+   page carried four primary treatments (flat gold, gradient gold,
+   grey, and gradient-plus-icon). */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--color-gold-500);
+  color: #0A0D12;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+.btn-primary:hover { background-color: #E3C04F; }
+.btn-primary:disabled { opacity: 0.7; cursor: default; }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  color: var(--color-fg);
+  border: 1px solid var(--color-line);
+  font-weight: 600;
+  border-radius: 0.75rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+  cursor: pointer;
+}
+.btn-secondary:hover {
+  border-color: var(--color-gold-500);
 }
 
 /* ── The signature metal gradient ───────────────────────────── */
 .text-metal {
-  background-image: linear-gradient(180deg, #FFF0B8 0%, #F4E183 22%, #E2C873 46%, #CCA84F 68%, #745F36 100%);
+  background-image: linear-gradient(180deg, #F0DCA0 0%, #E3C04F 40%, #D4AF37 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -69,7 +127,7 @@
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(180deg, #F4E183 0%, #CCA84F 45%, #745F36 100%);
+  background: linear-gradient(180deg, #E3C04F 0%, #D4AF37 50%, #8A6B1E 100%);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -81,9 +139,9 @@
 /* Faint PCB traces behind content-heavy sections */
 .bg-circuit {
   background-image:
-    linear-gradient(to right, rgba(204, 168, 79, 0.5) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(204, 168, 79, 0.5) 1px, transparent 1px),
-    radial-gradient(circle, rgba(204, 168, 79, 0.9) 1.5px, transparent 1.5px);
+    linear-gradient(to right, rgba(212, 175, 55, 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(212, 175, 55, 0.5) 1px, transparent 1px),
+    radial-gradient(circle, rgba(212, 175, 55, 0.9) 1.5px, transparent 1.5px);
   background-size: 56px 56px, 56px 56px, 56px 56px;
   background-position: 0 0, 0 0, 28px 28px;
   opacity: 0.045;
@@ -91,20 +149,67 @@
 
 /* Soft gold bloom behind section headings */
 .bg-bloom {
-  background-image: radial-gradient(ellipse 60% 70% at 50% 0%, rgba(204, 168, 79, 0.13), transparent 70%);
+  background-image: radial-gradient(ellipse 60% 70% at 50% 0%, rgba(212, 175, 55, 0.12), transparent 70%);
 }
 
 .bg-bloom-center {
-  background-image: radial-gradient(ellipse 50% 60% at 50% 50%, rgba(204, 168, 79, 0.10), transparent 70%);
+  background-image: radial-gradient(ellipse 50% 60% at 50% 50%, rgba(212, 175, 55, 0.09), transparent 70%);
+}
+
+/* Golden wash for a feature band — a bloom off the top edge falling into
+   the page colour, with a quieter one lifting the bottom-right corner so
+   the band does not die flat. Layered gradients rather than a fill, so
+   gold stays a garnish over the section's own background colour. */
+.bg-gold-wash {
+  background-image:
+    radial-gradient(ellipse 85% 55% at 50% -8%, rgba(227, 192, 79, 0.34), transparent 66%),
+    radial-gradient(ellipse 55% 50% at 88% 112%, rgba(212, 175, 55, 0.20), transparent 74%),
+    linear-gradient(180deg, rgba(212, 175, 55, 0.10) 0%, rgba(212, 175, 55, 0.035) 40%, transparent 70%);
+}
+
+/* On paper the same wash would muddy the page, so it drops to a hint. */
+.theme-light .bg-gold-wash,
+.theme-light.bg-gold-wash {
+  background-image:
+    radial-gradient(ellipse 85% 55% at 50% -8%, rgba(212, 175, 55, 0.14), transparent 64%),
+    linear-gradient(180deg, rgba(212, 175, 55, 0.05), transparent 55%);
+}
+
+/* Fine black dot grid for light cards — reads as engineering graph paper
+   and gives a white card some surface without competing with its text.
+   Pairs with a background-color utility, which it sits on top of. */
+.bg-dot-grid {
+  background-image: radial-gradient(rgba(10, 13, 18, 0.16) 1px, transparent 1px);
+  background-size: 12px 12px;
+  background-position: -1px -1px;
+}
+
+/* Graph-paper grid for a band — horizontal and vertical hairlines that
+   give a flat section some structure behind its cards. Authored dark for
+   light sections; the variant below redraws it for dark ones. */
+.bg-grid-lines {
+  background-image:
+    linear-gradient(to right, rgba(10, 13, 18, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(10, 13, 18, 0.07) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: center top;
+}
+
+.bg-grid-lines-dark {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: center top;
 }
 
 /* Glow for active/live elements */
 .glow-gold {
-  box-shadow: 0 0 0 1px rgba(204, 168, 79, 0.25), 0 0 32px -8px rgba(204, 168, 79, 0.45);
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.25), 0 0 32px -8px rgba(212, 175, 55, 0.45);
 }
 
 .glow-gold-sm {
-  box-shadow: 0 0 16px -4px rgba(204, 168, 79, 0.5);
+  box-shadow: 0 0 16px -4px rgba(212, 175, 55, 0.5);
 }
 
 /* ── Animations ─────────────────────────────────────────────── */
@@ -133,10 +238,215 @@
 .animate-data-flow { animation: dataFlow 1.5s linear infinite; }
 .animate-trace-flow { animation: traceFlow 6s linear infinite; }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-subtle,
+  .animate-data-flow,
+  .animate-trace-flow,
+  .animate-pulse {
+    animation: none;
+  }
+}
+
 /* ── Scrollbar ──────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #0A0A0A; }
-::-webkit-scrollbar-thumb { background: #34312A; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #745F36; }
+::-webkit-scrollbar-track { background: #0B0D11; }
+::-webkit-scrollbar-thumb { background: #262B36; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #8A6B1E; }
 
 html { color-scheme: dark; }
+
+/* ── Media framing ──────────────────────────────────────────────
+   The facility footage is bright daylight / lit interiors. Dropped
+   straight onto a black canvas it reads as a pasted rectangle, so
+   every media surface gets a hairline, a soft inner falloff and a
+   seated shadow. This is what lets the video run at full visibility
+   without fighting the dark page. */
+.media-frame {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: var(--color-ink-850);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.09),
+    0 24px 60px -18px rgba(0, 0, 0, 0.9),
+    0 2px 8px -2px rgba(0, 0, 0, 0.6);
+}
+/* Inner falloff: darkens only the extreme edges so the frame melts
+   into the page while the centre of the footage stays untouched. */
+.media-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(ellipse 92% 88% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+/* Gold-hairline variant — opt-in. Not used in the hero, which is kept
+   neutral so nothing gold competes with the footage. */
+.media-frame-gold {
+  box-shadow:
+    0 0 0 1px rgba(212, 175, 55, 0.38),
+    0 0 0 5px rgba(212, 175, 55, 0.05),
+    0 30px 70px -20px rgba(0, 0, 0, 0.95);
+}
+
+/* Legibility for type sitting over footage */
+.text-shadow-media {
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.85), 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+/* Band seam — a lit top edge so sections read as deliberate bands.
+   With the dark canvas unified to one colour this is what separates
+   one dark section from the next. */
+.band-seam {
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.055);
+}
+
+/* ══ LIGHT SECTIONS ═══════════════════════════════════════════════
+   Tailwind v4 compiles plain utilities to var(--color-*), so tagging
+   a section .theme-light re-points those variables and every child
+   utility follows without touching the markup. Only /opacity
+   variants compile to literal hex, so those are handled per case. */
+.theme-light {
+  --color-ink-950: #FFFFFF;   /* surface-light */
+  --color-ink-900: #F7F8FA;   /* bg-light */
+  --color-ink-880: #F7F8FA;
+  --color-ink-850: #FFFFFF;   /* surface-light — cards */
+  --color-ink-800: #F7F8FA;
+  --color-ink-700: #E4E7EC;
+  --color-line: #E4E7EC;      /* border-light */
+  --color-line-warm: #E4E7EC;
+
+  --color-fg: #0A0D12;        /* text-light-primary */
+  --color-fg-body: #4B5563;   /* text-light-secondary */
+  --color-fg-muted: #4B5563;
+  /* Components lean on text-white for headings, so it has to invert too */
+  --color-white: #0A0D12;
+
+  /* Gold at #D4AF37 is only 1.9:1 on white, so gold *text* darkens to
+     #8A6B1E while the decorative golds stay bright enough to read as
+     metal on a border or an icon chip. */
+  --color-gold-100: #8A6B1E;
+  --color-gold-200: #8A6B1E;
+  --color-gold-300: #8A6B1E;
+  --color-gold-400: #8A6B1E;
+  --color-gold-500: #8A6B1E;
+  --color-gold-600: #D4AF37;
+  --color-gold-700: #E0CB8E;
+  --color-gold-800: #D4AF37;
+
+  --color-steel-300: #4B5563;
+  --color-steel-400: #4B5563;
+  --color-steel-500: #374151;
+  --color-steel-600: #1F2937;
+  --color-steel-700: #111827;
+
+  --color-emerald-400: #15803D;
+  --color-emerald-500: #15803D;
+
+  color: var(--color-fg-body);
+}
+
+.theme-light .btn-primary {
+  background-color: #D4AF37;
+  color: #0A0D12;
+}
+.theme-light .btn-primary:hover { background-color: #E3C04F; }
+.theme-light .btn-secondary { color: #0A0D12; border-color: #E4E7EC; }
+.theme-light .btn-secondary:hover { border-color: #D4AF37; }
+
+/* The seam is a lit top edge, which does nothing on paper */
+.theme-light.band-seam,
+.theme-light .band-seam {
+  box-shadow: inset 0 1px 0 0 rgba(10, 13, 18, 0.07);
+}
+
+/* Media sits on paper now: swap the white hairline for a dark one
+   and lighten the drop shadow. */
+.theme-light .media-frame {
+  background: var(--color-ink-800);
+  box-shadow:
+    0 0 0 1px rgba(10, 13, 18, 0.12),
+    0 18px 40px -16px rgba(10, 13, 18, 0.35);
+}
+.theme-light .media-frame::after {
+  background: radial-gradient(ellipse 94% 92% at 50% 45%, transparent 62%, rgba(0, 0, 0, 0.28) 100%);
+}
+
+/* Gold-gradient titles read as muddy brown on white, so on paper the
+   metal treatment resolves to the primary text colour instead. */
+.theme-light .text-metal {
+  background-image: none;
+  color: var(--color-fg);
+  -webkit-text-fill-color: var(--color-fg);
+}
+
+/* Gold circuitry disappears on paper; use a neutral grid instead */
+.theme-light .bg-circuit {
+  background-image:
+    linear-gradient(to right, rgba(10, 13, 18, 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(10, 13, 18, 0.5) 1px, transparent 1px),
+    radial-gradient(circle, rgba(10, 13, 18, 0.7) 1.5px, transparent 1.5px);
+  opacity: 0.05;
+}
+
+/* Hairlines authored as dark-theme opacity variants read far too
+   heavy on paper, so pin them back to the token. */
+.theme-light [class*="border-line/"] {
+  border-color: var(--color-line);
+}
+
+/* ══ INVERTED CARDS ═══════════════════════════════════════════════
+   A dark card deliberately placed on a light section. It restores
+   the dark-theme variables for its own subtree, so the element's
+   existing bg-ink-* / text-* utilities resolve dark again. */
+.card-invert {
+  --color-ink-950: #0B0D11;
+  --color-ink-900: #0B0D11;
+  --color-ink-880: #0B0D11;
+  --color-ink-850: #151922;
+  --color-ink-800: #1C2029;
+  --color-ink-700: #262B36;
+  --color-line: #262B36;
+  --color-line-warm: #3A3426;
+
+  --color-fg: #FFFFFF;
+  --color-fg-body: #B4B9C3;
+  --color-fg-muted: #B4B9C3;
+  --color-white: #FFFFFF;
+
+  --color-gold-100: #E3C04F;
+  --color-gold-200: #D4AF37;
+  --color-gold-300: #D4AF37;
+  --color-gold-400: #D4AF37;
+  --color-gold-500: #D4AF37;
+  --color-gold-600: #D4AF37;
+  --color-gold-700: #8A6B1E;
+  --color-gold-800: #8A6B1E;
+
+  --color-steel-300: #B4B9C3;
+  --color-steel-400: #949AA6;
+  --color-steel-500: #6E7686;
+  --color-steel-600: #4C5564;
+  --color-steel-700: #39414E;
+
+  --color-emerald-400: #22C55E;
+  --color-emerald-500: #22C55E;
+
+  color: var(--color-fg-body);
+}
+.card-invert .media-frame {
+  background: var(--color-ink-850);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.09),
+    0 24px 60px -18px rgba(0, 0, 0, 0.9);
+}
+.card-invert .text-metal {
+  background-image: linear-gradient(180deg, #F0DCA0 0%, #E3C04F 40%, #D4AF37 100%);
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.card-invert [class*="border-line/"] {
+  border-color: var(--color-line);
+}
