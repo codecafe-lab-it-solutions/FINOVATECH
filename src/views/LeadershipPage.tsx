@@ -20,7 +20,7 @@ export const LeadershipPage: React.FC<LeadershipPageProps> = ({ onNavigate }) =>
         backgroundImage="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=2400&q=85"
         metrics={[
           { label: 'Operating Location', value: 'Muscat, Oman' },
-          { label: 'Governance Standard', value: 'Audited Transparency' },
+          { label: 'Governance Standard', value: 'Published Disclosures' },
           { label: 'Jurisdiction', value: 'Muscat, Sultanate of Oman' },
         ]}
         onNavigate={onNavigate}

@@ -34,7 +34,7 @@ export const FacilityCanvasAnimation: React.FC<{ opacity?: number }> = ({ opacit
       // 1. Sky & Cloud Backdrop (Desert Horizon)
       const skyGrad = ctx.createLinearGradient(0, 0, 0, h * 0.65);
       skyGrad.addColorStop(0, '#17181C');
-      skyGrad.addColorStop(0.5, '#2A2A2E');
+      skyGrad.addColorStop(0.5, '#2A2F38');
       skyGrad.addColorStop(1, '#8A8A93');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, w, h * 0.65);
@@ -70,7 +70,7 @@ export const FacilityCanvasAnimation: React.FC<{ opacity?: number }> = ({ opacit
       // Gravel Facility Ground Pad
       const groundGrad = ctx.createLinearGradient(0, h * 0.6, 0, h);
       groundGrad.addColorStop(0, '#8A8A93');
-      groundGrad.addColorStop(0.3, '#2A2A2E');
+      groundGrad.addColorStop(0.3, '#2A2F38');
       groundGrad.addColorStop(1, '#000000');
       ctx.fillStyle = groundGrad;
 
@@ -141,7 +141,7 @@ export const FacilityCanvasAnimation: React.FC<{ opacity?: number }> = ({ opacit
 
       // Transformer coils & blinking indicators
       for (let c = 0; c < 3; c++) {
-        ctx.fillStyle = '#2A2A2E';
+        ctx.fillStyle = '#2A2F38';
         ctx.fillRect(subX + 10 + c * 20, subY - 14, 12, 14);
         // Green power pulse
         ctx.fillStyle = Math.sin(time * 4 + c) > 0 ? '#10B981' : '#059669';
@@ -182,7 +182,7 @@ export const FacilityCanvasAnimation: React.FC<{ opacity?: number }> = ({ opacit
           ctx.fill();
 
           // Louver Vents / Exhaust Fans
-          ctx.fillStyle = '#2A2A2E';
+          ctx.fillStyle = '#2A2F38';
           ctx.fillRect(podX + 6, podY + 6, 20, 14);
           ctx.fillRect(podX + 32, podY + 6, 20, 14);
 

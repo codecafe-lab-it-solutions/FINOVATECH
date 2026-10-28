@@ -1,32 +1,26 @@
 import React, { useState, useRef } from 'react';
-import { 
-  Play, 
-  Pause, 
-  Volume2, 
-  VolumeX, 
-  ChevronLeft, 
-  ChevronRight, 
-  Maximize2, 
-  Radio, 
-  Sparkles,
-  Server,
-  Zap,
+import {
+  Play,
+  Pause,
+  Volume2,
+  VolumeX,
+  ChevronLeft,
+  ChevronRight,
+  Maximize2,
   Cpu,
-  Layers,
   Flame,
-  ShieldCheck,
   Activity,
   X
 } from 'lucide-react';
 
-import video1 from '../assets/video_1.mp4';
 import video2 from '../assets/video_2.mp4';
-import video3 from '../assets/video_3.mp4';
-import video4 from '../assets/video_4.mp4';
+import poster2 from '../assets/stills/reel-2.webp';
 import video5 from '../assets/video_5.mp4';
+import poster5 from '../assets/stills/reel-5.webp';
 import video6 from '../assets/video_6.mp4';
-import video7 from '../assets/video_7.mp4';
+import poster6 from '../assets/stills/reel-6.webp';
 import video8 from '../assets/video_8.mp4';
+import poster8 from '../assets/stills/reel-8.webp';
 
 export interface ReelItem {
   id: string;
@@ -34,46 +28,21 @@ export interface ReelItem {
   category: string;
   caption: string;
   src: string;
+  poster: string;
   stats: string;
   icon: React.ElementType;
 }
 
 export const REELS_DATA: ReelItem[] = [
   {
-    id: 'reel-1',
-    title: 'MCT-01 High-Density ASIC Racks',
-    category: 'Compute Array',
-    caption: 'Active SHA-256 silicon clusters processing block transactions with 112 TH/s standard per unit.',
-    src: video1 || '/video_1.mp4',
-    stats: '112.4 TH/s • 3.24 kW',
-    icon: Server
-  },
-  {
     id: 'reel-2',
     title: 'Thermal Negative-Pressure Exhaust',
     category: 'Cooling Dynamics',
     caption: 'High-volume exhaust bays expelling thermal heat with engineered 14°C delta isolation.',
     src: video2 || '/video_2.mp4',
+    poster: poster2,
     stats: 'Delta T 14.2°C • Continuous',
     icon: Flame
-  },
-  {
-    id: 'reel-3',
-    title: '33kV Substation & Power Distribution',
-    category: 'Energy Grid',
-    caption: 'Dedicated electrical step-down infrastructure delivering stabilized high-voltage industrial power.',
-    src: video3 || '/video_3.mp4',
-    stats: '0.985 Power Factor • 33 kV',
-    icon: Zap
-  },
-  {
-    id: 'reel-4',
-    title: 'Modular Container Pod Alpha Deployment',
-    category: 'Facility Pods',
-    caption: 'Custom engineered weatherproof containers deployed on-site at Muscat facility node.',
-    src: video4 || '/video_4.mp4',
-    stats: 'Tier-3 Spec • Muscat Site',
-    icon: Layers
   },
   {
     id: 'reel-5',
@@ -81,7 +50,8 @@ export const REELS_DATA: ReelItem[] = [
     category: 'Hardware Core',
     caption: 'Individual hashboard micro-sensors tracking chip temperature, voltage regulation, and fan RPM.',
     src: video5 || '/video_5.mp4',
-    stats: '68°C Junction • &lt;1.2ms RTT',
+    poster: poster5,
+    stats: '68°C Junction • <1.2ms RTT',
     icon: Cpu
   },
   {
@@ -90,17 +60,9 @@ export const REELS_DATA: ReelItem[] = [
     category: 'Airflow Systems',
     caption: 'Aerodynamic intake fans drawing filtered ambient airflow across mining heat sinks.',
     src: video6 || '/video_6.mp4',
+    poster: poster6,
     stats: '6,200 RPM • High Flow',
     icon: Activity
-  },
-  {
-    id: 'reel-7',
-    title: 'Site Security & Perimeter Monitoring',
-    category: 'Security & Access',
-    caption: '24/7 biometric authentication, CCTV surveillance, and physical security protection.',
-    src: video7 || '/video_7.mp4',
-    stats: '24/7 Guarded • CCTV Active',
-    icon: ShieldCheck
   },
   {
     id: 'reel-8',
@@ -108,6 +70,7 @@ export const REELS_DATA: ReelItem[] = [
     category: 'Operations Desk',
     caption: 'Automated fleet monitoring and real-time hash balance dispatch to Bitcoin mining pools.',
     src: video8 || '/video_8.mp4',
+    poster: poster8,
     stats: '99.9% Target • Stratum V2',
     icon: Activity
   }
@@ -168,7 +131,9 @@ export const FacilityReelsViewer: React.FC = () => {
   // Scroll controls
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      const scrollAmount = direction === 'left' ? -340 : 340;
+      const card = scrollContainerRef.current.firstElementChild as HTMLElement | null;
+      const step = card ? card.offsetWidth + 20 : 320;
+      const scrollAmount = direction === 'left' ? -step : step;
       scrollContainerRef.current.scrollBy({
         left: scrollAmount,
         behavior: 'smooth'
@@ -218,26 +183,26 @@ export const FacilityReelsViewer: React.FC = () => {
     setSelectedModalReel(null);
   };
 
+  // Two hard-edged blur blobs read as a smudge behind the reels; the gold
+  // wash is one continuous gradient across the whole band instead.
   return (
-    <section className="py-16 bg-ink-900 text-white relative overflow-hidden border-b border-line">
-      
-      {/* Subtle Background Glows */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl pointer-events-none" />
+    <section className="py-12 md:py-16 lg:py-24 bg-ink-880 bg-gold-wash band-seam text-white relative overflow-hidden border-b border-line">
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-ink-850 border border-line text-gold-500 text-xs font-mono font-semibold mb-3">
-              <Radio className="w-3.5 h-3.5 animate-pulse" />
-              <span>FACILITY REELS • 8 OPERATIONAL STREAMS</span>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full bg-gold-500" />
+              <span className="text-xs font-semibold uppercase tracking-eyebrow text-gold-500">
+                Facility Reels
+              </span>
             </div>
-            <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
               Muscat Mining Operations in Motion
-            </h3>
-            <p className="text-sm sm:text-base text-fg-muted mt-2 max-w-2xl">
+            </h2>
+            <p className="text-base sm:text-lg text-fg-body mt-2 max-w-2xl leading-relaxed">
               Swipe or scroll horizontally through real operational footage from FINOVATECK’s containerized computing pods, ASIC clusters, and electrical infrastructure.
             </p>
           </div>
@@ -266,8 +231,11 @@ export const FacilityReelsViewer: React.FC = () => {
         {/* Horizontal Scrollable Reel Track */}
         <div 
           ref={scrollContainerRef}
-          className="flex gap-5 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scrollbar-none"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          /* Full-bleed scroll area whose content still starts on the
+             container edge, so the first reel is neither clipped by the
+             overflow nor inset from the heading above it. */
+          className="flex gap-5 overflow-x-auto pb-6 pt-2 snap-x snap-mandatory scrollbar-none -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', scrollPaddingLeft: '1rem' }}
         >
           {REELS_DATA.map((reel, idx) => {
             const isPlaying = playingStates[idx] ?? false;
@@ -277,7 +245,7 @@ export const FacilityReelsViewer: React.FC = () => {
             return (
               <div
                 key={reel.id}
-                className="shrink-0 w-[270px] sm:w-[300px] snap-start group relative rounded-3xl bg-ink-850 border border-line hover:border-gold-500/60 overflow-hidden shadow-2xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col"
+                className="shrink-0 w-[270px] sm:w-[300px] snap-start group relative rounded-2xl bg-ink-850 border border-line hover:border-gold-500/60 overflow-hidden shadow-2xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col"
               >
                 {/* 9:16 Vertical Video Frame */}
                 <div 
@@ -287,6 +255,7 @@ export const FacilityReelsViewer: React.FC = () => {
                   <video
                     ref={(el) => (videoRefs.current[idx] = el)}
                     src={reel.src}
+                    poster={reel.poster}
                     loop
                     muted={isMuted}
                     playsInline
@@ -301,9 +270,9 @@ export const FacilityReelsViewer: React.FC = () => {
 
                   {/* Top Bar: Feed Tag & Fullscreen trigger */}
                   <div className="absolute top-3 inset-x-3 flex items-center justify-between z-10">
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-ink-950/80 backdrop-blur-md border border-line-warm/80 text-[10px] font-mono text-fg-body">
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-ink-950/80 backdrop-blur-md border border-white/15 text-xs text-white">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span>FEED 0{idx + 1}</span>
+                      <span className="font-mono">FEED 0{idx + 1}</span>
                     </div>
 
                     <div className="flex items-center gap-1.5">
@@ -347,7 +316,7 @@ export const FacilityReelsViewer: React.FC = () => {
 
                   {/* Bottom Video Overlays */}
                   <div className="absolute bottom-3 inset-x-3 z-10 pointer-events-none space-y-1.5">
-                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-gold-500/20 border border-gold-500/40 text-gold-500 text-[10px] font-mono font-bold">
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[rgba(11,13,17,0.72)] backdrop-blur-sm border border-white/15 text-white text-xs font-semibold">
                       <IconComponent className="w-3 h-3" />
                       <span>{reel.category}</span>
                     </div>
@@ -356,42 +325,18 @@ export const FacilityReelsViewer: React.FC = () => {
                       {reel.title}
                     </h4>
 
-                    <div className="text-[11px] font-mono text-emerald-400 font-semibold drop-shadow-sm flex items-center gap-1.5">
-                      <Sparkles className="w-3 h-3" />
-                      <span>{reel.stats}</span>
+                    <div className="text-xs font-mono text-white/75 drop-shadow-sm">
+                      {reel.stats}
                     </div>
                   </div>
                 </div>
 
                 {/* Card Bottom Control Bar with explicit Play/Pause button & caption */}
-                <div className="p-4 bg-ink-850 border-t border-line grow flex flex-col justify-between space-y-3">
-                  <p className="text-xs text-fg-muted leading-relaxed line-clamp-2 font-normal">
+                <div className="p-4 bg-ink-850 border-t border-line grow flex flex-col justify-between">
+                  <p className="text-xs text-fg-body leading-relaxed">
                     {reel.caption}
                   </p>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-line/80 gap-2">
-                    <button
-                      id={`reel-play-btn-${idx + 1}`}
-                      onClick={(e) => togglePlay(idx, e)}
-                      className={`w-full py-2 px-3 rounded-xl text-xs font-mono font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                        isPlaying
-                          ? 'bg-ink-800 hover:bg-ink-700 text-gold-200 border border-line-warm'
-                          : 'bg-gold-500 hover:bg-gold-600 text-black shadow-md'
-                      }`}
-                    >
-                      {isPlaying ? (
-                        <>
-                          <Pause className="w-3.5 h-3.5" />
-                          <span>Pause Video</span>
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-3.5 h-3.5 fill-current" />
-                          <span>Play Reel</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
                 </div>
 
               </div>
@@ -400,14 +345,12 @@ export const FacilityReelsViewer: React.FC = () => {
         </div>
 
         {/* Scroll Progress / Status Prompt */}
-        <div className="mt-4 flex flex-wrap items-center justify-between text-xs font-mono text-fg-muted gap-2 border-t border-line/60 pt-4">
+        <div className="mt-4 flex flex-wrap items-center justify-between text-xs text-fg-body gap-2 border-t border-line pt-4">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>8 High-Definition Telemetry Feeds Active (video_1 through video_8)</span>
+            <span>{REELS_DATA.length} operational feeds</span>
           </div>
-          <div className="text-fg-muted">
-            Scroll or drag horizontally • Tap any reel to play/pause
-          </div>
+          <div>Scroll or drag horizontally · tap a reel to play</div>
         </div>
 
       </div>
@@ -419,14 +362,14 @@ export const FacilityReelsViewer: React.FC = () => {
           onClick={closeFullscreenReel}
         >
           <div 
-            className="relative w-full max-w-md max-h-[90vh] bg-ink-950 rounded-3xl border border-line shadow-2xl overflow-hidden flex flex-col"
+            className="relative w-full max-w-md max-h-[90vh] bg-ink-950 rounded-2xl border border-line shadow-2xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b border-line bg-ink-850/90 z-10">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-xs font-mono font-bold text-white truncate max-w-[240px]">
+                <span className="text-xs font-bold text-white truncate max-w-[240px]">
                   {selectedModalReel.title}
                 </span>
               </div>
@@ -464,7 +407,7 @@ export const FacilityReelsViewer: React.FC = () => {
                       }
                     }
                   }}
-                  className="px-4 py-2 rounded-xl bg-gold-500 text-black font-mono font-bold text-xs flex items-center gap-2 shadow-lg cursor-pointer"
+                  className="btn-primary px-4 py-2 text-xs shadow-lg"
                 >
                   {isModalPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
                   <span>{isModalPlaying ? 'Pause' : 'Play'}</span>
@@ -489,7 +432,7 @@ export const FacilityReelsViewer: React.FC = () => {
             <div className="p-4 bg-ink-850/95 border-t border-line space-y-1.5">
               <div className="flex items-center justify-between text-xs font-mono">
                 <span className="text-gold-500 font-semibold">{selectedModalReel.category}</span>
-                <span className="text-emerald-400">{selectedModalReel.stats}</span>
+                <span className="text-fg-body">{selectedModalReel.stats}</span>
               </div>
               <p className="text-xs text-fg-body leading-relaxed">
                 {selectedModalReel.caption}

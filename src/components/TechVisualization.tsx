@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Cpu, Zap, Fan, Network, Activity, Globe, Play, Pause, RefreshCw } from 'lucide-react';
+import { Cpu, Zap, Fan, Network, Activity, Globe, Play, Pause } from 'lucide-react';
+import { OPERATING_FACTS } from '../data/companyData';
 
 export const TechVisualization: React.FC = () => {
   const [activeStageIndex, setActiveStageIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
-  const [telemetry, setTelemetry] = useState({
-    activeChips: 2840,
-    voltageStability: 99.98,
-    airflowRate: 4200,
-    rttLatency: 1.4,
-    verifiedBlocks: 842109,
-    hashRateTH: 342.8
-  });
 
   const pipelineStages = [
     {
@@ -35,7 +28,7 @@ export const TechVisualization: React.FC = () => {
       title: 'Cooling Systems',
       subtitle: 'Air Containment Flow',
       icon: Fan,
-      telemetryKey: 'Thermal Delta: 12.8°C • Negative Pressure',
+      telemetryKey: 'Thermal delta ' + OPERATING_FACTS.thermalDelta + ' · negative pressure',
       detail: 'Precision hot-aisle containment and high-CFM extraction maintaining optimal silicon junction temperatures.'
     },
     {
@@ -72,41 +65,30 @@ export const TechVisualization: React.FC = () => {
     return () => clearInterval(interval);
   }, [isPlaying, pipelineStages.length]);
 
-  useEffect(() => {
-    const jitter = setInterval(() => {
-      setTelemetry((prev) => ({
-        ...prev,
-        voltageStability: +(99.94 + Math.random() * 0.05).toFixed(2),
-        rttLatency: +(1.2 + Math.random() * 0.4).toFixed(1),
-        hashRateTH: +(340 + Math.random() * 5).toFixed(1)
-      }));
-    }, 2000);
-    return () => clearInterval(jitter);
-  }, []);
-
   const activeStage = pipelineStages[activeStageIndex];
 
   return (
-    <section id="technology-visualization-section" className="py-20 lg:py-28 bg-ink-950 text-white border-b border-line relative overflow-hidden">
+    <section id="technology-visualization-section" className="py-12 md:py-16 lg:py-24 bg-ink-880 band-seam text-white border-b border-line relative overflow-hidden">
       
       {/* Background ambient lighting */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-gold-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 lg:mb-16 gap-6">
           <div className="max-w-2xl space-y-3">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-gold-500"></span>
-              <span className="text-xs font-mono font-semibold uppercase tracking-widest text-gold-500">
+              <span className="text-xs font-semibold uppercase tracking-eyebrow text-gold-500">
                 Interactive Simulation
               </span>
             </div>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+            {/* Was 36px while every neighbouring H2 was 48px. */}
+            <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
               Technology & Infrastructure Pipeline
             </h2>
-            <p className="text-base text-fg-muted">
+            <p className="text-base sm:text-lg text-fg-body leading-relaxed">
               Visualizing the end-to-end operational flow from ASIC silicon computation in Muscat to global Bitcoin network consensus.
             </p>
           </div>
@@ -115,16 +97,16 @@ export const TechVisualization: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-ink-800 hover:bg-ink-700 text-xs font-mono text-fg-body transition-colors cursor-pointer border border-line-warm"
+              className="btn-secondary px-3.5 py-2 text-sm"
             >
-              {isPlaying ? <Pause className="w-3.5 h-3.5 text-gold-500" /> : <Play className="w-3.5 h-3.5 text-emerald-400" />}
-              <span>{isPlaying ? 'Pause Auto-Cycle' : 'Resume Auto-Cycle'}</span>
+              {isPlaying ? <Pause className="w-4 h-4 text-gold-500" /> : <Play className="w-4 h-4 text-gold-500" />}
+              <span>{isPlaying ? 'Pause' : 'Play'}</span>
             </button>
           </div>
         </div>
 
         {/* Horizontal Pipeline Steps */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           {pipelineStages.map((stage, idx) => {
             const Icon = stage.icon;
             const isActive = activeStageIndex === idx;
@@ -136,23 +118,23 @@ export const TechVisualization: React.FC = () => {
                   setActiveStageIndex(idx);
                   setIsPlaying(false);
                 }}
-                className={`p-4 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between relative ${
+                className={`p-4 rounded-xl border text-left transition-colors cursor-pointer flex flex-col justify-between relative ${
                   isActive
-                    ? 'bg-ink-850 border-gold-500 text-white shadow-lg ring-1 ring-gold-500/30'
-                    : 'bg-ink-950/70 border-line text-fg-muted hover:bg-ink-850/80 hover:border-gold-700/60'
+                    ? 'bg-ink-800 border-gold-500 text-white'
+                    : 'bg-ink-850 border-line text-fg-body hover:border-gold-700'
                 }`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <div className={`p-2 rounded-lg ${isActive ? 'bg-gold-500/20 text-gold-500' : 'bg-ink-850 text-fg-muted'}`}>
+                    <div className={`p-2 rounded-lg ${isActive ? 'bg-gold-500/20 text-gold-500' : 'bg-ink-800 text-gold-500'}`}>
                       <Icon className="w-4 h-4" />
                     </div>
-                    <span className="text-[10px] font-mono text-fg-muted">0{idx + 1}</span>
+                    <span className="text-xs font-mono text-fg-body">0{idx + 1}</span>
                   </div>
-                  <div className="text-xs sm:text-sm font-bold tracking-tight text-white mb-0.5">
+                  <div className="text-[13px] font-bold tracking-tight text-white mb-0.5 leading-snug lg:min-h-[2.5rem]">
                     {stage.title}
                   </div>
-                  <div className="text-[11px] text-fg-muted truncate">
+                  <div className="text-xs text-fg-body truncate">
                     {stage.subtitle}
                   </div>
                 </div>
@@ -166,15 +148,15 @@ export const TechVisualization: React.FC = () => {
         </div>
 
         {/* Selected Stage Detail & Real-Time Telemetry Monitor */}
-        <div className="rounded-2xl bg-ink-950 border border-line p-6 sm:p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            
+        <div className="rounded-2xl bg-ink-850 border border-line p-6 sm:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
             {/* Left Detail Description */}
             <div className="lg:col-span-7 space-y-4">
-              <div className="flex items-center gap-2 font-mono text-xs text-gold-500">
-                <span>STAGE 0{activeStageIndex + 1} INSPECTOR</span>
-                <span>•</span>
-                <span className="text-fg-muted">{activeStage.telemetryKey}</span>
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="font-mono font-bold text-gold-500">STAGE 0{activeStageIndex + 1}</span>
+                <span className="text-fg-body">·</span>
+                <span className="text-fg-body">{activeStage.telemetryKey}</span>
               </div>
 
               <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
@@ -186,41 +168,37 @@ export const TechVisualization: React.FC = () => {
               </p>
 
               {/* Data Flow Animation Bar */}
-              <div className="p-3 rounded-xl bg-ink-850/80 border border-line flex items-center justify-between text-xs font-mono">
-                <span className="text-fg-muted">Data Synchronization</span>
-                <span className="text-emerald-400 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                  Active Stream MCT-01 → Global Consensus
+              <div className="p-3 rounded-xl bg-ink-900 border border-line flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="text-fg-body">Data synchronization</span>
+                <span className="text-white flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span className="font-mono">{OPERATING_FACTS.nodeId}</span> → global consensus
                 </span>
               </div>
             </div>
 
             {/* Right Live Simulation Telemetry Matrix */}
-            <div className="lg:col-span-5 p-5 rounded-xl bg-ink-850 border border-line font-mono text-xs space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-line text-fg-muted">
-                <span className="font-bold text-fg-body">FACILITY TELEMETRY</span>
-                <span className="text-[10px] text-fg-muted">LIVE FEED</span>
+            <div className="lg:col-span-5 p-5 rounded-xl bg-ink-900 border border-line text-xs space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-line">
+                <span className="font-semibold uppercase tracking-eyebrow text-gold-500">Facility Targets</span>
               </div>
 
-              <div className="flex justify-between items-center text-fg-body">
-                <span className="text-fg-muted">Voltage Stability:</span>
-                <span className="text-emerald-400 font-bold">{telemetry.voltageStability}%</span>
-              </div>
+              {[
+                ['Uptime target', OPERATING_FACTS.uptimeTarget],
+                ['Power factor', '0.985'],
+                ['Local stratum RTT', '< 1.2 ms'],
+                ['Per-rack hashrate', OPERATING_FACTS.perRackHashrate],
+                ['Thermal delta', OPERATING_FACTS.thermalDelta],
+              ].map(([label, value]) => (
+                <div key={label} className="flex justify-between items-center gap-3">
+                  <span className="text-fg-body">{label}</span>
+                  <span className="font-mono font-bold text-white text-right">{value}</span>
+                </div>
+              ))}
 
-              <div className="flex justify-between items-center text-fg-body">
-                <span className="text-fg-muted">Local Stratum RTT:</span>
-                <span className="text-emerald-400 font-bold">{telemetry.rttLatency} ms</span>
-              </div>
-
-              <div className="flex justify-between items-center text-fg-body">
-                <span className="text-fg-muted">Hash Execution Rate:</span>
-                <span className="text-gold-500 font-bold">{telemetry.hashRateTH} TH/s (Nominal)</span>
-              </div>
-
-              <div className="flex justify-between items-center text-fg-body">
-                <span className="text-fg-muted">Operating Standard:</span>
-                <span className="text-fg-body">Muscat Facility MCT-01</span>
-              </div>
+              <p className="pt-2 border-t border-line text-fg-body leading-relaxed">
+                Engineering targets for <span className="font-mono">{OPERATING_FACTS.nodeId}</span>, not a live feed.
+              </p>
             </div>
 
           </div>

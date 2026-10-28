@@ -4,6 +4,7 @@ import { BitcoinMiningSection } from '../components/BitcoinMiningSection';
 import { TechVisualization } from '../components/TechVisualization';
 import { BusinessPillars } from '../components/BusinessPillars';
 import { PageRoute } from '../types';
+import { OPERATING_FACTS } from '../data/companyData';
 
 interface MiningPageProps {
   onNavigate: (route: PageRoute) => void;
@@ -21,9 +22,10 @@ export const MiningPage: React.FC<MiningPageProps> = ({ onNavigate }) => {
         metrics={[
           { label: 'Algorithm', value: 'SHA-256 Proof-of-Work' },
           { label: 'Fleet Architecture', value: 'High-Efficiency ASICs' },
-          { label: 'Operational Uptime', value: '99.85% Continuous' },
+          { label: 'Uptime Target', value: `${OPERATING_FACTS.uptimeTarget} Continuous` },
         ]}
         onNavigate={onNavigate}
+        theme="light"
       />
       <BitcoinMiningSection onNavigate={onNavigate} />
       <TechVisualization />
