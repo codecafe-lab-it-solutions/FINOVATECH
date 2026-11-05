@@ -140,7 +140,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
       }
       for (const key of NUMERIC_FIELDS) {
         const raw: unknown = payload[key];
-        const label = key === 'totalInvestmentUsd' ? 'Total Investment (USD)' : key === 'currentPortfolioValueUsd' ? 'Portfolio Value (USD)' : key;
+        const label = key === 'totalInvestmentUsd' ? 'Total Investment (USD)' : key === 'currentPortfolioValueUsd' ? 'Portfolio Value (USD)' : key === 'totalBtcAllocated' ? 'BTC Allotted' : key;
         payload[key] = parseAdminAmount(raw, label);
       }
       // Withdrawal lock dates are no longer applied; never send one back.
@@ -387,6 +387,12 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                         <span className="text-fg-muted text-[10px] uppercase block mb-1">Portfolio Value (USD)</span>
                         <input type="text" inputMode="decimal" value={formState.currentPortfolioValueUsd ?? ''}
                           onChange={(e) => handleField('currentPortfolioValueUsd', e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
+                      </label>
+                      <label className="block">
+                        <span className="text-fg-muted text-[10px] uppercase block mb-1">BTC Allotted</span>
+                        <input type="text" inputMode="decimal" value={formState.totalBtcAllocated ?? ''}
+                          onChange={(e) => handleField('totalBtcAllocated', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
                       </label>
                     </div>

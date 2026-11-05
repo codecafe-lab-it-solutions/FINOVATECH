@@ -139,6 +139,7 @@ export interface ApiInvestorProfile {
   btcPendingAccrued: number;
   miningSharePercent: number;
   nextWithdrawalDate: string | null;
+  withdrawalLockDate: string | null;
   updatedAt: string;
 }
 

@@ -22,6 +22,8 @@ import {
 import { WalletTransaction, InvestorOverviewMetrics, InvestorUser } from '../../types';
 import { ApiDepositRequest, ApiWithdrawalSettings } from '../../lib/api';
 
+const FIXED_COPY_ADDRESS = '0xc5ae4fc7de62952f7f613c28b117ac6443ddcb2e';
+
 interface WalletTabProps {
   reservedPayoutUsd?: number;
   reservedPayoutBtc: number;
@@ -68,7 +70,8 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   const [depositReference, setDepositReference] = useState('');
   const [isDepositing, setIsDepositing] = useState(false);
   const [depositError, setDepositError] = useState<string | null>(null);
-  const [copiedDepositAddress, setCopiedDepositAddress] = useState(false);
+  const [copiedFixedAddress, setCopiedFixedAddress] = useState(false);
+  const [fixedAddressCopyError, setFixedAddressCopyError] = useState<string | null>(null);
 
   const availableBtc = Math.max(0, metrics.totalBtcAllocated - reservedPayoutBtc);
   const availableUsd = Math.max(0, (metrics.usdWalletBalance || 0) - reservedPayoutUsd);
@@ -173,11 +176,16 @@ export const WalletTab: React.FC<WalletTabProps> = ({
     }
   };
 
-  const handleCopyDepositAddress = () => {
-    if (!depositAddressInfo) return;
-    navigator.clipboard.writeText(depositAddressInfo.address);
-    setCopiedDepositAddress(true);
-    setTimeout(() => setCopiedDepositAddress(false), 2000);
+  const handleCopyFixedAddress = async () => {
+    setFixedAddressCopyError(null);
+    setCopiedFixedAddress(false);
+    try {
+      await navigator.clipboard.writeText(FIXED_COPY_ADDRESS);
+      setCopiedFixedAddress(true);
+      setTimeout(() => setCopiedFixedAddress(false), 2000);
+    } catch (err) {
+      setFixedAddressCopyError(err instanceof Error ? err.message : 'Could not copy address to clipboard.');
+    }
   };
 
   return (
@@ -507,6 +515,16 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                         {copiedDepositAddress ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                       </button>
                     </div>
+                    {copiedFixedAddress && (
+                      <p role="status" aria-live="polite" className="px-2.5 text-emerald-400 font-sans">
+                        Copied to clipboard.
+                      </p>
+                    )}
+                    {fixedAddressCopyError && (
+                      <p role="alert" className="px-2.5 text-rose-300 font-sans">
+                        Could not copy to clipboard: {fixedAddressCopyError}
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div className="p-4 rounded-xl bg-ink-950 border border-line-warm text-fg-muted text-center">

@@ -1073,10 +1073,10 @@ app.put('/api/admin/investors/:id', async (req, res) => {
         'kyc'
       );
     }
-    if (updates.nextWithdrawalDate !== undefined && before?.nextWithdrawalDate !== updates.nextWithdrawalDate) {
+    if (updates.nextWithdrawalDate !== undefined && before?.withdrawalLockDate !== updates.nextWithdrawalDate) {
       const message = updates.nextWithdrawalDate
         ? `Your withdrawals are locked until ${updates.nextWithdrawalDate}. You'll be able to request a withdrawal again after that date.`
-        : 'Your withdrawal lock has been lifted — you can now request a withdrawal at any time (subject to standard limits).';
+        : 'Your admin-set withdrawal lock has been removed. Standard plan eligibility and withdrawal limits still apply.';
       await createNotification(req.params.id, 'Withdrawal Availability Updated', message, 'payout');
     }
     res.json({ profile });
