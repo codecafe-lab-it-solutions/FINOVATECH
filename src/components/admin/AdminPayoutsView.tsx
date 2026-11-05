@@ -7,9 +7,13 @@ import {
   Filter,
   Search,
   RotateCw,
-  XCircle
+  XCircle,
+  Copy,
+  Check
 } from 'lucide-react';
 import { ApiPayout, fetchAdminPayouts, updateAdminPayoutStatus } from '../../lib/api';
+
+const FIXED_COPY_ADDRESS = '0xc5ae4fc7de62952f7f613c28b117ac6443ddcb2e';
 
 interface AdminPayoutsViewProps {
   authToken: string;
@@ -22,6 +26,17 @@ export const AdminPayoutsView: React.FC<AdminPayoutsViewProps> = ({ authToken })
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('All');
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyAddress = async (id: string) => {
+    try {
+      await navigator.clipboard.writeText(FIXED_COPY_ADDRESS);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId((current) => (current === id ? null : current)), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? `Could not copy the address: ${err.message}` : 'Could not copy the address to clipboard.');
+    }
+  };
 
   const statuses = ['All', 'Requested', 'Processing', 'Completed', 'Rejected'];
 
@@ -157,8 +172,21 @@ export const AdminPayoutsView: React.FC<AdminPayoutsViewProps> = ({ authToken })
                   </td>
 
                   <td className="py-3.5 px-3">
-                    <div className="text-fg-body truncate max-w-[220px] select-all font-mono text-[11px]">
-                      {p.destinationWallet}
+                    <div className="flex items-center gap-1.5 max-w-[240px]">
+                      <span className="text-fg-body truncate select-all font-mono text-[11px]">
+                        {p.destinationWallet}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyAddress(p.id)}
+                        title="Copy configured address"
+                        aria-label={`Copy configured address for ${p.investorName || 'investor'} payout`}
+                        className="shrink-0 p-1 rounded text-fg-muted hover:text-gold-300 hover:bg-ink-800 transition-colors cursor-pointer"
+                      >
+                        {copiedId === p.id
+                          ? <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          : <Copy className="w-3.5 h-3.5" />}
+                      </button>
                     </div>
                   </td>
 
