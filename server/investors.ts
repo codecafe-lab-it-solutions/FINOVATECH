@@ -44,6 +44,7 @@ export interface InvestorProfile {
   btcPendingAccrued: number;
   miningSharePercent: number;
   nextWithdrawalDate: string | null;
+  withdrawalLockDate: string | null;
   updatedAt: string;
 }
 
@@ -149,6 +150,7 @@ function toProfile(row: ProfileRow): InvestorProfile {
     btcPendingAccrued: Number(row.btc_pending_accrued),
     miningSharePercent: Number(row.mining_share_percent),
     nextWithdrawalDate: joining && terms ? nextEligibleDay(joining, row.latest_payout ? utcDay(row.latest_payout) : null, terms.payoutRequestDays, row.next_withdrawal_date) : row.next_withdrawal_date,
+    withdrawalLockDate: row.next_withdrawal_date,
     updatedAt: row.updated_at
   };
 }
