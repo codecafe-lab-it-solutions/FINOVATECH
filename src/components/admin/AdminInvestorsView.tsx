@@ -143,7 +143,8 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
         const label = key === 'totalInvestmentUsd' ? 'Total Investment (USD)' : key === 'currentPortfolioValueUsd' ? 'Portfolio Value (USD)' : key;
         payload[key] = parseAdminAmount(raw, label);
       }
-      payload.nextWithdrawalDate = payload.nextWithdrawalDate || null;
+      // Withdrawal lock dates are no longer applied; never send one back.
+      delete payload.nextWithdrawalDate;
       const { profile } = await updateAdminInvestorProfile(authToken, selectedId, payload);
       setDetailProfile(profile);
       setFormState(profile);
@@ -359,29 +360,6 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                           <option>Under Review</option>
                           <option>Active</option>
                         </select>
-                      </label>
-                      <label className="block sm:col-span-2">
-                        <span className="text-fg-muted text-[10px] uppercase block mb-1">Withdrawals Locked Until (optional)</span>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="date"
-                            value={formState.nextWithdrawalDate ?? ''}
-                            onChange={(e) => handleField('nextWithdrawalDate', e.target.value)}
-                            className="flex-1 px-3 py-2 rounded-xl bg-ink-950 border border-line text-white"
-                          />
-                          {formState.nextWithdrawalDate && (
-                            <button
-                              type="button"
-                              onClick={() => handleField('nextWithdrawalDate', '')}
-                              className="px-3 py-2 rounded-xl bg-ink-800 hover:bg-ink-700 text-fg-body text-[11px] cursor-pointer"
-                            >
-                              Clear
-                            </button>
-                          )}
-                        </div>
-                        <span className="text-[10px] text-fg-muted mt-1 block">
-                          This investor cannot request a withdrawal before this date. The plan interval and global seven-day minimum always apply.
-                        </span>
                       </label>
                     </div>
                   </div>

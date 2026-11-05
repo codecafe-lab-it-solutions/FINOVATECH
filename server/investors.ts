@@ -269,7 +269,8 @@ export async function updateProfile(userId: string, updates: ProfileUpdate): Pro
     if (updates.plan !== undefined && (updates.plan !== before.plan || !before.plan_terms)) {
       const [plans] = await conn.query<RowDataPacket[]>('SELECT * FROM investment_plans WHERE name = ? FOR UPDATE', [updates.plan]);
       if (plans.length !== 1 && updates.plan !== before.plan) throw new Error('Select a uniquely named investment plan from the catalog.');
-      if (before.plan_terms && Number(before.total_investment_usd) > 0) throw new Error('An existing funded investment cannot be reassigned. Its agreed terms must be preserved.');
+      // A funded investor may be reassigned to another plan. The terms snapshot is rewritten
+      // from the new plan, so interest, fees and maturity follow the plan now assigned.
       const pl = plans[0];
       if (pl) {
       const terms: PlanTerms = { name: pl.name, dailyReturnPercent: Number(pl.daily_return_percent), payoutRequestDays: Number(pl.payout_request_days), minimumThresholdPercent: Number(pl.minimum_threshold_percent), withdrawalEntryFeePercent: Number(pl.withdrawal_entry_fee_percent), managementFeePercent: Number(pl.management_fee_percent), durationMonths: pl.duration_months };

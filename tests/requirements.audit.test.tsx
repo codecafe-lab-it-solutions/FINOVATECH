@@ -100,7 +100,7 @@ test('additional requirement-by-requirement HTTP and rendered-output audit', asy
   const wallet = () => renderToStaticMarkup(<WalletTab user={user} metrics={metrics} reservedPayoutBtc={0} transactions={[]} depositRequests={[]} withdrawalSettings={{ maxWithdrawalUsd: 1000, withdrawalsEnabled: true, updatedAt: '' }} onRequestPayoutOtp={async () => ({ok: true, message: 'test'})} onRequestPayout={async () => {}} onFetchDepositAddress={async () => ({ address: 'test', network: 'BTC' })} onSubmitDeposit={async () => ({referenceNumber: 'test'})} />);
   await t.test('REQ 6 and 11: rendered wallet includes assigned terms, all new fields, and both KYC/joining dates', () => {
     const html = wallet();
-    for (const value of [input.name, 'Request USD Withdrawal', 'Daily interest is credited in USD', 'Daily Return', '0.5%', 'Allow Payout Request', '15 days', 'Minimum Threshold', '15%', 'Withdrawal / Entry Fee', '1.25%', 'KYC Approval Date', 'Joining Date / Start Date', profile.joiningDate!]) assert.ok(html.includes(value), `Wallet does not contain ${value}`);
+    for (const value of [input.name, 'Request USD Withdrawal', 'Daily interest is credited in USD', 'Daily Return', '0.5%', 'Allow Payout Request', 'no waiting period', 'Minimum Threshold', '15%', 'Withdrawal / Entry Fee', '1.25%', 'KYC Approval Date', 'Joining Date / Start Date', profile.joiningDate!]) assert.ok(html.includes(value), `Wallet does not contain ${value}`);
     assert.ok(!html.includes('2.75%'), 'Catalog edits must not replace the saved 0.5% investor rate.');
   });
   await t.test('REQ 10: concurrent new investors receive unique consecutive FINOVA IDs and preserve UUID legacy keys', async () => {
@@ -144,17 +144,18 @@ test('additional requirement-by-requirement HTTP and rendered-output audit', asy
     const html = renderToStaticMarkup(<InvestorSidebar currentTab="overview" onSelectTab={() => {}} unreadNotificationsCount={0} openTicketsCount={0} hasActiveAllocation={true} />);
     assert.ok(html.includes('investor-tab-referrals'), 'Partner / Referrals is inside a hidden menu group; no alternative referral navigation exists in the navbar.');
   });
-  await t.test('REQ 8: server enforces 7-, 30-, and 45-day eligibility boundaries', async () => {
+  await t.test('REQ 8: server applies no waiting period, lock date or transaction cap', async () => {
     for (const gap of [5, 30, 45]) {
       const plan = await createPlan({ ...input, name: `${input.name} gap ${gap}`, dailyReturnPercent: 0, payoutRequestDays: gap }); plans.push(plan.id);
       const member = await createFixture();
-      const effective = Math.max(7, gap);
-      await updateProfile(member.id, { plan: plan.name, kycStatus: 'Verified', accountStatus: 'Active', kycApprovedAt: addDays(today, -(effective - 1)) + 'T00:00:00Z', totalInvestmentUsd: 100, totalBtcAllocated: 0.01 });
+      await updateProfile(member.id, { plan: plan.name, kycStatus: 'Verified', accountStatus: 'Active', kycApprovedAt: today + 'T00:00:00Z', totalInvestmentUsd: 100, totalBtcAllocated: 0.01 });
       const withdrawal = () => submitPayout({investorUserId: member.id, amountBtc: 0.00001, destinationWallet: 'audit-wallet', network: 'BTC'}, 100000);
-      await assert.rejects(withdrawal(), /Next eligible withdrawal date/);
-      await pool.query('UPDATE investor_profiles SET kyc_approved_at = ? WHERE user_id = ?', [addDays(today, -effective) + ' 00:00:00', member.id]);
-      assert.ok(await withdrawal());
-      await assert.rejects(withdrawal(), /Next eligible withdrawal date/);
+      assert.ok(await withdrawal(), `plan interval ${gap}: eligible on the approval day`);
+      assert.ok(await withdrawal(), `plan interval ${gap}: no gap between consecutive requests`);
+      await updateProfile(member.id, { nextWithdrawalDate: addDays(today, 3) });
+      assert.ok(await withdrawal(), 'a stored lock date does not defer the request');
+      await updateProfile(member.id, { nextWithdrawalDate: null });
+      assert.ok(await withdrawal(), 'clearing the lock changes nothing');
     }
   });
   await t.test('REQ 13: midnight boundary simulation credits no same-day interest, then one full day, then recovers missed days exactly once', async () => {

@@ -13,7 +13,7 @@ export function PlanConditions({ user, investmentUsd, walletUsd }: { user: Inves
       <div><dt>Joining Date / Start Date</dt><dd>{user.joiningDate || 'Awaiting confirmed KYC approval date'}</dd></div>
       <div><dt>Daily Return</dt><dd>{terms ? `${terms.dailyReturnPercent}%` : 'Plan assignment required'}</dd></div>
       <div><dt>Daily Interest</dt><dd>{terms ? <Money usd={investmentUsd * terms.dailyReturnPercent / 100} /> : '—'}</dd></div>
-      <div><dt>Allow Payout Request</dt><dd>{terms ? `${terms.payoutRequestDays} days; effective gap ${Math.max(7, terms.payoutRequestDays)} days` : '—'}</dd></div>
+      <div><dt>Allow Payout Request</dt><dd>{terms ? 'Any time; no waiting period between requests' : '—'}</dd></div>
       <div><dt>Minimum Threshold / 30-day payout obligation</dt><dd>{terms ? `${terms.dailyReturnPercent * 30}% of principal (30-day payout obligation) must remain` : '—'}</dd></div>
       <div><dt>Monthly Payout Obligation</dt><dd>{terms ? <Money usd={Math.round(investmentUsd * terms.dailyReturnPercent * 30) / 100} /> : '-'}</dd></div>
       <div><dt>Withdrawal / Entry Fee</dt><dd>{terms ? `${terms.withdrawalEntryFeePercent}% (information only; no deduction)` : '—'}</dd></div>

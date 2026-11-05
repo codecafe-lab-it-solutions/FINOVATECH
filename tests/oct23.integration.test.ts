@@ -39,11 +39,12 @@ test('October 23 requested changes: real database/API acceptance',async t=>{
    assert.equal(rows[0].n,4);assert.equal(Number(rows[0].usd),10000*f.rate/100*4);assert.equal(Number(rows[0].btc),0);
   }
  });
- await t.test('payout obligation retains 30 days of earnings, with exact-boundary settlement and no duplicate debit',async()=>{
+ await t.test('the full balance can be withdrawn, with exact-boundary settlement and no duplicate debit',async()=>{
   assert.equal(payoutObligation(10000,.5),1500);assert.equal(maximumWithdrawal(10000,2000,.5),500);assert.equal(maximumWithdrawal(10000,1499,.5),0);
   const f=fixtures[0];await pool.query('UPDATE investor_profiles SET usd_wallet_balance=2000,kyc_approved_at=? WHERE user_id=?',[addDays(platformDay(),-8)+' 00:00:00',f.user.id]);
   const request=(amountUsd:number)=>submitUsdPayout({investorUserId:f.user.id,amountUsd,destination:'Test USD bank destination'});
-  await assert.rejects(request(500.01),/30-day/);const id=await request(500);
+  // The retained 30-day obligation no longer caps a request; only the balance does.
+  await assert.rejects(request(2000.01),/available USD/);const id=await request(500);
   await Promise.all([settlePayout(id,'Completed','QA'),settlePayout(id,'Completed','QA')]);assert.equal((await getProfile(f.user.id))!.usdWalletBalance,1500);
   await settlePayout(id,'Rejected','QA reversal');assert.equal((await getProfile(f.user.id))!.usdWalletBalance,2000);
  });

@@ -84,53 +84,6 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
     }
   };
 
-  // --- Withdrawal Controls (real, backend-enforced global policy — just the
-  // per-transaction cap and the platform-wide on/off switch. The "locked
-  // until this date" rule is per-investor and is set from the Investor
-  // Directory instead, since it applies to specific accounts, not everyone.) ---
-  const [maxWithdrawalUsd, setMaxWithdrawalUsd] = useState(1000);
-  const [withdrawalsEnabled, setWithdrawalsEnabled] = useState(true);
-  const [withdrawalSettingsLoaded, setWithdrawalSettingsLoaded] = useState(false);
-  const [isSavingWithdrawal, setIsSavingWithdrawal] = useState(false);
-  const [withdrawalError, setWithdrawalError] = useState('');
-  const [withdrawalSuccess, setWithdrawalSuccess] = useState('');
-
-  useEffect(() => {
-    fetchWithdrawalSettings(authToken)
-      .then(({ settings }) => {
-        setMaxWithdrawalUsd(settings.maxWithdrawalUsd);
-        setWithdrawalsEnabled(settings.withdrawalsEnabled);
-        setWithdrawalSettingsLoaded(true);
-      })
-      .catch(() => setWithdrawalSettingsLoaded(true));
-  }, [authToken]);
-
-  const handleSaveWithdrawalSettings = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setWithdrawalError('');
-    setWithdrawalSuccess('');
-
-    if (!maxWithdrawalUsd || maxWithdrawalUsd <= 0) {
-      setWithdrawalError('Max withdrawal per transaction must be a positive number.');
-      return;
-    }
-
-    setIsSavingWithdrawal(true);
-    try {
-      const { settings } = await updateAdminWithdrawalSettings(authToken, {
-        maxWithdrawalUsd,
-        withdrawalsEnabled
-      });
-      setMaxWithdrawalUsd(settings.maxWithdrawalUsd);
-      setWithdrawalsEnabled(settings.withdrawalsEnabled);
-      setWithdrawalSuccess('Withdrawal controls updated — this applies platform-wide, immediately.');
-      setTimeout(() => setWithdrawalSuccess(''), 4000);
-    } catch (err) {
-      setWithdrawalError(err instanceof Error ? err.message : 'Could not update withdrawal controls.');
-    } finally {
-      setIsSavingWithdrawal(false);
-    }
-  };
 
   return (
     <div className="space-y-6 pb-12">
@@ -228,76 +181,6 @@ export const AdminSettingsView: React.FC<AdminSettingsViewProps> = ({
             <>
               <KeyRound className="w-4 h-4" />
               <span>Update Credentials</span>
-            </>
-          )}
-        </button>
-      </form>
-
-      {/* Withdrawal Controls — real, backend-enforced global policy */}
-      <form onSubmit={handleSaveWithdrawalSettings} className="p-6 rounded-3xl bg-ink-950 border border-line space-y-4">
-        <h3 className="text-xs font-mono font-bold uppercase text-fg-body flex items-center gap-2">
-          <Ban className="w-4 h-4 text-rose-400" />
-          <span>Withdrawal Controls</span>
-        </h3>
-        <p className="text-[11px] text-fg-muted -mt-2">
-          Applies globally to every investor. Changes take effect immediately on the next withdrawal request. To lock a
-          specific investor's withdrawals until a chosen date, open their account in Investor Directory instead.
-        </p>
-
-        {withdrawalError && (
-          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2 font-mono">
-            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
-            <span>{withdrawalError}</span>
-          </div>
-        )}
-        {withdrawalSuccess && (
-          <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2 font-mono">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span>{withdrawalSuccess}</span>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
-          <div>
-            <label className="block text-fg-muted text-[10px] uppercase mb-1">Max Withdrawal Per Transaction (USD)</label>
-            <input
-              type="number"
-              min="1"
-              step="1"
-              value={maxWithdrawalUsd}
-              onChange={(e) => setMaxWithdrawalUsd(Number(e.target.value))}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-ink-950 border border-line text-white focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500"
-            />
-          </div>
-
-          <label className="flex items-center justify-between p-3.5 rounded-2xl bg-ink-950 border border-line cursor-pointer">
-            <div>
-              <div className="text-white font-bold">Withdrawals Enabled</div>
-              <div className="text-[11px] text-fg-muted">Turn off to block all investor withdrawal requests</div>
-            </div>
-            <input
-              type="checkbox"
-              checked={withdrawalsEnabled}
-              onChange={(e) => setWithdrawalsEnabled(e.target.checked)}
-              className="w-4 h-4 rounded bg-ink-850 border-line-warm text-gold-500"
-            />
-          </label>
-        </div>
-
-        <button
-          type="submit"
-          disabled={isSavingWithdrawal || !withdrawalSettingsLoaded}
-          className="px-6 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-xs font-mono flex items-center gap-2 transition-colors cursor-pointer shadow-lg shadow-gold-500/20 disabled:opacity-50"
-        >
-          {isSavingWithdrawal ? (
-            <>
-              <RotateCw className="w-4 h-4 animate-spin" />
-              <span>Saving...</span>
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4" />
-              <span>Save Withdrawal Controls</span>
             </>
           )}
         </button>

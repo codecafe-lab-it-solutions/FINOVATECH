@@ -30,10 +30,11 @@ export interface PlanTerms {
   managementFeePercent: number;
   durationMonths: number;
 }
-export function nextEligibleDay(joining: string, latest: string | null, interval: number, manual: string | null = null): string {
-  const base = latest && latest > joining ? latest : joining;
-  const day = addDays(base, Math.max(7, interval));
-  return manual && manual > day ? manual : day;
+// Nothing defers a withdrawal: funds are eligible from the approval day onward, with no gap
+// between consecutive requests, no plan interval and no administrator lock date. The wallet
+// balance is the only limit. The parameters are kept so stored profiles still report a date.
+export function nextEligibleDay(joining: string, _latest: string | null, _interval: number, _manual: string | null = null): string {
+  return joining;
 }
 export function payoutObligation(principal: number, dailyReturnPercent: number): number {
   return Math.round(principal * dailyReturnPercent * 30) / 100;
