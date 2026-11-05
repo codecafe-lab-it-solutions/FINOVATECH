@@ -6,6 +6,14 @@ import { AuthUser } from '../lib/api';
 // "awaiting setup" state instead of crashing or showing demo data.
 export function buildEmptyInvestorProfile(authUser: AuthUser): InvestorUser {
   return {
+    platformTimezone: 'Asia/Kolkata',
+    legacyInvestorId: '',
+    kycApprovedAt: null,
+    joiningDate: null,
+    registrationDate: null,
+    planTerms: null,
+    payoutNetwork: '',
+    nextWithdrawalDate: null,
     id: authUser.id,
     username: authUser.username,
     name: authUser.name,
@@ -31,6 +39,7 @@ export function buildEmptyInvestorProfile(authUser: AuthUser): InvestorUser {
 
 export function buildEmptyOverviewMetrics(): InvestorOverviewMetrics {
   return {
+    usdWalletBalance: 0,
     totalInvestmentUsd: 0,
     currentPortfolioValueUsd: 0,
     totalBtcAllocated: 0,
