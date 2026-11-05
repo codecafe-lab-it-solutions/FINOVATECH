@@ -10,7 +10,7 @@
     "earnings:run": "tsx server/scripts/dailyEarnings.ts",
     "db:users": "tsx server/scripts/viewUsers.ts",
     "admin:create": "tsx server/scripts/createAdmin.ts",
-    "build": "vite build && npm run build:server",
+    "build": "npm run lint && vite build && npm run build:server",
     "build:server": "esbuild server/index.ts --bundle --platform=node --format=esm --outfile=server.js --packages=external",
     "start": "NODE_ENV=production node server.js",
     "preview": "vite preview",

@@ -511,8 +511,23 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                       >
                         {depositAddressInfo.address}
                       </span>
-                      <button type="button" onClick={handleCopyDepositAddress} title="Copy deposit address" aria-label="Copy deposit address" className="text-fg-muted hover:text-white cursor-pointer shrink-0">
-                        {copiedDepositAddress ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                    </div>
+                    <div className="flex items-center justify-between gap-2 px-2.5">
+                      <button
+                        type="button"
+                        onClick={handleCopyFixedAddress}
+                        className="text-emerald-300 hover:text-white cursor-pointer font-sans font-semibold"
+                      >
+                        Copy Address
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCopyFixedAddress}
+                        title="Copy deposit address"
+                        aria-label="Copy deposit address"
+                        className="text-fg-muted hover:text-white cursor-pointer shrink-0"
+                      >
+                        {copiedFixedAddress ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                       </button>
                     </div>
                     {copiedFixedAddress && (
