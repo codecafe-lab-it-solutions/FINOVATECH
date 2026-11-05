@@ -8,11 +8,13 @@ test('threshold retains thirty days of daily earnings, and clamps insufficient w
   assert.equal(maximumWithdrawal(10000, 2000, 0), 2000);
   assert.equal(maximumWithdrawal(10000, 4000, 1.25), 250);
 });
-test('first and subsequent payouts honor plan interval, seven days and manual lock', () => {
-  assert.equal(nextEligibleDay('2026-10-01', null, 15), '2026-10-16');
-  assert.equal(nextEligibleDay('2026-10-01', '2026-10-16', 15), '2026-10-31');
-  assert.equal(nextEligibleDay('2026-10-01', null, 5), '2026-10-08');
-  assert.equal(nextEligibleDay('2026-10-01', null, 7, '2026-11-01'), '2026-11-01');
+test('nothing defers a payout: not the plan interval, the last request, or a lock date', () => {
+  assert.equal(nextEligibleDay('2026-10-01', null, 15), '2026-10-01');
+  assert.equal(nextEligibleDay('2026-10-01', '2026-10-16', 15), '2026-10-01');
+  assert.equal(nextEligibleDay('2026-10-01', null, 5), '2026-10-01');
+  // A stored lock date, future or past, is ignored.
+  assert.equal(nextEligibleDay('2026-10-01', null, 7, '2026-11-01'), '2026-10-01');
+  assert.equal(nextEligibleDay('2026-10-01', null, 7, '2026-09-01'), '2026-10-01');
 });
 test('calendar boundaries use configured timezone and clamp month-end maturity', () => {
   assert.equal(platformDay(new Date('2026-10-20T18:30:00Z'), 'Asia/Kolkata'), '2026-10-21');

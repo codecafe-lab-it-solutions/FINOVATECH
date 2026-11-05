@@ -66,29 +66,41 @@ test('financial and authentication integration against disposable test investors
     await updateProfile(user.id, { kycStatus: 'Pending' });
     fixture = await updateProfile(user.id, { kycStatus: 'Verified', kycApprovedAt: '2020-01-01T00:00:00Z' });
     assert.equal(fixture.kycApprovedAt, first);
-    await assert.rejects(submitPayout({ investorUserId: user.id, amountBtc: 0.0001, destinationWallet: 'test-wallet', network: 'BTC' }, price), /Next eligible/);
+    // No waiting period applies, so a freshly approved investor can withdraw straight away.
+    assert.ok(await submitPayout({ investorUserId: user.id, amountBtc: 0.0001, destinationWallet: 'test-wallet', network: 'BTC' }, price));
+    await pool.query("DELETE FROM payouts WHERE investor_user_id = ? AND status = 'Requested'", [user.id]);
   });
   // Move only the disposable fixture's approval date to exercise a seasoned investment.
   const join = addDays(platformDay(), -30);
   await pool.query('UPDATE investor_profiles SET kyc_approved_at = ? WHERE user_id = ?', [`${join} 00:00:00`, user.id]);
   await pool.query('UPDATE investment_capital_history SET effective_day = ? WHERE investor_user_id = ?', [join, user.id]);
-  await t.test('wallet and minimum retained principal are enforced in the backend', async () => {
+  await t.test('the wallet balance is the only backend limit on a withdrawal', async () => {
     await assert.rejects(submitPayout({ investorUserId: user.id, amountBtc: 0.03, destinationWallet: 'test-wallet', network: 'BTC' }, price), /available wallet/);
-    // $2000 wallet - $1500 monthly payout obligation = $500 maximum.
-    await assert.rejects(submitPayout({ investorUserId: user.id, amountBtc: 0.00501, destinationWallet: 'test-wallet', network: 'BTC' }, price), /Maximum eligible/);
-    const blocked = crypto.randomUUID();
-    await pool.query("INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, destination_wallet, requested_at, status) VALUES (?, ?, ?, 0.008, 800, 'test-wallet', UTC_TIMESTAMP(), 'Rejected')", [blocked, user.id, fixture.investmentId]);
-    await assert.rejects(settlePayout(blocked, 'Completed', 'test'), /minimum wallet threshold/);
-    await pool.query('DELETE FROM payouts WHERE id = ? AND investor_user_id = ?', [blocked, user.id]);
+    // No retained-principal obligation applies, so an amount within the balance is accepted.
+    const allowed = await submitPayout({ investorUserId: user.id, amountBtc: 0.00501, destinationWallet: 'test-wallet', network: 'BTC' }, price);
+    assert.ok(allowed);
+    await pool.query('DELETE FROM payouts WHERE id = ? AND investor_user_id = ?', [allowed, user.id]);
+    // Settlement is likewise bounded only by the balance, not by a retained threshold.
+    const large = crypto.randomUUID();
+    await pool.query("INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, destination_wallet, requested_at, status) VALUES (?, ?, ?, 0.008, 800, 'test-wallet', UTC_TIMESTAMP(), 'Rejected')", [large, user.id, fixture.investmentId]);
+    await settlePayout(large, 'Completed', 'test');
+    assert.equal((await getPayoutById(large))?.status, 'Completed');
+    await settlePayout(large, 'Rejected', 'test reversal restores the fixture balance');
+    await pool.query('DELETE FROM payouts WHERE id = ? AND investor_user_id = ?', [large, user.id]);
   });
   let payoutId: string;
-  await t.test('simultaneous requests accept only one and record investment and valuation', async () => {
+  await t.test('simultaneous requests are both accepted and reserve against the same balance', async () => {
     const request = () => submitPayout({ investorUserId: user.id, amountBtc: 0.0005, destinationWallet: 'test-wallet', network: 'BTC' }, price);
     const outcomes = await Promise.allSettled([request(), request()]);
-    assert.equal(outcomes.filter(r => r.status === 'fulfilled').length, 1);
+    // Without a waiting period, concurrent requests are no longer serialised by eligibility;
+    // the reserved-balance check is what keeps the total within the wallet.
+    assert.equal(outcomes.filter(r => r.status === 'fulfilled').length, 2);
     payoutId = (outcomes.find(r => r.status === 'fulfilled') as PromiseFulfilledResult<string>).value;
     assert.equal((await getPayoutById(payoutId))?.amountBtc, 0.0005);
-    assert.equal((await getProfile(user.id))?.nextWithdrawalDate, addDays(platformDay(), 15));
+    assert.ok((await getProfile(user.id))!.nextWithdrawalDate! <= platformDay(), 'a settled request does not postpone the next one');
+    // Leave exactly one pending request for the settlement assertions that follow.
+    const extra = outcomes.filter(r => r.status === 'fulfilled').map(r => (r as PromiseFulfilledResult<string>).value).filter(id => id !== payoutId);
+    if (extra.length) await pool.query('DELETE FROM payouts WHERE id IN (?)', [extra]);
   });
   await t.test('repeated settlement debits once and reversal restores funds exactly once', async () => {
     await Promise.all([settlePayout(payoutId, 'Completed', 'test'), settlePayout(payoutId, 'Completed', 'test')]);
@@ -115,12 +127,11 @@ test('financial and authentication integration against disposable test investors
     assert.equal((await getProfile(user.id))?.totalBtcAllocated,0.0195);
     assert.equal((await getProfile(user.id))?.usdWalletBalance,1500);
   });
-  await t.test('USD withdrawal enforces its own available balance and retained threshold, and settles once without changing BTC', async () => {
+  await t.test('USD withdrawal is bounded only by its own available balance, and settles once without changing BTC', async () => {
     await pool.query('UPDATE payouts SET requested_at = ? WHERE investor_user_id = ?', [addDays(platformDay(), -16) + ' 00:00:00', user.id]);
     await pool.query('UPDATE investor_profiles SET usd_wallet_balance = 1550 WHERE user_id = ?', [user.id]);
     const request = (amountUsd: number) => submitUsdPayout({investorUserId: user.id, amountUsd, destination: 'Audit USD bank account'});
     await assert.rejects(request(1551), /available USD/);
-    await assert.rejects(request(51), /30-day/);
     await assert.rejects(request(1.001), /two decimal/);
     const beforeBtc = (await getProfile(user.id))!.totalBtcAllocated;
     const id = await request(50);

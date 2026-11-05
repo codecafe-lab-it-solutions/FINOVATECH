@@ -75,7 +75,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
 
   const availableBtc = Math.max(0, metrics.totalBtcAllocated - reservedPayoutBtc);
   const availableUsd = Math.max(0, (metrics.usdWalletBalance || 0) - reservedPayoutUsd);
-  const maximumUsd = Math.min(withdrawalSettings?.maxWithdrawalUsd ?? Infinity, Math.max(0, Math.floor((availableUsd - Math.round(metrics.totalInvestmentUsd * (user.planTerms?.dailyReturnPercent ?? 0) * 30) / 100) * 100 + 0.000001) / 100));
+  const maximumUsd = Math.floor(availableUsd * 100 + 0.000001) / 100;
   const pendingBtc = metrics.btcPendingAccrued;
   const totalEarnedBtc = metrics.btcMined;
   const totalWithdrawnBtc = metrics.totalPayoutsBtc;
@@ -83,9 +83,9 @@ export const WalletTab: React.FC<WalletTabProps> = ({
 
 
   const todayIso = todayInTimezone(user.platformTimezone);
-  const isDateLocked = !!user.nextWithdrawalDate && todayIso < user.nextWithdrawalDate;
-  const globallyDisabled = withdrawalSettings?.withdrawalsEnabled === false;
-  const withdrawalsBlocked = globallyDisabled || isDateLocked || !user.joiningDate || !user.planTerms || user.kycStatus !== 'Verified' || user.accountStatus !== 'Active';
+  // Neither a global switch, a per-transaction cap nor a lock date restricts a withdrawal.
+  // Only an account that is not yet set up for earnings can block one.
+  const withdrawalsBlocked = !user.joiningDate || !user.planTerms || user.kycStatus !== 'Verified' || user.accountStatus !== 'Active';
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -106,7 +106,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
     e.preventDefault();
     setWithdrawError(null);
     const requested = Number(withdrawAmount);
-    if (withdrawalsBlocked || !Number.isFinite(requested) || requested <= 0 || requested > maximumUsd) { setWithdrawError('Amount exceeds your eligible USD balance after the required threshold and transaction limit, or withdrawal is not yet eligible.'); return; }
+    if (withdrawalsBlocked || !Number.isFinite(requested) || requested <= 0 || requested > maximumUsd) { setWithdrawError('Enter an amount within your available USD balance.'); return; }
     setIsProcessing(true);
     try {
       const { message } = await onRequestPayoutOtp();
@@ -219,13 +219,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
           <button
             onClick={handleStartWithdraw}
             disabled={withdrawalsBlocked}
-            title={
-              globallyDisabled
-                ? 'Withdrawals are currently disabled by the administrator.'
-                : isDateLocked
-                ? `Your withdrawals are locked until ${user.nextWithdrawalDate}.`
-                : undefined
-            }
+            title={withdrawalsBlocked ? 'An administrator must assign your plan and confirm your KYC approval date first.' : undefined}
             className="px-4 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-xs font-mono flex items-center gap-2 cursor-pointer transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-3.5 h-3.5" />
@@ -233,20 +227,6 @@ export const WalletTab: React.FC<WalletTabProps> = ({
           </button>
         </div>
       </div>
-
-      {globallyDisabled && (
-        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>Withdrawals are currently disabled by the administrator.</span>
-        </div>
-      )}
-
-      {isDateLocked && (
-        <div className="p-4 rounded-2xl bg-gold-500/10 border border-gold-500/20 text-gold-100 text-xs font-mono flex items-center gap-2">
-          <Clock className="w-4 h-4 shrink-0" />
-          <span>Your withdrawals are locked until <strong>{user.nextWithdrawalDate}</strong>. You can request a withdrawal again after that date.</span>
-        </div>
-      )}
 
       {withdrawSuccess && (
         <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono flex items-center justify-between">
@@ -520,10 +500,9 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                       <span className="text-fg-muted">Send USDT to:</span>
                       <span className="text-emerald-400 font-bold">{depositAddressInfo.network} Network</span>
                     </div>
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-ink-850 border border-line">
+                    <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-ink-850 border border-line">
                       <span
                         className="text-gold-200 select-none break-all"
-                        aria-label="Investor deposit address"
                         style={{ userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' }}
                         onCopy={(e) => e.preventDefault()}
                         onCut={(e) => e.preventDefault()}
@@ -532,23 +511,8 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                       >
                         {depositAddressInfo.address}
                       </span>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 px-2.5">
-                      <button
-                        type="button"
-                        onClick={handleCopyFixedAddress}
-                        className="text-emerald-300 hover:text-white cursor-pointer font-sans font-semibold"
-                      >
-                        Copy Address
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCopyFixedAddress}
-                        title="Copy clipboard"
-                        aria-label="Copy clipboard"
-                        className="text-fg-muted hover:text-white cursor-pointer shrink-0"
-                      >
-                        {copiedFixedAddress ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                      <button type="button" onClick={handleCopyDepositAddress} title="Copy deposit address" aria-label="Copy deposit address" className="text-fg-muted hover:text-white cursor-pointer shrink-0">
+                        {copiedDepositAddress ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
                       </button>
                     </div>
                     {copiedFixedAddress && (
@@ -722,11 +686,6 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                   <div className="text-[11px] text-fg-muted mt-1">
                     Display equivalent: <Money usd={parseFloat(withdrawAmount || '0')} />
                   </div>
-                  {withdrawalSettings && (
-                    <div className="text-[11px] text-gold-200/90 mt-1">
-                      Limit: <Money usd={withdrawalSettings.maxWithdrawalUsd} /> per transaction
-                    </div>
-                  )}
                 </div>
 
                 <div>

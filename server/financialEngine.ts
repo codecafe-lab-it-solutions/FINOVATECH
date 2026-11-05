@@ -3,7 +3,7 @@ import {getPlatformSettings} from './platformSettings';
 import type { RowDataPacket } from 'mysql2';
 import { pool } from './database';
 import type { BtcMarketData } from './market';
-import { PlanTerms, platformDay, utcDay, addDays, nextEligibleDay, maximumWithdrawal, maturityDay } from './planPolicy';
+import { PlanTerms, platformDay, utcDay, addDays, maturityDay } from './planPolicy';
 
 const nowSql = () => new Date().toISOString().slice(0, 19).replace('T', ' ');
 const readTerms = (value: any): PlanTerms | null => typeof value === 'string' ? JSON.parse(value) : value;
@@ -18,15 +18,11 @@ export async function submitUsdPayout(params: { investorUserId: string; amountUs
     const [rows] = await conn.query<RowDataPacket[]>('SELECT * FROM investor_profiles WHERE user_id = ? FOR UPDATE', [params.investorUserId]);
     const p = rows[0], terms = readTerms(p?.plan_terms);
     if (!p || !terms || p.kyc_status !== 'Verified' || !p.kyc_approved_at || p.account_status !== 'Active') throw new PolicyError('A verified KYC approval date and assigned investment plan are required for an active account.');
-    const [settings] = await conn.query<RowDataPacket[]>("SELECT * FROM withdrawal_settings WHERE id = 'global' LOCK IN SHARE MODE");
-    if (!settings[0]?.withdrawals_enabled) throw new PolicyError('Withdrawals are currently disabled.');
     const [previous] = await conn.query<RowDataPacket[]>("SELECT MAX(requested_at) AS latest, COALESCE(SUM(CASE WHEN currency = 'USD' AND status IN ('Requested', 'Processing') THEN amount_usd ELSE 0 END), 0) AS reserved FROM payouts WHERE investor_user_id = ? AND (investment_id = ? OR investment_id IS NULL)", [p.user_id, p.investment_id]);
-    const next = nextEligibleDay(utcDay(p.kyc_approved_at), previous[0].latest ? utcDay(previous[0].latest) : null, terms.payoutRequestDays, p.next_withdrawal_date);
-    if (platformDay() < next) throw new PolicyError(`Next eligible withdrawal date: ${next}.`);
-    if (params.amountUsd > Number(settings[0].max_withdrawal_usd)) throw new PolicyError('Requested amount exceeds the global USD transaction limit.');
+    // No waiting period, global on/off switch, per-transaction cap, profile lock date or
+    // retained-balance obligation applies. The available balance is the only limit.
     const available = Number(p.usd_wallet_balance) - Number(previous[0].reserved);
     if (params.amountUsd > available) throw new PolicyError('Requested amount exceeds your available USD wallet balance.');
-    if (params.amountUsd > maximumWithdrawal(Number(p.total_investment_usd), available, terms.dailyReturnPercent) + 0.000001) throw new PolicyError('Requested amount would violate the 30-day payout obligation.');
     const id = crypto.randomUUID();
     await conn.query("INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, currency, destination_wallet, network, status, requested_at, notes) VALUES (?, ?, ?, 0, ?, 'USD', ?, 'USD bank/payment', 'Requested', ?, '')", [id, p.user_id, p.investment_id, params.amountUsd, params.destination.trim(), nowSql()]);
     await conn.commit(); return id;
@@ -44,18 +40,12 @@ export async function submitPayout(params: { investorUserId: string; amountBtc: 
     const p = profiles[0];
     const terms = readTerms(p?.plan_terms);
     if (!p || !terms || !p.kyc_approved_at || p.kyc_status !== 'Verified' || p.account_status !== 'Active') throw new PolicyError('A verified KYC approval date and assigned investment plan are required for an active account. Contact your administrator.');
-    const [settings] = await conn.query<RowDataPacket[]>("SELECT * FROM withdrawal_settings WHERE id = 'global' LOCK IN SHARE MODE");
-    if (!settings[0]?.withdrawals_enabled) throw new PolicyError('Withdrawals are currently disabled.');
     const [previous] = await conn.query<RowDataPacket[]>('SELECT MAX(requested_at) AS latest, COALESCE(SUM(CASE WHEN status IN (\'Requested\', \'Processing\') THEN amount_btc ELSE 0 END), 0) AS reserved FROM payouts WHERE investor_user_id = ? AND (investment_id = ? OR investment_id IS NULL)', [params.investorUserId, p.investment_id]);
-    const next = nextEligibleDay(utcDay(p.kyc_approved_at), previous[0].latest ? utcDay(previous[0].latest) : null, terms.payoutRequestDays, p.next_withdrawal_date);
-    if (platformDay() < next) throw new PolicyError(`Next eligible withdrawal date: ${next}. Required gap: ${Math.max(7, terms.payoutRequestDays)} days.`);
-    const requestedUsd = params.amountBtc * btcPrice;
-    const usd = Math.round(requestedUsd * 100) / 100;
-    if (requestedUsd > Number(settings[0].max_withdrawal_usd)) throw new PolicyError(`Withdrawal exceeds the $${settings[0].max_withdrawal_usd} transaction limit.`);
+    // No waiting period, global on/off switch, per-transaction cap, profile lock date or
+    // retained-balance obligation applies. The available balance is the only limit.
+    const usd = Math.round(params.amountBtc * btcPrice * 100) / 100;
     const availableBtc = Number(p.total_btc_allocated) - Number(previous[0].reserved);
     if (params.amountBtc > availableBtc) throw new PolicyError('Requested amount exceeds your available wallet balance, including pending withdrawals.');
-    const max = maximumWithdrawal(Number(p.total_investment_usd), availableBtc * btcPrice, terms.dailyReturnPercent);
-    if (requestedUsd > max + 0.000001) throw new PolicyError(`Maximum eligible withdrawal is $${Math.floor(max * 100) / 100}. Your wallet must retain ${terms.dailyReturnPercent * 30}% of the invested amount across 30 days.`);
     const id = crypto.randomUUID();
     await conn.query(`INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, destination_wallet, network, status, requested_at, notes)
       VALUES (?, ?, ?, ?, ?, ?, ?, 'Requested', ?, '')`, [id, params.investorUserId, p.investment_id, params.amountBtc, usd, params.destinationWallet, params.network, nowSql()]);
@@ -81,8 +71,7 @@ export async function settlePayout(id: string, status: string, notes: string): P
       if (p.status !== 'Completed' && status === 'Completed') {
         const [reserved] = await conn.query<RowDataPacket[]>("SELECT COALESCE(SUM(amount_usd), 0) AS usd FROM payouts WHERE investor_user_id = ? AND id <> ? AND currency = 'USD' AND status IN ('Requested', 'Processing') AND (investment_id = ? OR investment_id IS NULL)", [p.investor_user_id, id, profile.investment_id]);
         const available = Number(profile.usd_wallet_balance) - Number(reserved[0].usd);
-        const terms = readTerms(profile.plan_terms);
-        if (!terms || amount > maximumWithdrawal(Number(profile.total_investment_usd), available, terms.dailyReturnPercent) + 0.000001) throw new PolicyError('Insufficient USD funds after pending requests and the 30-day payout obligation.');
+        if (amount > available + 0.000001) throw new PolicyError('Insufficient USD funds after pending requests.');
       }
       const delta = p.status === 'Completed' && status !== 'Completed' ? amount : p.status !== 'Completed' && status === 'Completed' ? -amount : 0;
       if (delta) {
@@ -102,12 +91,8 @@ export async function settlePayout(id: string, status: string, notes: string): P
       const [reserved] = await conn.query<RowDataPacket[]>("SELECT COALESCE(SUM(amount_btc), 0) AS btc FROM payouts WHERE investor_user_id = ? AND id <> ? AND status IN ('Requested', 'Processing') AND (investment_id = ? OR investment_id IS NULL)", [p.investor_user_id, id, profile.investment_id]);
       const availableBtc = Number(profile.total_btc_allocated) - Number(reserved[0].btc);
       if (Number(p.amount_btc) > availableBtc) throw new PolicyError('Wallet balance is insufficient to complete this payout after other reserved requests.');
-      const terms = readTerms(profile.plan_terms);
-      if (terms && Number(p.amount_usd) > 0) {
-        const requestPrice = Number(p.amount_usd) / Number(p.amount_btc);
-        const max = maximumWithdrawal(Number(profile.total_investment_usd), availableBtc * requestPrice, terms.dailyReturnPercent);
-        if (Number(p.amount_usd) > max + 0.000001) throw new PolicyError('Completing this payout would violate the required minimum wallet threshold.');
-      }
+      // No retained-balance obligation applies at settlement either; the wallet balance check
+      // above is the only limit on completing a payout.
       await conn.query('UPDATE investor_profiles SET total_btc_allocated = total_btc_allocated - ?, current_portfolio_value_usd = current_portfolio_value_usd - ?, updated_at = ? WHERE user_id = ?', [p.amount_btc, p.amount_usd || 0, nowSql(), p.investor_user_id]);
       await conn.query(`INSERT INTO wallet_transactions (id, investor_user_id, type, amount_btc, amount_usd, status, note, network, created_at)
         VALUES (?, ?, 'Payout', ?, ?, 'Completed', ?, ?, ?)`, [crypto.randomUUID(), p.investor_user_id, -Number(p.amount_btc), -Number(p.amount_usd || 0), `Payout ${id}`, p.network, nowSql()]);

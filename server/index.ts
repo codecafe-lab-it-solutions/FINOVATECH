@@ -508,20 +508,8 @@ app.post('/api/investor/payouts', async (req, res) => {
       return res.status(400).json({ error: 'Requested amount exceeds your allocated BTC balance.' });
     }
 
-    const withdrawalSettings = await getWithdrawalSettings();
-    if (!withdrawalSettings.withdrawalsEnabled) {
-      return res.status(400).json({ error: 'Withdrawals are currently disabled by the administrator.' });
-    }
-
-    if (profile.nextWithdrawalDate) {
-      const today = platformDay();
-      if (today < profile.nextWithdrawalDate) {
-        return res.status(400).json({
-          error: `Withdrawals for your account are locked until ${profile.nextWithdrawalDate}. Please try again after that date.`
-        });
-      }
-    }
-
+    // No global on/off switch, per-transaction ceiling or profile lock date gates a withdrawal.
+    // The live BTC price is still needed to record the payout's dollar value.
     let market: Awaited<ReturnType<typeof getBtcMarketData>> | null = null;
     try {
       market = await getBtcMarketData();
@@ -529,13 +517,7 @@ app.post('/api/investor/payouts', async (req, res) => {
       market = null;
     }
     if (!market) {
-      return res.status(502).json({ error: 'Could not verify the live BTC price to check the withdrawal limit. Please try again.' });
-    }
-    const requestedUsd = amountBtc * market.usd;
-    if (requestedUsd > withdrawalSettings.maxWithdrawalUsd) {
-      return res.status(400).json({
-        error: `Withdrawal limit per transaction is $${withdrawalSettings.maxWithdrawalUsd.toLocaleString()} USDT. Reduce the amount and try again.`
-      });
+      return res.status(502).json({ error: 'Could not verify the live BTC price to value this withdrawal. Please try again.' });
     }
 
     const otpValid = await verifyAndConsumeOtp(payload.sub, otp.trim(), 'withdrawal');

@@ -65,9 +65,14 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
     for(const body of [{dailyReturnPercent:101},{minimumThresholdPercent:-1},{withdrawalEntryFeePercent:101},{payoutRequestDays:0},{payoutRequestDays:1.5},{durationMonths:0},{minInvestmentUsd:200000},{payoutFrequency:'Bad'},{status:'Bad'}])assert.equal((await req('PUT',`/api/admin/plans/${plan.id}`,body,adminToken)).status,400,JSON.stringify(body));
     const saved=(await listPlans()).find(p=>p.id===plan.id)!;assert.equal(saved.dailyReturnPercent,.5);assert.equal(saved.payoutRequestDays,15);
   });
-  await t.test('funded investment cannot be silently reassigned to different agreed terms',async()=>{
+  await t.test('a funded investment can be reassigned and takes the new plan terms',async()=>{
     const other=await createPlan({...terms,name:`${terms.name} replacement`});plans.push(other.id);
-    assert.equal((await req('PUT',`/api/admin/investors/${u.id}`,{plan:other.name},adminToken)).status,400);
+    assert.equal((await req('PUT',`/api/admin/investors/${u.id}`,{plan:other.name},adminToken)).status,200);
+    const moved=(await getProfile(u.id))!;
+    assert.equal(moved.planId,other.id,'profile now points at the new plan');
+    assert.equal(moved.planTerms?.name,other.name,'terms snapshot is rewritten from the new plan');
+    // Return the fixture to its original plan for the assertions that follow.
+    assert.equal((await req('PUT',`/api/admin/investors/${u.id}`,{plan:plan.name},adminToken)).status,200);
     assert.equal((await getProfile(u.id))?.planId,plan.id);
   });
   await t.test('referral hierarchy uses referred investors own KYC joining date, never account registration',async()=>{
@@ -102,23 +107,26 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
       assert.equal(await reconcileDailyInterest({investorUserId:member.u.id,getMarket:market}),0,state);
     }
   });
-  for(const days of [5,7,15,30,45])await t.test(`first and subsequent withdrawal boundary: plan ${days} days, effective ${Math.max(7,days)} days`,async()=>{
-    const member=await fixture({payoutRequestDays:days,dailyReturnPercent:0});const gap=Math.max(7,days);
-    await pool.query('UPDATE investor_profiles SET kyc_approved_at=? WHERE user_id=?',[addDays(today,-gap+1)+' 00:00:00',member.u.id]);await assert.rejects(request(member.u.id,.0001),/Next eligible/);
-    await pool.query('UPDATE investor_profiles SET kyc_approved_at=? WHERE user_id=?',[addDays(today,-gap)+' 00:00:00',member.u.id]);const id=await request(member.u.id,.0001);await assert.rejects(request(member.u.id,.0001),/Next eligible/);
-    await settlePayout(id,'Rejected','QA rejected still establishes request date');
-    await pool.query('UPDATE investor_profiles SET kyc_approved_at=? WHERE user_id=?',[addDays(today,-2*gap)+' 00:00:00',member.u.id]);
-    await pool.query('UPDATE payouts SET requested_at=? WHERE id=?',[addDays(today,-gap+1)+' 00:00:00',id]);await assert.rejects(request(member.u.id,.0001),/Next eligible/);
-    await pool.query('UPDATE payouts SET requested_at=? WHERE id=?',[addDays(today,-gap)+' 00:00:00',id]);assert.ok(await request(member.u.id,.0001));
+  for(const days of [5,7,15,30,45])await t.test(`no waiting period applies: plan ${days} days allows same-day and back-to-back withdrawals`,async()=>{
+    const member=await fixture({payoutRequestDays:days,dailyReturnPercent:0});
+    await pool.query('UPDATE investor_profiles SET kyc_approved_at=? WHERE user_id=?',[today+' 00:00:00',member.u.id]);
+    const id=await request(member.u.id,.0001);assert.ok(id,'approved today, withdrawal is immediately eligible');
+    assert.ok(await request(member.u.id,.0001),'a second request the same day is not blocked by any gap');
+    await settlePayout(id,'Rejected','QA rejected request does not establish a waiting period');
+    assert.ok(await request(member.u.id,.0001),'a request straight after a settled one is still eligible');
   });
-  await t.test('manual future lock blocks and clearing it restores plan-based eligibility',async()=>{
-    const member=await fixture();await updateProfile(member.u.id,{nextWithdrawalDate:addDays(today,3)});await assert.rejects(request(member.u.id,.001),/Next eligible/);await updateProfile(member.u.id,{nextWithdrawalDate:null});assert.ok(await request(member.u.id,.001));
+  await t.test('a stored lock date no longer defers a withdrawal',async()=>{
+    const member=await fixture();await updateProfile(member.u.id,{nextWithdrawalDate:addDays(today,3)});
+    assert.ok(await request(member.u.id,.001),'a future lock date is ignored');
+    await updateProfile(member.u.id,{nextWithdrawalDate:null});assert.ok(await request(member.u.id,.001));
   });
-  await t.test('global disable and max USD limit enforce server policy; original settings restored',async()=>{
+  await t.test('the global disable switch and max USD limit no longer restrict withdrawals',async()=>{
     const original=(await req('GET','/api/withdrawal-settings',undefined,adminToken)).body.settings;const member=await fixture();
     try{
-      assert.equal((await req('PUT','/api/admin/withdrawal-settings',{withdrawalsEnabled:false},adminToken)).status,200);await assert.rejects(request(member.u.id,.001),/disabled/);
-      await req('PUT','/api/admin/withdrawal-settings',{withdrawalsEnabled:true,maxWithdrawalUsd:50},adminToken);await assert.rejects(request(member.u.id,.00051),/transaction limit/);assert.ok(await request(member.u.id,.0005));
+      assert.equal((await req('PUT','/api/admin/withdrawal-settings',{withdrawalsEnabled:false},adminToken)).status,200);
+      assert.ok(await request(member.u.id,.001),'withdrawals stay available with the global switch off');
+      await req('PUT','/api/admin/withdrawal-settings',{withdrawalsEnabled:true,maxWithdrawalUsd:50},adminToken);
+      assert.ok(await request(member.u.id,.00051),'an amount above the stored per-transaction cap is accepted');
     }finally{assert.equal((await req('PUT','/api/admin/withdrawal-settings',{withdrawalsEnabled:original.withdrawalsEnabled,maxWithdrawalUsd:original.maxWithdrawalUsd},adminToken)).status,200);}
   });
   await t.test('other investments requests do not affect current investment eligibility',async()=>{
@@ -127,7 +135,10 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
   await t.test('pending requests reserve wallet funds and completion honors competing reservations',async()=>{
     const member=await fixture();const profile=(await getProfile(member.u.id))!;
     const reserved=crypto.randomUUID();await pool.query("INSERT INTO payouts(id,investor_user_id,investment_id,amount_btc,amount_usd,destination_wallet,status,requested_at) VALUES(?,?,?,.004,400,'test-wallet','Processing',?)",[reserved,member.u.id,profile.investmentId,addDays(today,-20)+' 00:00:00']);
-    await assert.rejects(request(member.u.id,.00101),/Maximum eligible/);const id=await request(member.u.id,.001);await settlePayout(id,'Completed','QA reserved');assert.equal((await getProfile(member.u.id))?.totalBtcAllocated,.019);
+    // The pending request reserves 0.004 of the 0.020 balance; the reserved-balance check is
+    // now the only limit, so anything above the remaining 0.016 is refused and the rest allowed.
+    await assert.rejects(request(member.u.id,.0161),/available wallet/);
+    const id=await request(member.u.id,.001);await settlePayout(id,'Completed','QA reserved');assert.equal((await getProfile(member.u.id))?.totalBtcAllocated,.019);
   });
   await t.test('daily interest stops at maturity, and reruns after maturity do not add more credits',async()=>{
     const member=await fixture({durationMonths:1});const join=addDays(today,-60),maturity=maturityDay(join,1);
@@ -191,11 +202,11 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
     const [rows]=await pool.query<any[]>('SELECT currency,amount_btc,btc_price_usd FROM daily_interest_credits WHERE id=?',[id]);assert.equal(rows[0].currency,'BTC');assert.equal(Number(rows[0].amount_btc),.0005);assert.equal(Number(rows[0].btc_price_usd),100000);
     const after=(await getProfile(member.u.id))!;assert.equal(after.totalBtcAllocated,.02);assert.equal(after.usdWalletBalance,50);
   });
-  await t.test('USD earnings to withdrawal to admin settlement/reversal preserve threshold and never debit BTC',async()=>{
+  await t.test('USD earnings to withdrawal to admin settlement/reversal never debit BTC',async()=>{
     const member=await fixture();await pool.query('UPDATE investor_profiles SET usd_wallet_balance=1500 WHERE user_id=?',[member.u.id]);await pool.query('UPDATE investment_capital_history SET effective_day=? WHERE investor_user_id=?',[addDays(today,-3),member.u.id]);
     assert.equal(await reconcileDailyInterest({investorUserId:member.u.id}),3);assert.equal((await getProfile(member.u.id))?.usdWalletBalance,1650);
     const withdraw=(amountUsd:number)=>submitUsdPayout({investorUserId:member.u.id,amountUsd,destination:'QA dollar payment account'});
-    await assert.rejects(withdraw(1651),/available USD|global USD transaction limit/);await assert.rejects(withdraw(150.01),/30-day/);await assert.rejects(withdraw(1.001),/two decimal/);
+    await assert.rejects(withdraw(1651),/available USD/);await assert.rejects(withdraw(1.001),/two decimal/);
     const signed=await req('POST','/api/auth/login',{username:member.u.username,password:'FullAudit123!'});const memberToken=signed.body.token;
     const otp=await createOtpForUser(member.u.id,'withdrawal');const result=await req('POST','/api/investor/payouts',{currency:'USD',amountUsd:150,destinationWallet:'QA dollar payment account',otp},memberToken);assert.equal(result.status,201,result.body.error);assert.equal(result.body.payout.currency,'USD');assert.equal(result.body.payout.amountBtc,0);assert.equal(result.body.payout.amountUsd,150);
     for(let n=0;n<2;n++)assert.equal((await req('PATCH',`/api/admin/payouts/${result.body.payout.id}`,{status:'Completed'},adminToken)).status,200);
@@ -203,13 +214,15 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
     for(let n=0;n<2;n++)await req('PATCH',`/api/admin/payouts/${result.body.payout.id}`,{status:'Rejected'},adminToken);
     assert.equal((await getProfile(member.u.id))?.usdWalletBalance,1650);assert.equal((await getProfile(member.u.id))?.totalBtcAllocated,.02);
   });
-  await t.test('USD withdrawals enforce first and subsequent 7/15/30/45-day boundaries',async()=>{
+  await t.test('USD withdrawals apply no waiting period at any plan interval',async()=>{
     for(const interval of [5,7,15,30,45]){
-      const member=await fixture({payoutRequestDays:interval,dailyReturnPercent:0});const gap=Math.max(7,interval);await pool.query('UPDATE investor_profiles SET usd_wallet_balance=1000,kyc_approved_at=? WHERE user_id=?',[addDays(today,-gap+1)+' 00:00:00',member.u.id]);
-      const withdraw=()=>submitUsdPayout({investorUserId:member.u.id,amountUsd:1,destination:'QA dollar payment account'});await assert.rejects(withdraw(),/Next eligible/);
-      await pool.query('UPDATE investor_profiles SET kyc_approved_at=? WHERE user_id=?',[addDays(today,-gap)+' 00:00:00',member.u.id]);const id=await withdraw();await assert.rejects(withdraw(),/Next eligible/);
-      await settlePayout(id,'Rejected','QA interval');await pool.query('UPDATE investor_profiles SET kyc_approved_at=? WHERE user_id=?',[addDays(today,-2*gap)+' 00:00:00',member.u.id]);await pool.query('UPDATE payouts SET requested_at=? WHERE id=?',[addDays(today,-gap+1)+' 00:00:00',id]);await assert.rejects(withdraw(),/Next eligible/);
-      await pool.query('UPDATE payouts SET requested_at=? WHERE id=?',[addDays(today,-gap)+' 00:00:00',id]);assert.ok(await withdraw());
+      const member=await fixture({payoutRequestDays:interval,dailyReturnPercent:0});
+      await pool.query('UPDATE investor_profiles SET usd_wallet_balance=1000,kyc_approved_at=? WHERE user_id=?',[today+' 00:00:00',member.u.id]);
+      const withdraw=()=>submitUsdPayout({investorUserId:member.u.id,amountUsd:1,destination:'QA dollar payment account'});
+      const id=await withdraw();assert.ok(id,`plan interval ${interval}: eligible on the approval day itself`);
+      assert.ok(await withdraw(),`plan interval ${interval}: consecutive requests are not gapped`);
+      await settlePayout(id,'Rejected','QA interval');
+      assert.ok(await withdraw(),`plan interval ${interval}: a settled request does not start a waiting period`);
     }
   });
   await t.test('BTC request HTTP/OTP/admin lifecycle records correct currency and debits once',async()=>{

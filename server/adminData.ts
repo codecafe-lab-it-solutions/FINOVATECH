@@ -117,7 +117,26 @@ export async function updatePlan(id: string, params: Partial<Omit<PlanRecord, 'i
   if (entries.length === 0) return;
   const setClause = entries.map(([k]) => `${map[k]} = ?`).join(', ');
   const values = entries.map(([, v]) => v);
-  await pool.query(`UPDATE investment_plans SET ${setClause}, updated_at = ? WHERE id = ?`, [...values, now(), id]);
+  const renamedTo = params.name?.trim();
+  const isRename = !!renamedTo && renamedTo !== current.name;
+  // The plan name is copied into three places besides the catalog. Renaming has to carry
+  // into all of them in one transaction, or the portal keeps showing the old name and the
+  // reassignment guard in investors.ts mistakes an ordinary profile save for a plan switch.
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    await conn.query(`UPDATE investment_plans SET ${setClause}, updated_at = ? WHERE id = ?`, [...values, now(), id]);
+    if (isRename) {
+      await conn.query('UPDATE investor_profiles SET plan = ? WHERE plan_id = ? OR (plan_id IS NULL AND LOWER(TRIM(plan)) = LOWER(?))', [renamedTo, id, current.name]);
+      await conn.query(
+        "UPDATE investor_profiles SET plan_terms = JSON_SET(plan_terms, '$.name', ?) WHERE plan_terms IS NOT NULL AND (plan_id = ? OR LOWER(TRIM(JSON_UNQUOTE(JSON_EXTRACT(plan_terms, '$.name')))) = LOWER(?))",
+        [renamedTo, id, current.name]
+      );
+      await conn.query('UPDATE referral_commissions SET plan_name = ? WHERE LOWER(TRIM(plan_name)) = LOWER(?)', [renamedTo, current.name]);
+    }
+    await conn.commit();
+  } catch (err) { await conn.rollback(); throw err; }
+  finally { conn.release(); }
 }
 
 export async function deletePlan(id: string): Promise<void> {
