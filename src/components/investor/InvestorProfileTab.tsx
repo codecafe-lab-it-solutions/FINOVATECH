@@ -34,7 +34,7 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
 
   const [formData, setFormData] = useState({
     payoutBtcAddress: user.payoutBtcAddress,
-    payoutNetwork: 'BTC',
+    payoutNetwork: user.payoutNetwork || 'BTC',
     bankName: user.bankName,
     bankAccountHolder: user.bankAccountHolder,
     bankAccountNumber: user.bankAccountNumber,
@@ -314,10 +314,10 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
               )}
             </div>
 
-            {/* Bitcoin withdrawal destination */}
+            {/* Cryptocurrency payout destination */}
             <div className="p-4 rounded-2xl bg-ink-950/80 border border-line space-y-2">
               <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-gold-500 font-bold">BTC Payout Address:</span>
+                <span className="text-gold-500 font-bold">Payout Address:</span>
                 <span className="px-2 py-0.5 rounded-md bg-ink-800 border border-line-warm text-fg-body text-[10px] font-bold">
                   {formData.payoutNetwork} Network
                 </span>
@@ -332,7 +332,7 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
                 </button>
               </div>
               <div className="text-[11px] text-fg-muted font-mono">
-                New daily earnings and withdrawal requests use USD. Bank/payment details below are used for USD requests; the saved BTC destination is retained for existing holdings and history.
+                Wallet withdrawal requests remain USD and use the bank/payment details below. The selected network and payout address are saved as payout preferences.
               </div>
             </div>
 
@@ -370,11 +370,14 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
                     className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line-warm text-white focus:outline-hidden focus:border-gold-500"
                   >
                     <option value="BTC">Bitcoin (BTC)</option>
+                    <option value="BEP20">BEP20</option>
+                    <option value="TRC20">TRC20</option>
+                    <option value="USDT">USDT</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-fg-muted mb-1">BTC Payout Address:</label>
+                  <label className="block text-fg-muted mb-1">Payout Address:</label>
                   <input
                     type="text"
                     required

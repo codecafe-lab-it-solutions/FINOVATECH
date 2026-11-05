@@ -140,10 +140,11 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
       }
       for (const key of NUMERIC_FIELDS) {
         const raw: unknown = payload[key];
-        const label = key === 'totalInvestmentUsd' ? 'Total Investment (USD)' : key === 'currentPortfolioValueUsd' ? 'Portfolio Value (USD)' : key;
+        const label = key === 'totalInvestmentUsd' ? 'Total Investment (USD)' : key === 'currentPortfolioValueUsd' ? 'Portfolio Value (USD)' : key === 'totalBtcAllocated' ? 'BTC Allotted' : key;
         payload[key] = parseAdminAmount(raw, label);
       }
-      payload.nextWithdrawalDate = payload.nextWithdrawalDate || null;
+      payload.nextWithdrawalDate = payload.withdrawalLockDate || null;
+      delete payload.withdrawalLockDate;
       const { profile } = await updateAdminInvestorProfile(authToken, selectedId, payload);
       setDetailProfile(profile);
       setFormState(profile);
@@ -365,14 +366,14 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                         <div className="flex items-center gap-2">
                           <input
                             type="date"
-                            value={formState.nextWithdrawalDate ?? ''}
-                            onChange={(e) => handleField('nextWithdrawalDate', e.target.value)}
+                            value={formState.withdrawalLockDate ?? ''}
+                            onChange={(e) => handleField('withdrawalLockDate', e.target.value)}
                             className="flex-1 px-3 py-2 rounded-xl bg-ink-950 border border-line text-white"
                           />
-                          {formState.nextWithdrawalDate && (
+                          {formState.withdrawalLockDate && (
                             <button
                               type="button"
-                              onClick={() => handleField('nextWithdrawalDate', '')}
+                              onClick={() => handleField('withdrawalLockDate', '')}
                               className="px-3 py-2 rounded-xl bg-ink-800 hover:bg-ink-700 text-fg-body text-[11px] cursor-pointer"
                             >
                               Clear
@@ -380,7 +381,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                           )}
                         </div>
                         <span className="text-[10px] text-fg-muted mt-1 block">
-                          This investor cannot request a withdrawal before this date. The plan interval and global seven-day minimum always apply.
+                          Clear removes the admin lock. Plan eligibility and the global seven-day minimum still apply.
                         </span>
                       </label>
                     </div>
@@ -409,6 +410,12 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                         <span className="text-fg-muted text-[10px] uppercase block mb-1">Portfolio Value (USD)</span>
                         <input type="text" inputMode="decimal" value={formState.currentPortfolioValueUsd ?? ''}
                           onChange={(e) => handleField('currentPortfolioValueUsd', e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
+                      </label>
+                      <label className="block">
+                        <span className="text-fg-muted text-[10px] uppercase block mb-1">BTC Allotted</span>
+                        <input type="text" inputMode="decimal" value={formState.totalBtcAllocated ?? ''}
+                          onChange={(e) => handleField('totalBtcAllocated', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
                       </label>
                     </div>
