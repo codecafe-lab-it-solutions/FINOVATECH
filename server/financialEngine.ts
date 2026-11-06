@@ -16,8 +16,8 @@ export async function submitUsdPayout(params: { investorUserId: string; amountUs
   try {
     await conn.beginTransaction();
     const [rows] = await conn.query<RowDataPacket[]>('SELECT * FROM investor_profiles WHERE user_id = ? FOR UPDATE', [params.investorUserId]);
-    const p = rows[0], terms = readTerms(p?.plan_terms);
-    if (!p || !terms || p.kyc_status !== 'Verified' || !p.kyc_approved_at || p.account_status !== 'Active') throw new PolicyError('A verified KYC approval date and assigned investment plan are required for an active account.');
+    const p = rows[0];
+    if (!p || p.kyc_status !== 'Verified') throw new PolicyError('Your KYC must be verified before you can request a withdrawal.');
     const [previous] = await conn.query<RowDataPacket[]>("SELECT MAX(requested_at) AS latest, COALESCE(SUM(CASE WHEN currency = 'USD' AND status IN ('Requested', 'Processing') THEN amount_usd ELSE 0 END), 0) AS reserved FROM payouts WHERE investor_user_id = ? AND (investment_id = ? OR investment_id IS NULL)", [p.user_id, p.investment_id]);
     // No waiting period, global on/off switch, per-transaction cap, profile lock date or
     // retained-balance obligation applies. The available balance is the only limit.
@@ -38,8 +38,7 @@ export async function submitPayout(params: { investorUserId: string; amountBtc: 
     await conn.beginTransaction();
     const [profiles] = await conn.query<RowDataPacket[]>('SELECT * FROM investor_profiles WHERE user_id = ? FOR UPDATE', [params.investorUserId]);
     const p = profiles[0];
-    const terms = readTerms(p?.plan_terms);
-    if (!p || !terms || !p.kyc_approved_at || p.kyc_status !== 'Verified' || p.account_status !== 'Active') throw new PolicyError('A verified KYC approval date and assigned investment plan are required for an active account. Contact your administrator.');
+    if (!p || p.kyc_status !== 'Verified') throw new PolicyError('Your KYC must be verified before you can request a withdrawal.');
     const [previous] = await conn.query<RowDataPacket[]>('SELECT MAX(requested_at) AS latest, COALESCE(SUM(CASE WHEN status IN (\'Requested\', \'Processing\') THEN amount_btc ELSE 0 END), 0) AS reserved FROM payouts WHERE investor_user_id = ? AND (investment_id = ? OR investment_id IS NULL)', [params.investorUserId, p.investment_id]);
     // No waiting period, global on/off switch, per-transaction cap, profile lock date or
     // retained-balance obligation applies. The available balance is the only limit.

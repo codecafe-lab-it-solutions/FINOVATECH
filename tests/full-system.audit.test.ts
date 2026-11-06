@@ -99,7 +99,9 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
       if(state==='unassigned')await pool.query('UPDATE investor_profiles SET plan_terms=NULL,plan_id=NULL WHERE user_id=?',[member.u.id]);
       if(state==='undated')await pool.query('UPDATE investor_profiles SET kyc_approved_at=NULL WHERE user_id=?',[member.u.id]);
       if(state==='review')await updateProfile(member.u.id,{accountStatus:'Under Review'});
-      await assert.rejects(request(member.u.id,.001),/verified KYC|assigned investment plan/);
+      // Withdrawal needs only verified KYC; unassigned/undated/review accounts may still withdraw but earn no interest.
+      if(state==='pending')await assert.rejects(request(member.u.id,.001),/KYC must be verified/);
+      else assert.ok(await request(member.u.id,.001),state);
       assert.equal(await reconcileDailyInterest({investorUserId:member.u.id,getMarket:market}),0,state);
     }
   });

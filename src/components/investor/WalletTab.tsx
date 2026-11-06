@@ -80,8 +80,8 @@ export const WalletTab: React.FC<WalletTabProps> = ({
 
   const todayIso = todayInTimezone(user.platformTimezone);
   // Neither a global switch, a per-transaction cap nor a lock date restricts a withdrawal.
-  // Only an account that is not yet set up for earnings can block one.
-  const withdrawalsBlocked = !user.joiningDate || !user.planTerms || user.kycStatus !== 'Verified' || user.accountStatus !== 'Active';
+  // Only a KYC that is not yet verified can block one.
+  const withdrawalsBlocked = user.kycStatus !== 'Verified';
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -199,7 +199,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
           <button
             onClick={handleStartWithdraw}
             disabled={withdrawalsBlocked}
-            title={withdrawalsBlocked ? 'An administrator must assign your plan and confirm your KYC approval date first.' : undefined}
+            title={withdrawalsBlocked ? 'Your KYC must be verified before you can withdraw.' : undefined}
             className="px-4 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-xs font-mono flex items-center gap-2 cursor-pointer transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-3.5 h-3.5" />
