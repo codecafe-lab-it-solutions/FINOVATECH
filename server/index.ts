@@ -19,6 +19,7 @@ import { signToken, verifyToken, TokenPayload } from './auth';
 import { createSession, isSessionRevoked, listSessionsForUser, revokeSession, revokeAllSessions } from './sessions';
 import {
   getProfile,
+  ensureProfile,
   listInvestorProfiles,
   updateProfile,
   listTransactions,
@@ -324,6 +325,9 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid username or password.' });
     }
 
+    // Every investor must be able to enter the portal: create a missing profile row on login.
+    if (user.role === 'investor') await ensureProfile(user.id).catch((e) => console.error('ensureProfile failed:', e));
+
     const token = await issueSessionToken(user, req);
     res.json({ token, user: publicUser(user) });
   } catch (err) {
@@ -394,7 +398,11 @@ app.get('/api/auth/me', async (req, res) => {
 app.get('/api/investor/profile', async (req, res) => {
   try {
     const payload = await requireRole(req, 'investor');
-    const profile = await getProfile(payload.sub);
+    let profile = await getProfile(payload.sub);
+    if (!profile) {
+      await ensureProfile(payload.sub);
+      profile = await getProfile(payload.sub);
+    }
     if (!profile) return res.status(404).json({ error: 'Profile not found.' });
     res.json({ profile });
   } catch (err) {
@@ -1486,14 +1494,25 @@ if (isProduction && fs.existsSync(DIST_DIR)) {
 }
 
 async function start() {
-  try {
-    await initSchema();
-    await initFinancialSchema();
-    if (!isProduction) await seedIfEmpty();
-  } catch (err) {
-    console.error('[finovateck-api] Could not connect to MySQL. Is the MySQL server running, and did you run server/scripts/setup-mysql.sql against it?');
-    console.error(err);
-    process.exit(1);
+  // After a server reboot MySQL can come up later than this process: wait for it
+  // (up to ~2 minutes) instead of exiting and leaving the site down.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await initSchema();
+      await initFinancialSchema();
+      if (!isProduction) await seedIfEmpty();
+      break;
+    } catch (err) {
+      const code = err && typeof err === 'object' && 'code' in err ? String((err as { code: unknown }).code) : '';
+      if (code === 'ECONNREFUSED' && attempt < 24) {
+        console.error(`[finovateck-api] MySQL not ready (attempt ${attempt}/24), retrying in 5s...`);
+        await new Promise((r) => setTimeout(r, 5000));
+        continue;
+      }
+      console.error('[finovateck-api] Could not connect to MySQL. Is the MySQL server running, and did you run server/scripts/setup-mysql.sql against it?');
+      console.error(err);
+      process.exit(1);
+    }
   }
 
   startInterestScheduler();

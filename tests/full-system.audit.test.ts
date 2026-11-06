@@ -245,4 +245,9 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
     assert.equal((await req('POST','/api/auth/login',{username:member.u.username,password:'Another#Pass1'})).status,200);
     assert.equal((await req('GET','/api/investor/profile',undefined,old.body.token)).status,401);
   });
+  await t.test('investor with a missing profile row can still log in and open the portal (profile is auto-created)',async()=>{
+    const member=await fixture();await pool.query('DELETE FROM investor_profiles WHERE user_id=?',[member.u.id]);
+    const signed=await req('POST','/api/auth/login',{username:member.u.username,password:'FullAudit123!'});assert.equal(signed.status,200);
+    const profile=await req('GET','/api/investor/profile',undefined,signed.body.token);assert.equal(profile.status,200);assert.ok(profile.body.profile);
+  });
 });
