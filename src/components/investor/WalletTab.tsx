@@ -33,6 +33,7 @@ interface WalletTabProps {
   depositRequests: ApiDepositRequest[];
   withdrawalSettings: ApiWithdrawalSettings | null;
   onRequestPayout: (amountUsd: number, destinationWallet: string, network: string) => Promise<void>;
+  onRequestBtcPayout?: (amountBtc: number, destinationWallet: string, network: string) => Promise<void>;
   onFetchDepositAddress: () => Promise<{ address: string; network: string }>;
   onSubmitDeposit: (amountUsd: number, proofFile: File) => Promise<{ referenceNumber: string }>;
 }
@@ -46,13 +47,15 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   depositRequests,
   withdrawalSettings,
   onRequestPayout,
+  onRequestBtcPayout,
   onFetchDepositAddress,
   onSubmitDeposit
 }) => {
   const [copiedTx, setCopiedTx] = useState<string | null>(null);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
   const [withdrawStep, setWithdrawStep] = useState<1 | 2 | 3>(1);
-  const [withdrawAmount, setWithdrawAmount] = useState('50');
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawSource, setWithdrawSource] = useState<'USD' | 'BTC'>('USD');
   const [destinationAddress, setDestinationAddress] = useState(user.bankIban === 'Not set' ? '' : user.bankIban);
   const [isProcessing, setIsProcessing] = useState(false);
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
@@ -76,6 +79,12 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   const totalEarnedBtc = metrics.btcMined;
   const totalWithdrawnBtc = metrics.totalPayoutsBtc;
   const btcPriceUsd = metrics.currentBtcPriceUsd;
+  // Holdings in BTC are withdrawable too: the maximum is the available BTC valued at the live price.
+  const maximumBtcUsd = btcPriceUsd > 0 ? Math.floor(availableBtc * btcPriceUsd * 100 + 0.000001) / 100 : 0;
+  const sourceMaxUsd = withdrawSource === 'USD' ? maximumUsd : maximumBtcUsd;
+  const monthlyLimitUsd = metrics.monthlyWithdrawalLimitUsd ?? null;
+  const btcAddressDefault = user.payoutBtcAddress && user.payoutBtcAddress !== 'Not set' ? user.payoutBtcAddress : '';
+  const bankDefault = user.bankIban === 'Not set' ? '' : user.bankIban;
 
 
   const todayIso = todayInTimezone(user.platformTimezone);
@@ -91,7 +100,10 @@ export const WalletTab: React.FC<WalletTabProps> = ({
 
   const handleStartWithdraw = () => {
     setWithdrawStep(1);
-    setDestinationAddress(user.bankIban === 'Not set' ? '' : user.bankIban);
+    const source: 'USD' | 'BTC' = availableUsd > 0 || maximumBtcUsd <= 0 ? 'USD' : 'BTC';
+    setWithdrawSource(source);
+    setWithdrawAmount('');
+    setDestinationAddress(source === 'USD' ? bankDefault : btcAddressDefault);
     setWithdrawError(null);
     setShowWithdrawModal(true);
   };
@@ -100,10 +112,17 @@ export const WalletTab: React.FC<WalletTabProps> = ({
     e.preventDefault();
     setWithdrawError(null);
     const requested = Number(withdrawAmount);
-    if (withdrawalsBlocked || !Number.isFinite(requested) || requested <= 0 || requested > maximumUsd) { setWithdrawError('Enter an amount within your available USD balance.'); return; }
+    if (withdrawalsBlocked || !Number.isFinite(requested) || requested <= 0 || requested > sourceMaxUsd) { setWithdrawError('Enter an amount within your available balance.'); return; }
     setIsProcessing(true);
     try {
-      await onRequestPayout(requested, destinationAddress, 'USD bank/payment');
+      if (withdrawSource === 'BTC') {
+        if (!onRequestBtcPayout) throw new Error('BTC withdrawals are not available right now.');
+        const amountBtc = Math.floor((requested / btcPriceUsd) * 1e8) / 1e8;
+        if (!(amountBtc > 0) || amountBtc > availableBtc) throw new Error('Enter an amount within your available BTC balance.');
+        await onRequestBtcPayout(amountBtc, destinationAddress, user.payoutNetwork || 'BTC');
+      } else {
+        await onRequestPayout(requested, destinationAddress, 'USD bank/payment');
+      }
       setWithdrawStep(3);
       setWithdrawSuccess(`Payout request for USD ${withdrawAmount} submitted and is awaiting admin approval.`);
     } catch (err) {
@@ -171,7 +190,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in">
       <PlanConditions user={user} investmentUsd={metrics.totalInvestmentUsd} walletUsd={availableUsd} />
-      <div className="p-5 rounded-2xl bg-ink-850 border border-emerald-800 text-white"><h3 className="text-sm font-bold">USD Earnings Wallet</h3><p className="text-2xl font-bold mt-2"><Money usd={availableUsd} /></p><p className="text-xs text-fg-muted mt-2">Daily interest is credited in dollars without BTC conversion. Reserved USD payouts: <Money usd={reservedPayoutUsd} />. Maximum eligible withdrawal: <Money usd={maximumUsd} />.</p></div>
+      <div className="p-5 rounded-2xl bg-ink-850 border border-emerald-800 text-white"><h3 className="text-sm font-bold">USD Earnings Wallet</h3><p className="text-2xl font-bold mt-2"><Money usd={availableUsd} /></p><p className="text-xs text-fg-muted mt-2">Daily interest is credited in dollars without BTC conversion. Reserved USD payouts: <Money usd={reservedPayoutUsd} />. Maximum eligible withdrawal: <Money usd={maximumUsd} />.</p><p className="text-xs text-fg-muted mt-1">BTC holdings available: {availableBtc} BTC (<Money usd={maximumBtcUsd} />). Total available to withdraw: <Money usd={maximumUsd + maximumBtcUsd} />.{monthlyLimitUsd !== null ? <> Monthly withdrawal limit set by admin: <Money usd={monthlyLimitUsd} />.</> : null}</p></div>
       
       {/* Header Banner */}
       <div className="p-6 rounded-3xl bg-ink-850 border border-line text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -660,16 +679,33 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             {withdrawStep === 1 && (
               <form onSubmit={handleStep1Next} className="space-y-4 text-xs font-mono">
                   <PlanConditions user={user} investmentUsd={metrics.totalInvestmentUsd} walletUsd={availableUsd} />
+                <div className="grid grid-cols-2 gap-2">
+                  {(['USD', 'BTC'] as const).map((src) => (
+                    <button
+                      key={src}
+                      type="button"
+                      id={`withdraw-source-${src}`}
+                      onClick={() => { setWithdrawSource(src); setWithdrawError(null); setDestinationAddress(src === 'USD' ? bankDefault : btcAddressDefault); }}
+                      className={`p-3 rounded-xl border text-left cursor-pointer ${withdrawSource === src ? 'border-gold-500 bg-gold-500/10 text-white' : 'border-line-warm bg-ink-950 text-fg-muted'}`}
+                    >
+                      <div className="font-bold">{src === 'USD' ? 'USD Earnings Wallet' : 'BTC Holdings'}</div>
+                      <div className="text-[11px] mt-1">{src === 'USD' ? <>Available: <Money usd={maximumUsd} /></> : <>{availableBtc} BTC · <Money usd={maximumBtcUsd} /></>}</div>
+                    </button>
+                  ))}
+                </div>
+                {monthlyLimitUsd !== null && (
+                  <div className="text-[11px] text-gold-100/90">Your monthly withdrawal limit (set by admin): <Money usd={monthlyLimitUsd} />.</div>
+                )}
                 <div>
                   <div className="flex justify-between text-fg-muted mb-1">
                     <span>Withdrawal Amount (USD):</span>
-                    <span>Max: USD {maximumUsd.toFixed(2)}</span>
+                    <span>Max: USD {sourceMaxUsd.toFixed(2)}</span>
                   </div>
                   <input
                     type="number"
                     step="0.01"
                     min="0.01"
-                    max={maximumUsd}
+                    max={sourceMaxUsd}
                     required
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value)}
@@ -682,8 +718,8 @@ export const WalletTab: React.FC<WalletTabProps> = ({
 
                 <div>
                   <div className="flex justify-between text-fg-muted mb-1">
-                    <span>USD Payment Destination (bank/account details):</span>
-                    <span className="text-gold-500 font-bold">USD bank/payment</span>
+                    <span>{withdrawSource === 'USD' ? 'USD Payment Destination (bank/account details):' : 'BTC Wallet Address:'}</span>
+                    <span className="text-gold-500 font-bold">{withdrawSource === 'USD' ? 'USD bank/payment' : `BTC · ${withdrawAmount && btcPriceUsd > 0 ? (Math.floor((Number(withdrawAmount) / btcPriceUsd) * 1e8) / 1e8) : 0} BTC`}</span>
                   </div>
                   <input
                     type="text"
@@ -693,7 +729,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                     className="w-full px-3 py-2.5 rounded-xl bg-ink-950 border border-line-warm text-white focus:outline-hidden focus:border-gold-500"
                   />
                   <div className="text-[11px] text-fg-muted mt-1">
-                    An administrator reviews these bank/account details before processing your USD payment.
+                    An administrator reviews these details before processing your payment.
                   </div>
                 </div>
 

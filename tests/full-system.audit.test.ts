@@ -250,4 +250,19 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
     const signed=await req('POST','/api/auth/login',{username:member.u.username,password:'FullAudit123!'});assert.equal(signed.status,200);
     const profile=await req('GET','/api/investor/profile',undefined,signed.body.token);assert.equal(profile.status,200);assert.ok(profile.body.profile);
   });
+  await t.test('admin sets BTC mined and a monthly withdrawal limit; limit is saved and enforced for USD and BTC requests',async()=>{
+    const member=await fixture();const signed=await req('POST','/api/auth/login',{username:member.u.username,password:'FullAudit123!'});const memberToken=signed.body.token;
+    await pool.query('UPDATE investor_profiles SET usd_wallet_balance=1000 WHERE user_id=?',[member.u.id]);
+    const saved=await req('PUT','/api/admin/investors/'+member.u.id,{btcMined:1.5,monthlyWithdrawalLimitUsd:100},adminToken);assert.equal(saved.status,200,JSON.stringify(saved.body));
+    assert.equal(saved.body.profile.btcMined,1.5);assert.equal(saved.body.profile.monthlyWithdrawalLimitUsd,100);
+    assert.equal((await req('PUT','/api/admin/investors/'+member.u.id,{monthlyWithdrawalLimitUsd:-5},adminToken)).status,400);
+    const usd=(amountUsd:number)=>req('POST','/api/investor/payouts',{currency:'USD',amountUsd,destinationWallet:'QA bank account'},memberToken);
+    const first=await usd(60);assert.equal(first.status,201,first.body.error);
+    const over=await usd(50);assert.equal(over.status,400);assert.match(over.body.error,/Monthly withdrawal limit/);
+    const btc=await req('POST','/api/investor/payouts',{amountBtc:.01,destinationWallet:'bc1q000000000000000000000000000000000000000',network:'BTC'},memberToken);assert.equal(btc.status,400);assert.match(btc.body.error,/Monthly withdrawal limit/);
+    assert.equal((await req('PATCH','/api/admin/payouts/'+first.body.payout.id,{status:'Rejected'},adminToken)).status,200);
+    assert.equal((await usd(100)).status,201,'a rejected request does not count toward the monthly limit');
+    assert.equal((await req('PUT','/api/admin/investors/'+member.u.id,{monthlyWithdrawalLimitUsd:null},adminToken)).body.profile.monthlyWithdrawalLimitUsd,null);
+    assert.equal((await usd(100)).status,201,'no limit once the admin clears it');
+  });
 });

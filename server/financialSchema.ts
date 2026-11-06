@@ -25,7 +25,9 @@ export async function initFinancialSchema(): Promise<void> {
       ['payouts', 'investment_id', 'CHAR(36) NULL'],
       ['payouts', 'amount_usd', 'DECIMAL(18,2) NULL'],
       ['payouts', 'currency', "VARCHAR(3) NOT NULL DEFAULT 'BTC'"],
-      ['investor_profiles', 'usd_wallet_balance', 'DECIMAL(18,2) NOT NULL DEFAULT 0']
+      ['investor_profiles', 'usd_wallet_balance', 'DECIMAL(18,2) NOT NULL DEFAULT 0'],
+      // Admin-set per-investor cap on total withdrawals requested in a calendar month. NULL = no limit.
+      ['investor_profiles', 'monthly_withdrawal_limit_usd', 'DECIMAL(18,2) NULL']
     ];
     for (const [table, name, type] of columns) {
       const [existing] = await conn.query<any[]>('SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?', [table, name]);

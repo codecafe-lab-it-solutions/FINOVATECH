@@ -168,9 +168,12 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
       }
       for (const key of NUMERIC_FIELDS) {
         const raw: unknown = payload[key];
-        const label = key === 'totalInvestmentUsd' ? 'Total Investment (USD)' : key === 'currentPortfolioValueUsd' ? 'Portfolio Value (USD)' : key === 'totalBtcAllocated' ? 'BTC Allotted' : key;
+        const label = key === 'totalInvestmentUsd' ? 'Total Investment (USD)' : key === 'currentPortfolioValueUsd' ? 'Portfolio Value (USD)' : key === 'totalBtcAllocated' ? 'BTC Allotted' : key === 'btcMined' ? 'BTC Mined' : key;
         payload[key] = parseAdminAmount(raw, label);
       }
+      // Empty limit = no limit (stored as NULL); otherwise a non-negative USD amount per calendar month.
+      const rawLimit: unknown = payload.monthlyWithdrawalLimitUsd;
+      payload.monthlyWithdrawalLimitUsd = rawLimit === null || rawLimit === undefined || String(rawLimit).trim() === '' ? null : parseAdminAmount(rawLimit, 'Monthly withdrawal limit (USD)');
       // Withdrawal lock dates are no longer applied; never send one back.
       delete payload.nextWithdrawalDate;
       const { profile } = await updateAdminInvestorProfile(authToken, selectedId, payload);
@@ -421,6 +424,18 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                         <span className="text-fg-muted text-[10px] uppercase block mb-1">BTC Allotted</span>
                         <input type="text" inputMode="decimal" value={formState.totalBtcAllocated ?? ''}
                           onChange={(e) => handleField('totalBtcAllocated', e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
+                      </label>
+                      <label className="block">
+                        <span className="text-fg-muted text-[10px] uppercase block mb-1">BTC Mined</span>
+                        <input id="admin-investor-btc-mined" type="text" inputMode="decimal" value={formState.btcMined ?? ''}
+                          onChange={(e) => handleField('btcMined', e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
+                      </label>
+                      <label className="block">
+                        <span className="text-fg-muted text-[10px] uppercase block mb-1">Monthly Withdrawal Limit (USD)</span>
+                        <input id="admin-investor-withdrawal-limit" type="text" inputMode="decimal" placeholder="Empty = no limit" value={formState.monthlyWithdrawalLimitUsd ?? ''}
+                          onChange={(e) => handleField('monthlyWithdrawalLimitUsd', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
                       </label>
                     </div>

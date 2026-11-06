@@ -327,6 +327,8 @@ export interface InvestorUser {
 
 export interface InvestorOverviewMetrics {
   usdWalletBalance: number;
+  /** Admin-set monthly withdrawal cap in USD; null/undefined = no limit. */
+  monthlyWithdrawalLimitUsd?: number | null;
   totalInvestmentUsd: number;
   currentPortfolioValueUsd: number;
   totalBtcAllocated: number;

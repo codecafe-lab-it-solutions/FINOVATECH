@@ -39,6 +39,7 @@ export function profileToMetrics(p: ApiInvestorProfile, btcPriceUsd: number, net
   const totalPayoutsBtc = 0; // computed from transactions by the caller when needed
   return {
     usdWalletBalance: p.usdWalletBalance,
+    monthlyWithdrawalLimitUsd: p.monthlyWithdrawalLimitUsd ?? null,
     totalInvestmentUsd: p.totalInvestmentUsd,
     currentPortfolioValueUsd: p.currentPortfolioValueUsd,
     totalBtcAllocated: p.totalBtcAllocated,

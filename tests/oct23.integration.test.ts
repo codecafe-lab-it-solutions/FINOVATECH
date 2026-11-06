@@ -96,7 +96,9 @@ test('October 23 requested changes: real database/API acceptance',async t=>{
   for(const p of ['src/data/companyData.ts','src/components/Footer.tsx','src/components/AboutSection.tsx','src/components/LeadershipSection.tsx','src/views/LeadershipPage.tsx'])assert.doesNotMatch(fs.readFileSync(p,'utf8'),/Rayees Ahmad Bhat|Managing Director/);
   assert.doesNotMatch(fs.readFileSync('src/components/Navbar.tsx','utf8'),/Contact Us/);assert.match(fs.readFileSync('src/components/Footer.tsx','utf8'),/2025/);
   assert.doesNotMatch(fs.readFileSync('src/components/admin/AdminSidebar.tsx','utf8'),/label: 'Contracts & Vault'/);
-  assert.doesNotMatch(fs.readFileSync('src/components/admin/AdminInvestorsView.tsx','utf8'),/>Total BTC Allocated<|>Mining Share %<|>BTC Mined</);
+  assert.doesNotMatch(fs.readFileSync('src/components/admin/AdminInvestorsView.tsx','utf8'),/>Total BTC Allocated<|>Mining Share %</);
+  // BTC Mined was re-requested by the client: it must be editable from the admin investor modal.
+  assert.match(fs.readFileSync('src/components/admin/AdminInvestorsView.tsx','utf8'),/>BTC Mined</);
  });
  }finally{
   await savePlatformSettings(original);

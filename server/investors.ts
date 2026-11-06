@@ -45,6 +45,7 @@ export interface InvestorProfile {
   miningSharePercent: number;
   nextWithdrawalDate: string | null;
   withdrawalLockDate: string | null;
+  monthlyWithdrawalLimitUsd: number | null;
   updatedAt: string;
 }
 
@@ -104,6 +105,7 @@ interface ProfileRow extends RowDataPacket {
   btc_pending_accrued: string;
   mining_share_percent: string;
   next_withdrawal_date: string | null;
+  monthly_withdrawal_limit_usd: string | null;
   updated_at: string;
 }
 
@@ -151,6 +153,7 @@ function toProfile(row: ProfileRow): InvestorProfile {
     miningSharePercent: Number(row.mining_share_percent),
     nextWithdrawalDate: joining && terms ? nextEligibleDay(joining, row.latest_payout ? utcDay(row.latest_payout) : null, terms.payoutRequestDays, row.next_withdrawal_date) : row.next_withdrawal_date,
     withdrawalLockDate: row.next_withdrawal_date,
+    monthlyWithdrawalLimitUsd: row.monthly_withdrawal_limit_usd === null || row.monthly_withdrawal_limit_usd === undefined ? null : Number(row.monthly_withdrawal_limit_usd),
     updatedAt: row.updated_at
   };
 }
@@ -225,6 +228,7 @@ export interface ProfileUpdate {
   btcPendingAccrued?: number;
   miningSharePercent?: number;
   nextWithdrawalDate?: string | null;
+  monthlyWithdrawalLimitUsd?: number | null;
 }
 
 const UPDATABLE_COLUMNS: Record<keyof ProfileUpdate, string> = {
@@ -252,7 +256,8 @@ const UPDATABLE_COLUMNS: Record<keyof ProfileUpdate, string> = {
   btcMined: 'btc_mined',
   btcPendingAccrued: 'btc_pending_accrued',
   miningSharePercent: 'mining_share_percent',
-  nextWithdrawalDate: 'next_withdrawal_date'
+  nextWithdrawalDate: 'next_withdrawal_date',
+  monthlyWithdrawalLimitUsd: 'monthly_withdrawal_limit_usd'
 };
 
 export async function updateProfile(userId: string, updates: ProfileUpdate): Promise<InvestorProfile> {
@@ -268,6 +273,8 @@ export async function updateProfile(userId: string, updates: ProfileUpdate): Pro
     for (const key of ['totalInvestmentUsd', 'currentPortfolioValueUsd', 'totalBtcAllocated', 'btcMined', 'btcPendingAccrued', 'miningSharePercent'] as const) {
       if (updates[key] !== undefined && (typeof updates[key] !== 'number' || !Number.isFinite(updates[key]) || updates[key]! < 0)) throw new Error(`Invalid ${key}: enter a non-negative number.`);
     }
+    const limit = updates.monthlyWithdrawalLimitUsd;
+    if (limit !== undefined && limit !== null && (typeof limit !== 'number' || !Number.isFinite(limit) || limit < 0 || limit > 1e12)) throw new Error('Monthly withdrawal limit must be a non-negative amount, or empty for no limit.');
     if (updates.plan !== undefined && (updates.plan !== before.plan || !before.plan_terms)) {
       const [plans] = await conn.query<RowDataPacket[]>('SELECT * FROM investment_plans WHERE name = ? FOR UPDATE', [updates.plan]);
       if (plans.length !== 1 && updates.plan !== before.plan) throw new Error('Select a uniquely named investment plan from the catalog.');

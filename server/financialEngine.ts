@@ -9,6 +9,19 @@ const nowSql = () => new Date().toISOString().slice(0, 19).replace('T', ' ');
 const readTerms = (value: any): PlanTerms | null => typeof value === 'string' ? JSON.parse(value) : value;
 export class PolicyError extends Error {}
 
+// Admin-set per-investor cap on the USD value of withdrawals requested in a calendar month (UTC).
+// NULL/undefined limit = no cap. Rejected requests do not count toward the cap.
+async function enforceMonthlyLimit(conn: { query: (sql: string, params?: any[]) => Promise<any> }, profile: RowDataPacket, requestUsd: number): Promise<void> {
+  const raw = profile.monthly_withdrawal_limit_usd;
+  if (raw === null || raw === undefined) return;
+  const limit = Number(raw);
+  const monthStart = new Date().toISOString().slice(0, 7) + '-01 00:00:00';
+  const [rows] = await conn.query("SELECT COALESCE(SUM(amount_usd), 0) AS used FROM payouts WHERE investor_user_id = ? AND status <> 'Rejected' AND requested_at >= ?", [profile.user_id, monthStart]);
+  const used = Number(rows[0].used);
+  const remaining = Math.max(0, Math.round((limit - used) * 100) / 100);
+  if (requestUsd > remaining + 0.000001) throw new PolicyError(`Monthly withdrawal limit reached. Your limit is USD ${limit.toFixed(2)} per month; USD ${remaining.toFixed(2)} remains this month.`);
+}
+
 export async function submitUsdPayout(params: { investorUserId: string; amountUsd: number; destination: string }): Promise<string> {
   if (!Number.isFinite(params.amountUsd) || params.amountUsd < 0.01 || Math.abs(params.amountUsd * 100 - Math.round(params.amountUsd * 100)) > 0.000001) throw new PolicyError('Enter a positive USD amount with at most two decimal places.');
   if (!params.destination.trim() || params.destination.trim().length < 6 || params.destination.trim() === 'Not set') throw new PolicyError('Enter your USD bank/payment destination details.');
@@ -23,6 +36,7 @@ export async function submitUsdPayout(params: { investorUserId: string; amountUs
     // retained-balance obligation applies. The available balance is the only limit.
     const available = Number(p.usd_wallet_balance) - Number(previous[0].reserved);
     if (params.amountUsd > available) throw new PolicyError('Requested amount exceeds your available USD wallet balance.');
+    await enforceMonthlyLimit(conn, p, params.amountUsd);
     const id = crypto.randomUUID();
     await conn.query("INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, currency, destination_wallet, network, status, requested_at, notes) VALUES (?, ?, ?, 0, ?, 'USD', ?, 'USD bank/payment', 'Requested', ?, '')", [id, p.user_id, p.investment_id, params.amountUsd, params.destination.trim(), nowSql()]);
     await conn.commit(); return id;
@@ -45,6 +59,7 @@ export async function submitPayout(params: { investorUserId: string; amountBtc: 
     const usd = Math.round(params.amountBtc * btcPrice * 100) / 100;
     const availableBtc = Number(p.total_btc_allocated) - Number(previous[0].reserved);
     if (params.amountBtc > availableBtc) throw new PolicyError('Requested amount exceeds your available wallet balance, including pending withdrawals.');
+    await enforceMonthlyLimit(conn, p, usd);
     const id = crypto.randomUUID();
     await conn.query(`INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, destination_wallet, network, status, requested_at, notes)
       VALUES (?, ?, ?, ?, ?, ?, ?, 'Requested', ?, '')`, [id, params.investorUserId, p.investment_id, params.amountBtc, usd, params.destinationWallet, params.network, nowSql()]);
