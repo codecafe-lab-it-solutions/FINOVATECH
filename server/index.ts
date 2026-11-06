@@ -1070,6 +1070,27 @@ app.delete('/api/admin/investors/:id', async (req, res) => {
   }
 });
 
+// Admin sets a new password for any investor. Saved to MySQL (bcrypt hash) and all
+// of that investor's active sessions are revoked so the old password stops working.
+app.put('/api/admin/investors/:id/password', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    const { newPassword } = req.body ?? {};
+    if (typeof newPassword !== 'string' || newPassword.length < 5 || newPassword.length > 128) {
+      return res.status(400).json({ error: 'New password must be 5 to 128 characters.' });
+    }
+    const target = await findUserById(req.params.id);
+    if (!target || target.role !== 'investor') return res.status(404).json({ error: 'Investor not found.' });
+    await updateCredentials(target.id, { password: newPassword });
+    await revokeAllSessions(target.id);
+    res.json({ ok: true });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Admin password reset failed:', err);
+    res.status(500).json({ error: 'Could not change the password.' });
+  }
+});
+
 app.post('/api/admin/investors/:id/transactions', async (req, res) => {
   try {
     await requireRole(req, 'admin');

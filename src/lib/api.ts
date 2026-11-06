@@ -385,6 +385,15 @@ export async function deleteAdminInvestor(token: string, investorUserId: string)
   return handleResponse(res);
 }
 
+export async function setAdminInvestorPassword(token: string, investorUserId: string, newPassword: string): Promise<{ ok: true }> {
+  const res = await fetch(`/api/admin/investors/${investorUserId}/password`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
+    body: JSON.stringify({ newPassword })
+  });
+  return handleResponse(res);
+}
+
 export interface ApiBroadcast {
   id: string;
   title: string;

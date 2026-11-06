@@ -234,4 +234,15 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
     assert.equal((await req('PATCH',`/api/admin/payouts/${id}`,{status:'Bad'},adminToken)).status,400);
     for(let i=0;i<2;i++)assert.equal((await req('PATCH',`/api/admin/payouts/${id}`,{status:'Rejected'},adminToken)).status,200);assert.equal((await getProfile(member.u.id))?.totalBtcAllocated,.02);
   });
+  await t.test('admin can reset any investor password; old password and sessions stop working, non-admins cannot',async()=>{
+    const member=await fixture();const old=await req('POST','/api/auth/login',{username:member.u.username,password:'FullAudit123!'});assert.equal(old.status,200);
+    const url='/api/admin/investors/'+member.u.id+'/password';
+    assert.equal((await req('PUT',url,{newPassword:'x'},adminToken)).status,400);
+    assert.equal((await req('PUT',url,{newPassword:'Another#Pass1'},old.body.token)).status,403);
+    assert.equal((await req('PUT','/api/admin/investors/missing-id/password',{newPassword:'Another#Pass1'},adminToken)).status,404);
+    assert.equal((await req('PUT',url,{newPassword:'Another#Pass1'},adminToken)).status,200);
+    assert.equal((await req('POST','/api/auth/login',{username:member.u.username,password:'FullAudit123!'})).status,401);
+    assert.equal((await req('POST','/api/auth/login',{username:member.u.username,password:'Another#Pass1'})).status,200);
+    assert.equal((await req('GET','/api/investor/profile',undefined,old.body.token)).status,401);
+  });
 });

@@ -22,7 +22,8 @@ import {
   fetchAdminInvestorDetail,
   updateAdminInvestorProfile,
   addAdminInvestorTransaction,
-  deleteAdminInvestor
+  deleteAdminInvestor,
+  setAdminInvestorPassword
 } from '../../lib/api';
 
 interface AdminInvestorsViewProps {
@@ -57,6 +58,12 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
   const [newTxNote, setNewTxNote] = useState('');
   const [isAddingTx, setIsAddingTx] = useState(false);
 
+  const [newPassword, setNewPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [isSettingPw, setIsSettingPw] = useState(false);
+  const [pwMessage, setPwMessage] = useState('');
+  const [pwError, setPwError] = useState('');
+
   const [deleteTarget, setDeleteTarget] = useState<ApiInvestorProfile | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
@@ -83,6 +90,10 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
     setIsLoadingDetail(true);
     setSaveMessage('');
     setSaveError('');
+    setNewPassword('');
+    setPwMessage('');
+    setPwError('');
+    setShowPw(false);
     try {
       const { profile, transactions: txs, payouts: pos } = await fetchAdminInvestorDetail(authToken, userId);
       setDetailProfile(profile);
@@ -114,6 +125,23 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
       setDeleteError(err instanceof Error ? err.message : 'Could not delete investor.');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleSetPassword = async () => {
+    if (!selectedId) return;
+    setPwMessage('');
+    setPwError('');
+    if (newPassword.length < 5) { setPwError('Password must be at least 5 characters.'); return; }
+    setIsSettingPw(true);
+    try {
+      await setAdminInvestorPassword(authToken, selectedId, newPassword);
+      setNewPassword('');
+      setPwMessage('Password updated and saved. The investor can log in with it now.');
+    } catch (err) {
+      setPwError(err instanceof Error ? err.message : 'Could not change the password.');
+    } finally {
+      setIsSettingPw(false);
     }
   };
 
@@ -406,6 +434,39 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                     {isSaving ? <RotateCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                     <span>Save Profile</span>
                   </button>
+
+                  {/* Reset Password */}
+                  <div className="p-4 rounded-2xl bg-ink-850/80 border border-line space-y-3">
+                    <div className="text-[10px] text-fg-muted uppercase font-bold">
+                      Reset Login Password{detailProfile.username ? <span className="normal-case"> · username: {detailProfile.username}</span> : null}
+                    </div>
+                    {pwError && <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300">{pwError}</div>}
+                    {pwMessage && <div className="p-2 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300">{pwMessage}</div>}
+                    <div className="flex gap-2">
+                      <input
+                        id="admin-investor-new-password"
+                        type={showPw ? 'text' : 'password'}
+                        autoComplete="new-password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="New password (min 5 characters)"
+                        className="flex-1 px-3 py-2 rounded-xl bg-ink-950 border border-line text-white"
+                      />
+                      <button type="button" onClick={() => setShowPw((v) => !v)} className="px-3 py-2 rounded-xl bg-ink-800 text-fg-muted hover:text-white cursor-pointer">
+                        {showPw ? 'Hide' : 'Show'}
+                      </button>
+                      <button
+                        type="button"
+                        id="admin-investor-set-password"
+                        onClick={handleSetPassword}
+                        disabled={isSettingPw || !newPassword}
+                        className="px-4 py-2 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold cursor-pointer disabled:opacity-50"
+                      >
+                        {isSettingPw ? 'Saving...' : 'Set Password'}
+                      </button>
+                    </div>
+                    <div className="text-[11px] text-fg-muted">Saved to the database. The investor is signed out everywhere and must use the new password.</div>
+                  </div>
 
                   {/* Wallet Ledger */}
                   <div className="p-4 rounded-2xl bg-ink-850/80 border border-line space-y-3">
