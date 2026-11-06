@@ -32,7 +32,7 @@ import {
   ProfileUpdate
 } from './investors';
 import { createOtpForUser, verifyAndConsumeOtp } from './passwordReset';
-import { sendWelcomeEmail, sendOtpEmail, sendWithdrawalOtpEmail, sendDepositEmail, sendAnnouncementEmail } from './mailer';
+import { sendWelcomeEmail, sendOtpEmail, sendDepositEmail, sendAnnouncementEmail } from './mailer';
 import { recordBroadcast, listBroadcasts } from './broadcasts';
 import {
   listPlans,
@@ -455,35 +455,13 @@ app.get('/api/investor/payouts', async (req, res) => {
   }
 });
 
-app.post('/api/investor/payouts/request-otp', async (req, res) => {
-  try {
-    const payload = await requireRole(req, 'investor');
-    const profile = await getProfile(payload.sub);
-    if (!profile) {
-      return res.status(404).json({ error: 'Investor profile not found.' });
-    }
-    if (!profile.email) {
-      return res.status(400).json({ error: 'Add an email address to your profile before requesting a withdrawal.' });
-    }
-
-    const otp = await createOtpForUser(payload.sub, 'withdrawal');
-    await sendWithdrawalOtpEmail(profile.email, profile.name, otp);
-    res.json({ ok: true, message: `A confirmation code has been sent to ${profile.email}.` });
-  } catch (err) {
-    if (handleAuthError(err, res)) return;
-    console.error('Request payout OTP failed:', err);
-    res.status(500).json({ error: 'Could not send confirmation code. Please try again.' });
-  }
-});
-
 app.post('/api/investor/payouts', async (req, res) => {
   try {
     const payload = await requireRole(req, 'investor');
-    const { amountBtc, amountUsd, currency, destinationWallet, otp, network } = req.body ?? {};
+    const { amountBtc, amountUsd, currency, destinationWallet, network } = req.body ?? {};
     if (currency !== undefined && currency !== 'USD' && currency !== 'BTC') return res.status(400).json({error: 'Unsupported payout currency.'});
     if (currency === 'USD') {
       if (typeof amountUsd !== 'number' || !Number.isFinite(amountUsd) || amountUsd <= 0 || typeof destinationWallet !== 'string') return res.status(400).json({error: 'Enter a valid USD amount and payment destination.'});
-      if (typeof otp !== 'string' || !await verifyAndConsumeOtp(payload.sub, otp.trim(), 'withdrawal')) return res.status(400).json({error: 'Invalid or expired confirmation code.'});
       const id = await submitUsdPayout({investorUserId: payload.sub, amountUsd, destination: destinationWallet});
       const payout = await getPayoutById(id);
       await createNotification(payload.sub, 'USD Payout Request Submitted', `Your USD ${amountUsd.toFixed(2)} withdrawal request awaits administrator review.`, 'payout');
@@ -496,10 +474,6 @@ app.post('/api/investor/payouts', async (req, res) => {
     if (typeof destinationWallet !== 'string' || destinationWallet.trim().length < 6) {
       return res.status(400).json({ error: 'Enter a valid destination wallet address.' });
     }
-    if (typeof otp !== 'string' || !otp.trim()) {
-      return res.status(400).json({ error: 'Enter the confirmation code sent to your email.' });
-    }
-
     const profile = await getProfile(payload.sub);
     if (!profile) {
       return res.status(404).json({ error: 'Investor profile not found.' });
@@ -518,11 +492,6 @@ app.post('/api/investor/payouts', async (req, res) => {
     }
     if (!market) {
       return res.status(502).json({ error: 'Could not verify the live BTC price to value this withdrawal. Please try again.' });
-    }
-
-    const otpValid = await verifyAndConsumeOtp(payload.sub, otp.trim(), 'withdrawal');
-    if (!otpValid) {
-      return res.status(400).json({ error: 'Invalid or expired confirmation code.' });
     }
 
     const payoutId = await submitPayout({

@@ -19,7 +19,6 @@ import { InvestorDashboardTab } from '../src/components/investor/InvestorDashboa
 import { InvestorSidebar } from '../src/components/investor/InvestorSidebar';
 import { ReferralPartnerTab } from '../src/components/investor/ReferralPartnerTab';
 import { CurrencyContext, formatDisplayMoney } from '../src/lib/currency';
-import { createOtpForUser } from '../server/passwordReset';
 
 // This audit adds HTTP and rendered-output checks beyond the original service tests.
 // No implementation changes are made by this file. All mutations target its fixtures.
@@ -97,7 +96,7 @@ test('additional requirement-by-requirement HTTP and rendered-output audit', asy
     const section = html.slice(html.indexOf('Contract &amp; Referral Hierarchy'));
     for (const value of ['Account Registration Date:', 'KYC Approval Date:', 'Start Date / Investment Joining Date:', 'Maturity / End Date:', profile.registrationDate!, profile.joiningDate!, profile.maturityDate, user.planTerms!.name, profile.agreementNumber]) assert.ok(section.includes(value), `Contract section missing ${value}`);
   });
-  const wallet = () => renderToStaticMarkup(<WalletTab user={user} metrics={metrics} reservedPayoutBtc={0} transactions={[]} depositRequests={[]} withdrawalSettings={{ maxWithdrawalUsd: 1000, withdrawalsEnabled: true, updatedAt: '' }} onRequestPayoutOtp={async () => ({ok: true, message: 'test'})} onRequestPayout={async () => {}} onFetchDepositAddress={async () => ({ address: 'test', network: 'BTC' })} onSubmitDeposit={async () => ({referenceNumber: 'test'})} />);
+  const wallet = () => renderToStaticMarkup(<WalletTab user={user} metrics={metrics} reservedPayoutBtc={0} transactions={[]} depositRequests={[]} withdrawalSettings={{ maxWithdrawalUsd: 1000, withdrawalsEnabled: true, updatedAt: '' }} onRequestPayout={async () => {}} onFetchDepositAddress={async () => ({ address: 'test', network: 'BTC' })} onSubmitDeposit={async () => ({referenceNumber: 'test'})} />);
   await t.test('REQ 6 and 11: rendered wallet includes assigned terms, all new fields, and both KYC/joining dates', () => {
     const html = wallet();
     for (const value of [input.name, 'Request USD Withdrawal', 'Daily interest is credited in USD', 'Daily Return', '0.5%', 'Allow Payout Request', 'no waiting period', 'Minimum Threshold', '15%', 'Withdrawal / Entry Fee', '1.25%', 'KYC Approval Date', 'Joining Date / Start Date', profile.joiningDate!]) assert.ok(html.includes(value), `Wallet does not contain ${value}`);
@@ -205,8 +204,7 @@ test('additional requirement-by-requirement HTTP and rendered-output audit', asy
   await t.test('USD payout HTTP API records dollars and admin approval never changes BTC balances', async () => {
     await pool.query('UPDATE investor_profiles SET usd_wallet_balance = 2000 WHERE user_id = ?', [fixture.id]);
     const beforeBtc = (await getProfile(fixture.id))!.totalBtcAllocated;
-    const code = await createOtpForUser(fixture.id, 'withdrawal');
-    const result = await request('POST', '/api/investor/payouts', {currency: 'USD', amountUsd: 100, destinationWallet: 'Disposable audit bank account', otp: code}, investorToken);
+    const result = await request('POST', '/api/investor/payouts', {currency: 'USD', amountUsd: 100, destinationWallet: 'Disposable audit bank account'}, investorToken);
     assert.equal(result.status, 201, result.body.error);
     assert.equal(result.body.payout.currency, 'USD'); assert.equal(result.body.payout.amountUsd, 100); assert.equal(result.body.payout.amountBtc, 0);
     const settled = await request('PATCH', `/api/admin/payouts/${result.body.payout.id}`, {status: 'Completed', notes: 'USD audit settlement'}, adminToken);

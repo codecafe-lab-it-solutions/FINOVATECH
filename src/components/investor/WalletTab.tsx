@@ -32,8 +32,7 @@ interface WalletTabProps {
   user: InvestorUser;
   depositRequests: ApiDepositRequest[];
   withdrawalSettings: ApiWithdrawalSettings | null;
-  onRequestPayoutOtp: () => Promise<{ ok: true; message: string }>;
-  onRequestPayout: (amountUsd: number, destinationWallet: string, otp: string, network: string) => Promise<void>;
+  onRequestPayout: (amountUsd: number, destinationWallet: string, network: string) => Promise<void>;
   onFetchDepositAddress: () => Promise<{ address: string; network: string }>;
   onSubmitDeposit: (amountUsd: number, proofFile: File) => Promise<{ referenceNumber: string }>;
 }
@@ -46,7 +45,6 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   user,
   depositRequests,
   withdrawalSettings,
-  onRequestPayoutOtp,
   onRequestPayout,
   onFetchDepositAddress,
   onSubmitDeposit
@@ -56,8 +54,6 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   const [withdrawStep, setWithdrawStep] = useState<1 | 2 | 3>(1);
   const [withdrawAmount, setWithdrawAmount] = useState('50');
   const [destinationAddress, setDestinationAddress] = useState(user.bankIban === 'Not set' ? '' : user.bankIban);
-  const [otpCode, setOtpCode] = useState('');
-  const [otpMessage, setOtpMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
   const [withdrawError, setWithdrawError] = useState<string | null>(null);
@@ -96,8 +92,6 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   const handleStartWithdraw = () => {
     setWithdrawStep(1);
     setDestinationAddress(user.bankIban === 'Not set' ? '' : user.bankIban);
-    setOtpCode('');
-    setOtpMessage('');
     setWithdrawError(null);
     setShowWithdrawModal(true);
   };
@@ -109,21 +103,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
     if (withdrawalsBlocked || !Number.isFinite(requested) || requested <= 0 || requested > maximumUsd) { setWithdrawError('Enter an amount within your available USD balance.'); return; }
     setIsProcessing(true);
     try {
-      const { message } = await onRequestPayoutOtp();
-      setOtpMessage(message);
-      setWithdrawStep(2);
-    } catch (err) {
-      setWithdrawError(err instanceof Error ? err.message : 'Could not send confirmation code.');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleConfirmOtp = async () => {
-    setIsProcessing(true);
-    setWithdrawError(null);
-    try {
-      await onRequestPayout(parseFloat(withdrawAmount), destinationAddress, otpCode.trim(), 'USD bank/payment');
+      await onRequestPayout(requested, destinationAddress, 'USD bank/payment');
       setWithdrawStep(3);
       setWithdrawSuccess(`Payout request for USD ${withdrawAmount} submitted and is awaiting admin approval.`);
     } catch (err) {
@@ -660,15 +640,12 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             </div>
 
             {/* Step Indicators */}
-            <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono">
+            <div className="grid grid-cols-2 gap-2 text-center text-[10px] font-mono">
               <div className={`p-2 rounded-lg ${withdrawStep === 1 ? 'bg-gold-500 text-black font-bold' : 'bg-ink-800 text-fg-muted'}`}>
                 1. Amount & Address
               </div>
-              <div className={`p-2 rounded-lg ${withdrawStep === 2 ? 'bg-gold-500 text-black font-bold' : 'bg-ink-800 text-fg-muted'}`}>
-                2. Confirm
-              </div>
               <div className={`p-2 rounded-lg ${withdrawStep === 3 ? 'bg-emerald-500 text-white font-bold' : 'bg-ink-800 text-fg-muted'}`}>
-                3. Submitted
+                2. Submitted
               </div>
             </div>
 
@@ -729,57 +706,9 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                   disabled={isProcessing}
                   className="w-full py-3 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-xs cursor-pointer disabled:opacity-50"
                 >
-                  {isProcessing ? 'Sending Confirmation Code...' : 'Review & Confirm →'}
+                  {isProcessing ? 'Submitting Payout Request...' : 'Submit Withdrawal Request'}
                 </button>
               </form>
-            )}
-
-            {/* Step 2: Confirm */}
-            {withdrawStep === 2 && (
-              <div className="space-y-4 text-xs font-mono">
-                <div className="p-4 rounded-xl bg-ink-950 border border-line-warm space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-fg-muted">Amount:</span>
-                    <span className="text-white font-bold">USD {withdrawAmount}</span>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <span className="text-fg-muted shrink-0">Destination:</span>
-                    <span className="text-gold-100/90 break-all text-right">{destinationAddress}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-fg-muted">Network:</span>
-                    <span className="text-white font-bold">USD bank/payment</span>
-                  </div>
-                </div>
-
-                {otpMessage && (
-                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[11px]">
-                    {otpMessage}
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-fg-muted mb-1">Confirmation Code:</label>
-                  <input
-                    type="text"
-                    required
-                    autoFocus
-                    value={otpCode}
-                    onChange={(e) => setOtpCode(e.target.value)}
-                    placeholder="6-digit code"
-                    className="w-full px-3 py-2.5 rounded-xl bg-ink-950 border border-line-warm text-white text-center tracking-[0.3em] focus:outline-hidden focus:border-gold-500"
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  disabled={isProcessing || !otpCode.trim()}
-                  onClick={handleConfirmOtp}
-                  className="w-full py-3 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-xs cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isProcessing ? 'Submitting Payout Request...' : 'Confirm & Submit Request'}
-                </button>
-              </div>
             )}
 
             {/* Step 3: Success Screen */}

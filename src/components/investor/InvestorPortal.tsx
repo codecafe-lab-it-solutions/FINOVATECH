@@ -39,7 +39,6 @@ import {
   fetchInvestorMachines,
   fetchInvestorDocuments,
   requestUsdPayoutApi,
-  requestPayoutOtpApi,
   updateInvestorProfileApi,
   fetchBtcMarketData,
   fetchInvestorDepositAddress,
@@ -179,12 +178,8 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
   }, [loadPortfolio]);
 
   // Handlers
-  const handleRequestPayoutOtp = async () => {
-    return requestPayoutOtpApi(authToken);
-  };
-
-  const handleRequestPayout = async (amountUsd: number, destinationWallet: string, otp: string, _network: string) => {
-    await requestUsdPayoutApi(authToken, amountUsd, destinationWallet, otp);
+  const handleRequestPayout = async (amountUsd: number, destinationWallet: string, _network: string) => {
+    await requestUsdPayoutApi(authToken, amountUsd, destinationWallet);
     await loadPortfolio();
     loadNotifications();
   };
@@ -380,7 +375,6 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
               user={user}
               depositRequests={depositRequests}
               withdrawalSettings={withdrawalSettings}
-              onRequestPayoutOtp={handleRequestPayoutOtp}
               onRequestPayout={handleRequestPayout}
               onFetchDepositAddress={handleFetchDepositAddress}
               onSubmitDeposit={handleSubmitDeposit}

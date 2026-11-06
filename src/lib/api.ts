@@ -231,31 +231,22 @@ export async function fetchInvestorPayouts(token: string): Promise<{ payouts: Ap
   return handleResponse(res);
 }
 
-export async function requestPayoutOtpApi(token: string): Promise<{ ok: true; message: string }> {
-  const res = await fetch('/api/investor/payouts/request-otp', {
-    method: 'POST',
-    headers: authHeaders(token)
-  });
-  return handleResponse(res);
-}
-
 export async function requestPayoutApi(
   token: string,
   amountBtc: number,
   destinationWallet: string,
-  otp: string,
   network?: string
 ): Promise<{ payout: ApiPayout }> {
   const res = await fetch('/api/investor/payouts', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
-    body: JSON.stringify({ amountBtc, destinationWallet, otp, network })
+    body: JSON.stringify({ amountBtc, destinationWallet, network })
   });
   return handleResponse(res);
 }
 
-export async function requestUsdPayoutApi(token: string, amountUsd: number, destinationWallet: string, otp: string): Promise<{ payout: ApiPayout }> {
-  return handleResponse(await fetch('/api/investor/payouts', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders(token) }, body: JSON.stringify({ currency: 'USD', amountUsd, destinationWallet, otp }) }));
+export async function requestUsdPayoutApi(token: string, amountUsd: number, destinationWallet: string): Promise<{ payout: ApiPayout }> {
+  return handleResponse(await fetch('/api/investor/payouts', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders(token) }, body: JSON.stringify({ currency: 'USD', amountUsd, destinationWallet }) }));
 }
 
 // --- Investor self-service deposits ---

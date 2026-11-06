@@ -7,7 +7,6 @@ import { createUser } from '../server/db';
 import { createPlan, deletePlan, listPlans } from '../server/adminData';
 import { getProfile, updateProfile, addTransaction } from '../server/investors';
 import { reconcileDailyInterest, submitPayout, submitUsdPayout, settlePayout } from '../server/financialEngine';
-import { createOtpForUser } from '../server/passwordReset';
 import { createDepositRequest } from '../server/deposits';
 import { listEarnings, listMonthlyStatements, getReferralStats } from '../server/investorExtras';
 import { platformDay, addDays, maturityDay } from '../server/planPolicy';
@@ -39,9 +38,6 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
   const admin=await req('POST','/api/auth/login',{username:'Admin',password:'Admin'});assert.equal(admin.status,200);const adminToken=admin.body.token;
   const {u,plan}=await fixture();
   const login=await req('POST','/api/auth/login',{username:u.username,password:'FullAudit123!'});assert.equal(login.status,200);const token=login.body.token;
-  await t.test('withdrawal OTP endpoint clearly rejects an investor without an email address',async()=>{
-    const r=await req('POST','/api/investor/payouts/request-otp',{},token);assert.equal(r.status,400);assert.match(r.body.error,/Add an email address/);
-  });
   await t.test('registration API validates inputs and rejects duplicate usernames without sending welcome mail',async()=>{
     for(const body of [{username:'a',name:'QA',password:'12345',email:'qa@example.invalid'},{username:'valid-qa',name:'QA',password:'123',email:'qa@example.invalid'},{username:'valid-qa',name:'QA',password:'12345',email:'invalid'}])assert.equal((await req('POST','/api/auth/register',body)).status,400);
     assert.equal((await req('POST','/api/auth/register',{username:u.username,name:'QA duplicate',password:'12345',email:'qa@example.invalid'})).status,409);
@@ -93,7 +89,7 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
   });
   await t.test('zero, negative, over-precision amounts and missing destinations are rejected by HTTP',async()=>{
     for(const body of [{amountBtc:0},{amountBtc:-1},{amountBtc:.000000001},{amountBtc:'1'},{amountBtc:.001,destinationWallet:''},{amountBtc:.001,destinationWallet:'abc'},{amountBtc:.001,currency:'EUR'}]){
-      const r=await req('POST','/api/investor/payouts',{destinationWallet:'test-wallet',otp:'123456',...body},token);assert.equal(r.status,400,JSON.stringify(body));
+      const r=await req('POST','/api/investor/payouts',{destinationWallet:'test-wallet',...body},token);assert.equal(r.status,400,JSON.stringify(body));
     }
   });
   await t.test('pending, unassigned and undated KYC states cannot withdraw or receive interest',async()=>{
@@ -208,7 +204,7 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
     const withdraw=(amountUsd:number)=>submitUsdPayout({investorUserId:member.u.id,amountUsd,destination:'QA dollar payment account'});
     await assert.rejects(withdraw(1651),/available USD/);await assert.rejects(withdraw(1.001),/two decimal/);
     const signed=await req('POST','/api/auth/login',{username:member.u.username,password:'FullAudit123!'});const memberToken=signed.body.token;
-    const otp=await createOtpForUser(member.u.id,'withdrawal');const result=await req('POST','/api/investor/payouts',{currency:'USD',amountUsd:150,destinationWallet:'QA dollar payment account',otp},memberToken);assert.equal(result.status,201,result.body.error);assert.equal(result.body.payout.currency,'USD');assert.equal(result.body.payout.amountBtc,0);assert.equal(result.body.payout.amountUsd,150);
+    const result=await req('POST','/api/investor/payouts',{currency:'USD',amountUsd:150,destinationWallet:'QA dollar payment account'},memberToken);assert.equal(result.status,201,result.body.error);assert.equal(result.body.payout.currency,'USD');assert.equal(result.body.payout.amountBtc,0);assert.equal(result.body.payout.amountUsd,150);
     for(let n=0;n<2;n++)assert.equal((await req('PATCH',`/api/admin/payouts/${result.body.payout.id}`,{status:'Completed'},adminToken)).status,200);
     assert.equal((await getProfile(member.u.id))?.usdWalletBalance,1500);assert.equal((await getProfile(member.u.id))?.totalBtcAllocated,.02);
     for(let n=0;n<2;n++)await req('PATCH',`/api/admin/payouts/${result.body.payout.id}`,{status:'Rejected'},adminToken);
@@ -228,14 +224,12 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
   await t.test('BTC request HTTP/OTP/admin lifecycle records correct currency and debits once',async()=>{
     const member=await fixture();const signed=await req('POST','/api/auth/login',{username:member.u.username,password:'FullAudit123!'});const memberToken=signed.body.token;
     const quote=await req('GET','/api/market/btc-price');assert.equal(quote.status,200,'Live provider must be available for this HTTP test');
-    const wrongPurpose=await createOtpForUser(member.u.id,'password-reset');const body={amountBtc:.001,destinationWallet:'bc1q000000000000000000000000000000000000000',network:'BTC'};
-    assert.equal((await req('POST','/api/investor/payouts',{...body,otp:wrongPurpose},memberToken)).status,400);
-    const otp=await createOtpForUser(member.u.id,'withdrawal');const created=await req('POST','/api/investor/payouts',{...body,otp},memberToken);assert.equal(created.status,201,created.body.error);const id=created.body.payout.id;assert.equal(created.body.payout.currency,'BTC');assert.equal(created.body.payout.network,'BTC');assert.equal(created.body.payout.amountBtc,.001);
+    const body={amountBtc:.001,destinationWallet:'bc1q000000000000000000000000000000000000000',network:'BTC'};
+    const created=await req('POST','/api/investor/payouts',body,memberToken);assert.equal(created.status,201,created.body.error);const id=created.body.payout.id;assert.equal(created.body.payout.currency,'BTC');assert.equal(created.body.payout.network,'BTC');assert.equal(created.body.payout.amountBtc,.001);
     for(const status of ['Processing','Completed','Completed'])assert.equal((await req('PATCH',`/api/admin/payouts/${id}`,{status},adminToken)).status,200);
     const after=await req('GET','/api/investor/profile',undefined,memberToken);assert.equal(after.body.profile.totalBtcAllocated,.019);
     const payouts=await req('GET','/api/investor/payouts',undefined,memberToken);assert.equal(payouts.body.payouts.find((p:any)=>p.id===id).status,'Completed');
     assert.equal((await req('PATCH',`/api/admin/payouts/${id}`,{status:'Bad'},adminToken)).status,400);
     for(let i=0;i<2;i++)assert.equal((await req('PATCH',`/api/admin/payouts/${id}`,{status:'Rejected'},adminToken)).status,200);assert.equal((await getProfile(member.u.id))?.totalBtcAllocated,.02);
-    assert.equal((await req('POST','/api/investor/payouts',{...body,otp},memberToken)).status,400);
   });
 });
