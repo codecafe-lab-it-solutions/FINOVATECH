@@ -22,7 +22,6 @@ import {
 import { WalletTransaction, InvestorOverviewMetrics, InvestorUser } from '../../types';
 import { ApiDepositRequest, ApiWithdrawalSettings } from '../../lib/api';
 
-const FIXED_COPY_ADDRESS = '0xc5ae4fc7de62952f7f613c28b117ac6443ddcb2e';
 
 interface WalletTabProps {
   reservedPayoutUsd?: number;
@@ -83,6 +82,10 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   const maximumBtcUsd = btcPriceUsd > 0 ? Math.floor(availableBtc * btcPriceUsd * 100 + 0.000001) / 100 : 0;
   const sourceMaxUsd = withdrawSource === 'USD' ? maximumUsd : maximumBtcUsd;
   const monthlyLimitUsd = metrics.monthlyWithdrawalLimitUsd ?? null;
+  // The plan's withdrawal fee is cut from every withdrawal; the full amount leaves the balance.
+  const withdrawalFeePercent = Number(user.planTerms?.withdrawalEntryFeePercent ?? 0);
+  const requestedForFee = Number(withdrawAmount) > 0 ? Number(withdrawAmount) : 0;
+  const withdrawalFeeUsd = Math.round(requestedForFee * withdrawalFeePercent) / 100;
   const btcAddressDefault = user.payoutBtcAddress && user.payoutBtcAddress !== 'Not set' ? user.payoutBtcAddress : '';
   const bankDefault = user.bankIban === 'Not set' ? '' : user.bankIban;
 
@@ -179,7 +182,9 @@ export const WalletTab: React.FC<WalletTabProps> = ({
     setFixedAddressCopyError(null);
     setCopiedFixedAddress(false);
     try {
-      await navigator.clipboard.writeText(FIXED_COPY_ADDRESS);
+      // Always copy the address the investor is shown: the active deposit address set by admin.
+      if (!depositAddressInfo?.address) throw new Error('No deposit address is available yet.');
+      await navigator.clipboard.writeText(depositAddressInfo.address);
       setCopiedFixedAddress(true);
       setTimeout(() => setCopiedFixedAddress(false), 2000);
     } catch (err) {
@@ -714,6 +719,11 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                   <div className="text-[11px] text-fg-muted mt-1">
                     Display equivalent: <Money usd={parseFloat(withdrawAmount || '0')} />
                   </div>
+                  {withdrawalFeePercent > 0 && (
+                    <div className="text-[11px] text-gold-300 mt-1" data-testid="withdrawal-fee-note">
+                      Plan withdrawal fee {withdrawalFeePercent}%: <Money usd={withdrawalFeeUsd} /> will be deducted. You receive <Money usd={Math.round((requestedForFee - withdrawalFeeUsd) * 100) / 100} />.
+                    </div>
+                  )}
                 </div>
 
                 <div>

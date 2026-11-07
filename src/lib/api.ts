@@ -56,24 +56,6 @@ export async function registerRequest(
   return handleResponse<AuthResponse>(res);
 }
 
-export async function forgotPasswordRequest(email: string, username?: string): Promise<{ ok: true; message: string }> {
-  const res = await fetch('/api/auth/forgot-password', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, username })
-  });
-  return handleResponse(res);
-}
-
-export async function resetPasswordRequest(email: string, otp: string, newPassword: string, username?: string): Promise<{ ok: true }> {
-  const res = await fetch('/api/auth/reset-password', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, otp, newPassword, username })
-  });
-  return handleResponse(res);
-}
-
 export async function fetchCurrentUser(token: string): Promise<{ user: AuthUser }> {
   const res = await fetch('/api/auth/me', {
     headers: { Authorization: `Bearer ${token}` }
@@ -140,6 +122,7 @@ export interface ApiInvestorProfile {
   miningSharePercent: number;
   nextWithdrawalDate: string | null;
   monthlyWithdrawalLimitUsd?: number | null;
+  loginBlocked?: boolean;
   withdrawalLockDate: string | null;
   updatedAt: string;
 }
@@ -169,6 +152,9 @@ export interface ApiPayout {
   requestedAt: string;
   processedAt: string | null;
   notes: string;
+  feePercent: number;
+  feeUsd: number;
+  netUsd: number;
 }
 
 function authHeaders(token: string) {
@@ -321,7 +307,7 @@ export async function fetchAdminDepositAddresses(token: string): Promise<{ addre
 
 export async function createAdminDepositAddress(
   token: string,
-  payload: { address: string; network: string; visibility: 'All' | 'Specific'; visibleInvestorIds?: string[] }
+  payload: { address: string; network: string; visibility: 'All' | 'Specific'; visibleInvestorIds?: string[]; pin: string }
 ): Promise<{ address: ApiDepositAddress }> {
   const res = await fetch('/api/admin/deposit-addresses', {
     method: 'POST',
@@ -528,21 +514,23 @@ export async function fetchAdminWallets(token: string): Promise<{ wallets: ApiCo
 
 export async function createAdminWallet(
   token: string,
-  wallet: Omit<ApiCompanyWallet, 'id' | 'updatedAt'>
+  wallet: Omit<ApiCompanyWallet, 'id' | 'updatedAt'>,
+  pin: string
 ): Promise<{ wallet: ApiCompanyWallet }> {
   const res = await fetch('/api/admin/wallets', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
-    body: JSON.stringify(wallet)
+    body: JSON.stringify({ ...wallet, pin })
   });
   return handleResponse(res);
 }
 
-export async function updateAdminWallet(token: string, id: string, updates: Partial<ApiCompanyWallet>): Promise<{ ok: true }> {
+// pin is required by the server only when the wallet address itself changes.
+export async function updateAdminWallet(token: string, id: string, updates: Partial<ApiCompanyWallet>, pin?: string): Promise<{ ok: true }> {
   const res = await fetch(`/api/admin/wallets/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', ...authHeaders(token) },
-    body: JSON.stringify(updates)
+    body: JSON.stringify(pin ? { ...updates, pin } : updates)
   });
   return handleResponse(res);
 }
@@ -848,4 +836,84 @@ export async function fetchAdminReferrals(token: string): Promise<{ referrals: A
   return handleResponse(await fetch('/api/admin/referrals', { headers: authHeaders(token) }));
 }
 
-export async function deleteAdminWallet(token: string, id: string): Promise<void> { await handleResponse(await fetch('/api/admin/wallets/' + id, { method: 'DELETE', headers: authHeaders(token) })); }
+export async function deleteAdminWallet(token: string, id: string, pin: string): Promise<void> { await handleResponse(await fetch('/api/admin/wallets/' + id, { method: 'DELETE', headers: { 'Content-Type': 'application/json', ...authHeaders(token) }, body: JSON.stringify({ pin }) })); }
+
+// --- Access / activity log, login block, level income and rewards ---
+
+export interface ApiActivityLog {
+  id: string;
+  createdAt: string;
+  actorName: string;
+  actorRole: string;
+  action: string;
+  module: string;
+  targetId: string;
+  details: string;
+  status: 'Success' | 'Failed' | 'Blocked' | string;
+  ipAddress: string;
+  userAgent: string;
+}
+
+export async function fetchActivityLogs(token: string): Promise<{ logs: ApiActivityLog[] }> {
+  return handleResponse(await fetch('/api/admin/activity-logs?limit=1000', { headers: authHeaders(token) }));
+}
+
+export async function setAdminInvestorLoginBlock(token: string, investorId: string, blocked: boolean): Promise<{ ok: true; loginBlocked: boolean }> {
+  return handleResponse(await fetch('/api/admin/investors/' + investorId + '/login-block', { method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders(token) }, body: JSON.stringify({ blocked }) }));
+}
+
+export interface ApiLevelSetting { level: number; percent: number }
+
+export async function fetchLevelIncomeSettings(token: string): Promise<{ levels: ApiLevelSetting[] }> {
+  return handleResponse(await fetch('/api/admin/level-income-settings', { headers: authHeaders(token) }));
+}
+
+export async function saveLevelIncomeSettings(token: string, percents: number[]): Promise<{ levels: ApiLevelSetting[] }> {
+  return handleResponse(await fetch('/api/admin/level-income-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders(token) }, body: JSON.stringify({ percents }) }));
+}
+
+export interface ApiRewardGrant {
+  id: string;
+  userId: string;
+  name: string;
+  username: string;
+  tierKey: string;
+  reward: string;
+  fromLevel: number;
+  toLevel: number;
+  targetUsd: number;
+  status: 'Pending' | 'Granted' | string;
+  achievedAt: string;
+  grantedAt: string | null;
+  note: string;
+}
+
+export async function fetchAdminRewards(token: string): Promise<{ rewards: ApiRewardGrant[] }> {
+  return handleResponse(await fetch('/api/admin/rewards', { headers: authHeaders(token) }));
+}
+
+export async function updateAdminReward(token: string, id: string, status: 'Granted' | 'Pending', note = ''): Promise<{ ok: true }> {
+  return handleResponse(await fetch('/api/admin/rewards/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authHeaders(token) }, body: JSON.stringify({ status, note }) }));
+}
+
+export interface ApiLevelIncomeSummary {
+  qualifiedReferrals: number;
+  qualifyingInvestmentUsd: number;
+  totalEarnedUsd: number;
+  levels: { level: number; percent: number; requiredReferrals: number; unlocked: boolean; credits: number; earnedUsd: number }[];
+}
+
+export interface ApiRewardProgress {
+  key: string;
+  reward: string;
+  fromLevel: number;
+  toLevel: number;
+  targetUsd: number;
+  businessUsd: number;
+  achieved: boolean;
+  status: string;
+}
+
+export async function fetchInvestorLevelIncome(token: string): Promise<{ summary: ApiLevelIncomeSummary; rewards: ApiRewardProgress[] }> {
+  return handleResponse(await fetch('/api/investor/level-income', { headers: authHeaders(token) }));
+}

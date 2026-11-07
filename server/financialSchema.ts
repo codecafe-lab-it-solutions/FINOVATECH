@@ -27,7 +27,13 @@ export async function initFinancialSchema(): Promise<void> {
       ['payouts', 'currency', "VARCHAR(3) NOT NULL DEFAULT 'BTC'"],
       ['investor_profiles', 'usd_wallet_balance', 'DECIMAL(18,2) NOT NULL DEFAULT 0'],
       // Admin-set per-investor cap on total withdrawals requested in a calendar month. NULL = no limit.
-      ['investor_profiles', 'monthly_withdrawal_limit_usd', 'DECIMAL(18,2) NULL']
+      ['investor_profiles', 'monthly_withdrawal_limit_usd', 'DECIMAL(18,2) NULL'],
+      // Admin can block/unblock an investor's login; blocked users cannot sign in or use a session.
+      ['users', 'login_blocked', 'BOOLEAN NOT NULL DEFAULT FALSE'],
+      // Plan withdrawal fee is cut when a withdrawal is requested; amount_usd stays the gross debit.
+      ['payouts', 'fee_percent', 'DECIMAL(9,5) NOT NULL DEFAULT 0'],
+      ['payouts', 'fee_usd', 'DECIMAL(18,2) NOT NULL DEFAULT 0'],
+      ['payouts', 'net_usd', 'DECIMAL(18,2) NULL']
     ];
     for (const [table, name, type] of columns) {
       const [existing] = await conn.query<any[]>('SELECT 1 FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?', [table, name]);
@@ -79,6 +85,35 @@ export async function initFinancialSchema(): Promise<void> {
       recorded_at DATETIME NOT NULL,
       PRIMARY KEY (investor_user_id, investment_id, effective_day),
       CONSTRAINT fk_capital_user FOREIGN KEY (investor_user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB`);
+    // Access/activity log: logins (success, failure, blocked) and every state-changing request.
+    await conn.query(`CREATE TABLE IF NOT EXISTS activity_logs (
+      id CHAR(36) PRIMARY KEY, created_at DATETIME NOT NULL, actor_user_id CHAR(36) NULL,
+      actor_name VARCHAR(120) NOT NULL DEFAULT '', actor_role VARCHAR(20) NOT NULL DEFAULT '',
+      action VARCHAR(80) NOT NULL, module VARCHAR(60) NOT NULL DEFAULT '', target_id VARCHAR(120) NOT NULL DEFAULT '',
+      details VARCHAR(500) NOT NULL DEFAULT '', status VARCHAR(20) NOT NULL DEFAULT 'Success',
+      ip_address VARCHAR(64) NOT NULL DEFAULT '', user_agent VARCHAR(255) NOT NULL DEFAULT '',
+      INDEX idx_activity_created (created_at)
+    ) ENGINE=InnoDB`);
+    // ROI-on-ROI level income: percentage per upline level, admin editable (0 = nothing paid).
+    await conn.query(`CREATE TABLE IF NOT EXISTS level_income_settings (
+      level_no INT PRIMARY KEY, percent DECIMAL(7,4) NOT NULL DEFAULT 0, updated_at DATETIME NOT NULL
+    ) ENGINE=InnoDB`);
+    for (let level = 1; level <= 10; level++) await conn.query('INSERT IGNORE INTO level_income_settings (level_no, percent, updated_at) VALUES (?, 0, UTC_TIMESTAMP())', [level]);
+    await conn.query(`CREATE TABLE IF NOT EXISTS level_income_credits (
+      id CHAR(36) PRIMARY KEY, receiver_user_id CHAR(36) NOT NULL, source_user_id CHAR(36) NOT NULL,
+      level_no INT NOT NULL, eligible_day DATE NOT NULL, source_roi_usd DECIMAL(18,2) NOT NULL,
+      rate_percent DECIMAL(7,4) NOT NULL, amount_usd DECIMAL(18,2) NOT NULL, created_at DATETIME NOT NULL,
+      UNIQUE KEY uniq_level_credit (receiver_user_id, source_user_id, eligible_day),
+      CONSTRAINT fk_level_receiver FOREIGN KEY (receiver_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      CONSTRAINT fk_level_source FOREIGN KEY (source_user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB`);
+    await conn.query(`CREATE TABLE IF NOT EXISTS reward_grants (
+      id CHAR(36) PRIMARY KEY, user_id CHAR(36) NOT NULL, tier_key VARCHAR(20) NOT NULL,
+      achieved_at DATETIME NOT NULL, status VARCHAR(20) NOT NULL DEFAULT 'Pending',
+      granted_at DATETIME NULL, note VARCHAR(255) NOT NULL DEFAULT '',
+      UNIQUE KEY uniq_reward (user_id, tier_key),
+      CONSTRAINT fk_reward_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB`);
     await conn.query(`CREATE TABLE IF NOT EXISTS exchange_rate_cache (
       base_currency VARCHAR(3) PRIMARY KEY, inr_rate DECIMAL(18,8) NOT NULL,

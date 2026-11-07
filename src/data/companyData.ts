@@ -17,12 +17,10 @@ export const COMPANY_PROFILE = {
 };
 
 /* Single source for the operational figures that appear in more than one
-   section. They were drifting (uptime shown as 99.88 / 99.87 / 99.8 / 99.9,
-   coordinates given in two forms that did not resolve to the same point),
-   which institutional readers notice. */
+   section. They were drifting (uptime shown as 99.88 / 99.87 / 99.8 / 99.9),
+   which institutional readers notice. Map coordinates are intentionally not published. */
 export const OPERATING_FACTS = {
   uptimeTarget: '99.9%',
-  coordinates: '23.5880° N, 58.3829° E',
   nodeId: 'MCT-01',
   perRackHashrate: '112 TH/s',
   timezone: 'GST (UTC+4)',

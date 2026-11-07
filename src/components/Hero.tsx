@@ -26,7 +26,7 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
   const telemetry = [
     { label: 'Algorithm', value: 'SHA-256 Protocol', sub: 'Bitcoin Core Network' },
     { label: 'Uptime Target', value: `${OPERATING_FACTS.uptimeTarget} Availability`, sub: 'Continuous Monitoring' },
-    { label: 'Location', value: 'Muscat, Oman', sub: OPERATING_FACTS.coordinates, mono: true },
+    { label: 'Location', value: 'Muscat, Oman', sub: 'Sultanate of Oman' },
     { label: 'Framework', value: '4-Year Charter', sub: 'Defined Term Lease' },
   ];
 
@@ -125,7 +125,7 @@ export const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
               <div className="text-sm sm:text-base font-bold tracking-tight text-[#14100A]">
                 {t.value}
               </div>
-              <div className={`text-xs text-[#574620] mt-0.5 ${t.mono ? 'font-mono' : ''}`}>{t.sub}</div>
+              <div className="text-xs text-[#574620] mt-0.5">{t.sub}</div>
             </div>
           ))}
         </div>

@@ -23,7 +23,8 @@ import {
   updateAdminInvestorProfile,
   addAdminInvestorTransaction,
   deleteAdminInvestor,
-  setAdminInvestorPassword
+  setAdminInvestorPassword,
+  setAdminInvestorLoginBlock
 } from '../../lib/api';
 
 interface AdminInvestorsViewProps {
@@ -128,6 +129,26 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
     }
   };
 
+  const [isTogglingBlock, setIsTogglingBlock] = useState(false);
+
+  // Block or unblock the investor's login. Blocking also signs them out everywhere.
+  const handleToggleLoginBlock = async () => {
+    if (!selectedId || !detailProfile) return;
+    const block = !detailProfile.loginBlocked;
+    if (block && !window.confirm('Block login for ' + detailProfile.name + '? They will be signed out and cannot log in until you unblock.')) return;
+    setIsTogglingBlock(true);
+    setSaveError('');
+    try {
+      await setAdminInvestorLoginBlock(authToken, selectedId, block);
+      setDetailProfile({ ...detailProfile, loginBlocked: block });
+      setInvestors((prev) => prev.map((i) => (i.userId === selectedId ? { ...i, loginBlocked: block } : i)));
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Could not change the login block.');
+    } finally {
+      setIsTogglingBlock(false);
+    }
+  };
+
   const handleSetPassword = async () => {
     if (!selectedId) return;
     setPwMessage('');
@@ -216,6 +237,20 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
     }
   };
 
+  // The same person must have a single entry: flag accounts that share a full name or an email.
+  const normalize = (value: string) => value.trim().toLowerCase().replace(/\s+/g, ' ');
+  const countBy = (pick: (inv: ApiInvestorProfile) => string) => {
+    const counts = new Map<string, number>();
+    for (const inv of investors) {
+      const key = normalize(pick(inv));
+      if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return counts;
+  };
+  const nameCounts = countBy((inv) => inv.name);
+  const emailCounts = countBy((inv) => inv.email);
+  const isDuplicate = (inv: ApiInvestorProfile) => (nameCounts.get(normalize(inv.name)) ?? 0) > 1 || (emailCounts.get(normalize(inv.email)) ?? 0) > 1;
+
   const filteredInvestors = investors.filter((inv) => {
     const q = searchQuery.toLowerCase();
     return (
@@ -287,7 +322,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                 >
                   <td className="py-3.5 px-4 font-sans">
                     <div className="font-bold text-white group-hover:text-gold-500 transition-colors">{inv.name}</div>
-                    <div className="text-[11px] font-mono text-fg-muted">{inv.username} • {inv.email || 'no email set'}</div>
+                    <div className="text-[11px] font-mono text-fg-muted">{inv.username} • {inv.email || 'no email set'}{inv.loginBlocked && <span className="ml-2 px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold">LOGIN BLOCKED</span>}{isDuplicate(inv) && <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold" title="Another account has the same name or email">DUPLICATE</span>}</div>
                   </td>
                   <td className="py-3.5 px-3">{kycBadge(inv.kycStatus)}</td>
                   <td className="py-3.5 px-3 text-right font-bold text-white"><Money usd={inv.totalInvestmentUsd} /></td>
@@ -481,6 +516,25 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                       </button>
                     </div>
                     <div className="text-[11px] text-fg-muted">Saved to the database. The investor is signed out everywhere and must use the new password.</div>
+                  </div>
+
+                  {/* Login Access */}
+                  <div className="p-4 rounded-2xl bg-ink-850/80 border border-line space-y-3">
+                    <div className="text-[10px] text-fg-muted uppercase font-bold">Login Access</div>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className={detailProfile.loginBlocked ? 'text-rose-300' : 'text-emerald-300'}>
+                        {detailProfile.loginBlocked ? 'Login is BLOCKED. This investor cannot sign in.' : 'Login is allowed.'}
+                      </div>
+                      <button
+                        type="button"
+                        id="admin-investor-toggle-login-block"
+                        onClick={handleToggleLoginBlock}
+                        disabled={isTogglingBlock}
+                        className={`px-4 py-2 rounded-xl font-bold cursor-pointer disabled:opacity-50 ${detailProfile.loginBlocked ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-rose-600 hover:bg-rose-500 text-white'}`}
+                      >
+                        {isTogglingBlock ? 'Saving...' : detailProfile.loginBlocked ? 'Unblock Login' : 'Block Login'}
+                      </button>
+                    </div>
                   </div>
 
                   {/* Wallet Ledger */}

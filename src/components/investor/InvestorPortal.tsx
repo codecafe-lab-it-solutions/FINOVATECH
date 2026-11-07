@@ -17,6 +17,7 @@ import { MonthlyStatementsTab } from './MonthlyStatementsTab';
 import { NotificationsCenterTab } from './NotificationsCenterTab';
 import { SupportHelpdeskTab } from './SupportHelpdeskTab';
 import { ReferralPartnerTab } from './ReferralPartnerTab';
+import { LevelIncomePanel } from './LevelIncomePanel';
 import { SecurityCenterTab } from './SecurityCenterTab';
 
 import { InvestorTab, InvestorUser, InvestorOverviewMetrics } from '../../types';
@@ -445,10 +446,13 @@ export const InvestorPortal: React.FC<InvestorPortalProps> = ({
           )}
 
           {currentTab === 'referrals' && (
-            <ReferralPartnerTab joiningDate={user.joiningDate}
-              referralCode={referralCode}
-              referredUsers={referredUsers}
-            />
+            <div className="space-y-6">
+              <ReferralPartnerTab joiningDate={user.joiningDate}
+                referralCode={referralCode}
+                referredUsers={referredUsers}
+              />
+              <LevelIncomePanel authToken={authToken} />
+            </div>
           )}
 
           {currentTab === 'security' && (

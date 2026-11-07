@@ -2,7 +2,7 @@ import { AdminSupportInbox } from './AdminSupportInbox';
 import { AdminReferralsView } from './AdminReferralsView';
 import { CurrencySelector } from '../../lib/currency';
 import React, { useState, useEffect } from 'react';
-import { AdminTab, AdminUser, AdminRole } from '../../types';
+import { AdminTab, AdminUser } from '../../types';
 import { AuthUser, fetchAdminInvestors, fetchAdminPayouts, fetchAdminMachines, fetchAdminAllTransactions, fetchBtcMarketData, fetchAdminDepositRequests } from '../../lib/api';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
@@ -30,7 +30,6 @@ import { AdminSupportCrmView } from './AdminSupportCrmView';
 import { AdminCommunicationView } from './AdminCommunicationView';
 import { AdminReportsView } from './AdminReportsView';
 import { AdminAuditLogsView } from './AdminAuditLogsView';
-import { AdminRolesView } from './AdminRolesView';
 import { AdminSettingsView } from './AdminSettingsView';
 
 // Mock Data
@@ -47,7 +46,6 @@ import {
   initialStatementBatches,
   initialSupportTickets,
   initialAdminReports,
-  initialAdminAuditLogs,
   initialAdminUsers,
   initialSystemSettings
 } from '../../data/adminData';
@@ -101,8 +99,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
   const [statements, setStatements] = useState(initialStatementBatches);
   const [tickets, setTickets] = useState(initialSupportTickets);
   const [reports, setReports] = useState(initialAdminReports);
-  const [auditLogs, setAuditLogs] = useState(initialAdminAuditLogs);
-  const [adminUsers, setAdminUsers] = useState(initialAdminUsers);
   const [systemSettings, setSystemSettings] = useState(initialSystemSettings);
 
   // Badge Counts — KYC and Payout counts are live from the database;
@@ -131,13 +127,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
     };
     void load();const timer=setInterval(()=>void load(),15000);return()=>clearInterval(timer);
   }, [authToken]);
-
-  const handleChangeRole = (newRole: AdminRole) => {
-    setCurrentAdminUser((prev) => ({
-      ...prev,
-      role: newRole
-    }));
-  };
 
   return (
     <div className="min-h-screen bg-ink-950 text-fg-body flex flex-col font-sans selection:bg-gold-500/30 selection:text-gold-500">
@@ -170,7 +159,6 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
           <AdminHeader
             currentTab={currentTab}
             adminUser={currentAdminUser}
-            onChangeRole={handleChangeRole}
             onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
             onLogout={onLogout}
             spotBtcPriceUsd={kpis.spotBtcPriceUsd}
@@ -288,14 +276,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({
             )}
 
             {currentTab === 'audit-logs' && (
-              <AdminAuditLogsView auditLogs={auditLogs} />
-            )}
-
-            {currentTab === 'users-roles' && (
-              <AdminRolesView
-                adminUsers={adminUsers}
-                onAddAdminUser={(newUser) => setAdminUsers((prev) => [...prev, newUser])}
-              />
+              <AdminAuditLogsView authToken={authToken} />
             )}
 
             {currentTab === 'system-settings' && (

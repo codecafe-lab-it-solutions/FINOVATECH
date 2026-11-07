@@ -39,6 +39,8 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
 
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [newAddress, setNewAddress] = useState('');
+  // Security PIN the server requires before any deposit address can be changed.
+  const [newPin, setNewPin] = useState('');
   const [newNetwork, setNewNetwork] = useState('TRC20');
   const [newVisibility, setNewVisibility] = useState<'All' | 'Specific'>('All');
   const [newVisibleIds, setNewVisibleIds] = useState<string[]>([]);
@@ -97,8 +99,10 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
         address: newAddress.trim(),
         network: newNetwork,
         visibility: newVisibility,
-        visibleInvestorIds: newVisibility === 'Specific' ? newVisibleIds : undefined
+        visibleInvestorIds: newVisibility === 'Specific' ? newVisibleIds : undefined,
+        pin: newPin
       });
+      setNewPin('');
       setShowAddressForm(false);
       setNewAddress('');
       setNewNetwork('TRC20');
@@ -316,6 +320,20 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
                   required
                   value={newAddress}
                   onChange={(e) => setNewAddress(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-fg-muted mb-1">Security PIN</label>
+                <input
+                  type="password"
+                  required
+                  aria-label="Security PIN"
+                  autoComplete="off"
+                  value={newPin}
+                  onChange={(e) => setNewPin(e.target.value)}
+                  placeholder="Required to change the deposit address"
                   className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white"
                 />
               </div>

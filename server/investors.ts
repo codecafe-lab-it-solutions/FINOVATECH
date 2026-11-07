@@ -46,6 +46,7 @@ export interface InvestorProfile {
   nextWithdrawalDate: string | null;
   withdrawalLockDate: string | null;
   monthlyWithdrawalLimitUsd: number | null;
+  loginBlocked: boolean;
   updatedAt: string;
 }
 
@@ -74,6 +75,10 @@ export interface PayoutRecordRow {
   requestedAt: string;
   processedAt: string | null;
   notes: string;
+  feePercent: number;
+  feeUsd: number;
+  // Amount actually paid out in USD terms: requested amount minus the plan withdrawal fee.
+  netUsd: number;
 }
 
 interface ProfileRow extends RowDataPacket {
@@ -106,6 +111,7 @@ interface ProfileRow extends RowDataPacket {
   mining_share_percent: string;
   next_withdrawal_date: string | null;
   monthly_withdrawal_limit_usd: string | null;
+  login_blocked?: number;
   updated_at: string;
 }
 
@@ -154,12 +160,13 @@ function toProfile(row: ProfileRow): InvestorProfile {
     nextWithdrawalDate: joining && terms ? nextEligibleDay(joining, row.latest_payout ? utcDay(row.latest_payout) : null, terms.payoutRequestDays, row.next_withdrawal_date) : row.next_withdrawal_date,
     withdrawalLockDate: row.next_withdrawal_date,
     monthlyWithdrawalLimitUsd: row.monthly_withdrawal_limit_usd === null || row.monthly_withdrawal_limit_usd === undefined ? null : Number(row.monthly_withdrawal_limit_usd),
+    loginBlocked: Boolean(row.login_blocked),
     updatedAt: row.updated_at
   };
 }
 
 const PROFILE_SELECT = `
-  SELECT (SELECT sponsor.name FROM investor_profiles sp JOIN users sponsor ON sponsor.id = sp.user_id WHERE sp.referral_code = p.referred_by_code LIMIT 1) AS sponsor_name, u.id AS user_id, u.username, u.name, u.created_at AS registered_at, p.*, ids.sequence AS investor_sequence,
+  SELECT (SELECT sponsor.name FROM investor_profiles sp JOIN users sponsor ON sponsor.id = sp.user_id WHERE sp.referral_code = p.referred_by_code LIMIT 1) AS sponsor_name, u.id AS user_id, u.username, u.name, u.created_at AS registered_at, u.login_blocked AS login_blocked, p.*, ids.sequence AS investor_sequence,
     (SELECT MAX(requested_at) FROM payouts pay WHERE pay.investor_user_id = u.id AND (pay.investment_id = p.investment_id OR pay.investment_id IS NULL)) AS latest_payout
   FROM users u
   JOIN investor_profiles p ON p.user_id = u.id
@@ -459,7 +466,10 @@ function toPayout(row: PayoutRow): PayoutRecordRow {
     status: row.status,
     requestedAt: row.requested_at,
     processedAt: row.processed_at,
-    notes: row.notes
+    notes: row.notes,
+    feePercent: Number(row.fee_percent || 0),
+    feeUsd: Number(row.fee_usd || 0),
+    netUsd: row.net_usd === null || row.net_usd === undefined ? Number(row.amount_usd || 0) : Number(row.net_usd)
   };
 }
 
@@ -514,7 +524,10 @@ export async function createPayoutRequest(params: {
     status: 'Requested',
     requestedAt,
     processedAt: null,
-    notes: ''
+    notes: '',
+    feePercent: 0,
+    feeUsd: 0,
+    netUsd: 0
   };
 }
 

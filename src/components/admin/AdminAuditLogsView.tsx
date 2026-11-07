@@ -1,213 +1,140 @@
-import React, { useState } from 'react';
-import {
-  ShieldCheck,
-  Lock,
-  Search,
-  Filter,
-  Calendar,
-  AlertTriangle,
-  ArrowRight,
-  Eye,
-  CheckCircle2
-} from 'lucide-react';
-import { AdminAuditLogItem } from '../../types';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ShieldCheck, Search, RotateCw, AlertTriangle } from 'lucide-react';
+import { ApiActivityLog, fetchActivityLogs } from '../../lib/api';
 
 interface AdminAuditLogsViewProps {
-  auditLogs: AdminAuditLogItem[];
+  authToken: string;
 }
 
-export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ auditLogs }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedActionType, setSelectedActionType] = useState<string>('All');
-  const [selectedLog, setSelectedLog] = useState<AdminAuditLogItem | null>(null);
+const FILTERS = ['All', 'Logins', 'Failed / Blocked', 'Admin actions', 'Investor actions'] as const;
+type Filter = (typeof FILTERS)[number];
 
-  const actionTypes = [
-    'All',
-    'Payout Approved',
-    'Balance Adjusted',
-    'KYC Approved',
-    'Miner Rebooted',
-    'Plan Created',
-    'Role Changed'
-  ];
+const statusStyle: Record<string, string> = {
+  Success: 'bg-emerald-500/20 text-emerald-300',
+  Failed: 'bg-rose-500/20 text-rose-300',
+  Blocked: 'bg-amber-500/20 text-amber-300'
+};
 
-  const filteredLogs = auditLogs.filter((log) => {
-    const q = searchQuery.toLowerCase();
-    const matchesSearch =
-      log.action.toLowerCase().includes(q) ||
-      log.adminName.toLowerCase().includes(q) ||
-      log.module.toLowerCase().includes(q) ||
-      log.targetId.toLowerCase().includes(q) ||
-      log.details.toLowerCase().includes(q);
+// Access / activity log: every login (success, failure, blocked) and every change made in the system.
+export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ authToken }) => {
+  const [logs, setLogs] = useState<ApiActivityLog[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [query, setQuery] = useState('');
+  const [filter, setFilter] = useState<Filter>('All');
 
-    if (!matchesSearch) return false;
-    if (selectedActionType === 'All') return true;
-    return log.action === selectedActionType;
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      setLogs((await fetchActivityLogs(authToken)).logs);
+      setError('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load the activity log.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [authToken]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const visible = logs.filter((log) => {
+    const q = query.trim().toLowerCase();
+    if (q && ![log.actorName, log.action, log.module, log.targetId, log.details, log.ipAddress].some((v) => v.toLowerCase().includes(q))) return false;
+    if (filter === 'Logins') return log.action.startsWith('Login');
+    if (filter === 'Failed / Blocked') return log.status !== 'Success';
+    if (filter === 'Admin actions') return log.actorRole === 'admin' && !log.action.startsWith('Login');
+    if (filter === 'Investor actions') return log.actorRole === 'investor' && !log.action.startsWith('Login');
+    return true;
   });
 
   return (
     <div className="space-y-6 pb-12">
-      
-      {/* Header */}
       <div className="p-6 rounded-3xl bg-ink-950 border border-line flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-[11px] font-mono text-rose-400 mb-2">
-            <Lock className="w-3.5 h-3.5" />
-            <span>WORM (WRITE ONCE, READ MANY) IMMUTABLE AUDIT LEDGER</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-500/10 border border-gold-500/20 text-[11px] font-mono text-gold-300 mb-2">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>ACCESS &amp; ACTIVITY LOG</span>
           </div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Security & Financial Audit Trail</h2>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Access &amp; Activity Log</h2>
           <p className="text-xs text-fg-muted mt-1 max-w-2xl">
-            Cryptographically sealed audit log recording every admin permission change, payout approval, balance adjustment, and hardware command.
+            Every login and every change made by admins and investors, recorded live with time, user and IP address. Passwords and PINs are never stored here.
           </p>
         </div>
-
-        <div className="px-4 py-2 rounded-2xl bg-ink-950 border border-line font-mono text-xs text-emerald-400">
-          ● Immutable Logging Active
-        </div>
+        <button onClick={() => void load()} className="px-4 py-2 rounded-xl bg-ink-850 border border-line text-xs font-mono text-fg-body hover:text-white flex items-center gap-2 cursor-pointer">
+          <RotateCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
+        </button>
       </div>
 
-      {/* Search & Filters */}
+      {error && (
+        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
       <div className="p-5 rounded-3xl bg-ink-950 border border-line space-y-3">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-mono">
-            <span className="text-fg-muted text-[11px] uppercase mr-2 flex items-center gap-1">
-              <Filter className="w-3 h-3" /> Action:
-            </span>
-            {actionTypes.map((a) => (
-              <button
-                key={a}
-                onClick={() => setSelectedActionType(a)}
-                className={`px-3 py-1.5 rounded-xl whitespace-nowrap transition-colors cursor-pointer ${
-                  selectedActionType === a
-                    ? 'bg-gold-500 text-black font-bold'
-                    : 'bg-ink-850 hover:bg-ink-800 text-fg-muted border border-line'
-                }`}
-              >
-                {a}
-              </button>
-            ))}
-          </div>
-
-          <div className="relative w-full md:w-72">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-fg-muted" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search audit trail..."
-              className="w-full pl-9 pr-4 py-2 rounded-xl bg-ink-850 border border-line-warm text-white text-xs font-mono"
-            />
-          </div>
+        <div className="relative">
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-fg-muted" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by user, action, IP or details..."
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-ink-850 border border-line-warm text-white placeholder-fg-muted text-xs font-mono focus:outline-hidden focus:border-gold-500"
+          />
+        </div>
+        <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-mono">
+          {FILTERS.map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-3 py-1.5 rounded-xl whitespace-nowrap cursor-pointer ${filter === f ? 'bg-gold-500 text-black font-bold' : 'bg-ink-850 hover:bg-ink-800 text-fg-muted border border-line'}`}
+            >
+              {f}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Logs Table */}
       <div className="rounded-3xl bg-ink-950 border border-line overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="bg-ink-850/90 text-fg-muted font-mono text-[11px] uppercase tracking-wider border-b border-line">
-                <th className="py-3.5 px-4">Timestamp</th>
-                <th className="py-3.5 px-3">Administrator</th>
-                <th className="py-3.5 px-3">Action Type</th>
-                <th className="py-3.5 px-3">Target / Module</th>
-                <th className="py-3.5 px-3">Details / Value Delta</th>
-                <th className="py-3.5 px-3">IP Address</th>
-                <th className="py-3.5 px-4 text-center">Inspect</th>
+                <th className="py-3.5 px-4">Time (UTC)</th>
+                <th className="py-3.5 px-3">User</th>
+                <th className="py-3.5 px-3">Action</th>
+                <th className="py-3.5 px-3">Status</th>
+                <th className="py-3.5 px-3">IP address</th>
+                <th className="py-3.5 px-4">Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line/80 font-mono text-fg-body">
-              {filteredLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-ink-800/40 transition-colors">
-                  <td className="py-3.5 px-4 text-fg-muted">{log.timestamp}</td>
-
-                  <td className="py-3.5 px-3 font-sans">
-                    <div className="font-semibold text-white">{log.adminName}</div>
-                    <div className="text-[10px] text-fg-muted font-mono">{log.adminId} • {log.adminRole}</div>
+              {visible.map((log) => (
+                <tr key={log.id} className="align-top">
+                  <td className="py-3 px-4 whitespace-nowrap text-fg-muted">{String(log.createdAt).replace('T', ' ').slice(0, 19)}</td>
+                  <td className="py-3 px-3 whitespace-nowrap">
+                    <div className="font-bold text-white">{log.actorName || 'Unknown'}</div>
+                    <div className="text-[10px] text-fg-muted">{log.actorRole || '-'}</div>
                   </td>
-
-                  <td className="py-3.5 px-3">
-                    <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${
-                      log.action.includes('Payout') ? 'bg-gold-500/20 text-gold-100' :
-                      log.action.includes('KYC') ? 'bg-gold-500/20 text-gold-300' :
-                      log.action.includes('Balance') ? 'bg-gold-500/20 text-gold-500' :
-                      'bg-emerald-500/20 text-emerald-300'
-                    }`}>
-                      {log.action}
-                    </span>
+                  <td className="py-3 px-3 text-white">{log.action}</td>
+                  <td className="py-3 px-3">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${statusStyle[log.status] ?? 'bg-ink-700 text-fg-body'}`}>{log.status}</span>
                   </td>
-
-                  <td className="py-3.5 px-3 text-white">
-                    <div>{log.module}</div>
-                    <div className="text-[10px] text-gold-200">{log.targetId}</div>
-                  </td>
-
-                  <td className="py-3.5 px-3">
-                    <div className="text-fg-body font-sans">{log.details}</div>
-                    {log.oldValue && log.newValue && (
-                      <div className="text-[10px] text-fg-muted font-mono mt-0.5">
-                        <span className="text-rose-400">{log.oldValue}</span> → <span className="text-emerald-400 font-bold">{log.newValue}</span>
-                      </div>
-                    )}
-                  </td>
-
-                  <td className="py-3.5 px-3 text-fg-muted text-[11px]">{log.ipAddress}</td>
-
-                  <td className="py-3.5 px-4 text-center">
-                    <button
-                      onClick={() => setSelectedLog(log)}
-                      className="p-1.5 rounded-lg bg-ink-800 hover:bg-ink-700 text-fg-body transition-colors cursor-pointer"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                    </button>
-                  </td>
+                  <td className="py-3 px-3 whitespace-nowrap">{log.ipAddress || '-'}</td>
+                  <td className="py-3 px-4 text-fg-muted break-words max-w-md">{log.details}</td>
                 </tr>
               ))}
+              {!isLoading && visible.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-fg-muted">No activity recorded yet.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
-
-      {/* Log Detail Modal */}
-      {selectedLog && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-lg bg-ink-900 border border-line-warm rounded-3xl shadow-2xl p-6 space-y-4 text-xs font-mono">
-            <div className="flex items-center justify-between pb-3 border-b border-line">
-              <h3 className="text-base font-bold text-white">Audit Event Signature</h3>
-              <button onClick={() => setSelectedLog(null)} className="text-fg-muted hover:text-white">✕</button>
-            </div>
-
-            <div className="space-y-2 text-fg-body">
-              <div><span className="text-fg-muted uppercase text-[10px]">Log Event ID:</span> <span className="text-gold-200">{selectedLog.id}</span></div>
-              <div><span className="text-fg-muted uppercase text-[10px]">Timestamp:</span> <span>{selectedLog.timestamp}</span></div>
-              <div><span className="text-fg-muted uppercase text-[10px]">Administrator:</span> <span>{selectedLog.adminName} ({selectedLog.adminRole})</span></div>
-              <div><span className="text-fg-muted uppercase text-[10px]">Action Category:</span> <span>{selectedLog.action}</span></div>
-              <div><span className="text-fg-muted uppercase text-[10px]">Target Object:</span> <span>{selectedLog.targetId} ({selectedLog.module})</span></div>
-              <div><span className="text-fg-muted uppercase text-[10px]">IP & User Agent:</span> <span>{selectedLog.ipAddress} • {selectedLog.userAgent}</span></div>
-              <div className="p-3 rounded-xl bg-ink-950 border border-line mt-2">
-                <span className="text-fg-muted uppercase text-[10px] block mb-1">Payload Audit Details</span>
-                <p className="text-white font-sans">{selectedLog.details}</p>
-                {selectedLog.oldValue && (
-                  <div className="text-[11px] mt-2 pt-2 border-t border-line text-fg-muted">
-                    <div>Old State: <span className="text-rose-400">{selectedLog.oldValue}</span></div>
-                    <div>New State: <span className="text-emerald-400 font-bold">{selectedLog.newValue}</span></div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="pt-2 flex justify-end">
-              <button
-                onClick={() => setSelectedLog(null)}
-                className="px-4 py-2 rounded-xl bg-ink-800 hover:bg-ink-700 text-fg-body"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 };

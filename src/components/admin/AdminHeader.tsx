@@ -17,12 +17,11 @@ import {
   ArrowUpRight,
   Filter
 } from 'lucide-react';
-import { AdminTab, AdminUser, AdminRole } from '../../types';
+import { AdminTab, AdminUser } from '../../types';
 
 interface AdminHeaderProps {
   currentTab: AdminTab;
   adminUser: AdminUser;
-  onChangeRole: (newRole: AdminRole) => void;
   onToggleMobileSidebar: () => void;
   onLogout: () => void;
   spotBtcPriceUsd: number;
@@ -33,24 +32,14 @@ interface AdminHeaderProps {
 export const AdminHeader: React.FC<AdminHeaderProps> = ({
   currentTab,
   adminUser,
-  onChangeRole,
   onToggleMobileSidebar,
   onLogout,
   spotBtcPriceUsd,
   totalHashratePH,
   miningUptimePercent
 }) => {
-  const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
-  const rolesList: AdminRole[] = [
-    'Super Admin',
-    'Finance Admin',
-    'Mining Operations',
-    'Investor Manager',
-    'Auditor / Read Only'
-  ];
 
   const getTabLabel = (tab: AdminTab): string => {
     switch (tab) {
@@ -75,8 +64,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
       case 'support-crm': return 'Support Helpdesk & CRM';
       case 'notifications-center': return 'Communication & Notification Center';
       case 'reports-financial': return 'Analytics & Reporting Engine';
-      case 'audit-logs': return 'Security & Financial Audit Logs';
-      case 'users-roles': return 'Admin Users, Roles & Permissions';
+      case 'audit-logs': return 'Access & Activity Log';
       case 'system-settings': return 'System Settings & Operational Parameters';
       default: return 'Admin Management';
     }
@@ -131,46 +119,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           </div>
         </div>
 
-        {/* Right Side: Role Selector + Actions + Notifications */}
+        {/* Right Side: Actions + Notifications */}
         <div className="flex items-center gap-2.5 shrink-0">
           
-          {/* Role Switcher */}
-          <div className="relative">
-            <button
-              onClick={() => setShowRoleDropdown(!showRoleDropdown)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-ink-850 border border-line-warm hover:border-line-warm text-xs text-fg-body font-medium cursor-pointer"
-            >
-              <Shield className="w-3.5 h-3.5 text-gold-200" />
-              <span className="hidden md:inline font-mono">{adminUser.role}</span>
-              <ChevronDown className="w-3.5 h-3.5 text-fg-muted" />
-            </button>
-
-            {showRoleDropdown && (
-              <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-ink-950 border border-line-warm shadow-2xl p-2 z-50 text-xs">
-                <div className="px-3 py-1.5 text-[10px] font-mono text-fg-muted uppercase font-semibold border-b border-line mb-1">
-                  Switch Admin Role (Demo)
-                </div>
-                {rolesList.map((role) => (
-                  <button
-                    key={role}
-                    onClick={() => {
-                      onChangeRole(role);
-                      setShowRoleDropdown(false);
-                    }}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-left transition-colors cursor-pointer ${
-                      adminUser.role === role
-                        ? 'bg-gold-500/20 text-gold-100 font-semibold'
-                        : 'text-fg-body hover:bg-ink-800'
-                    }`}
-                  >
-                    <span>{role}</span>
-                    {adminUser.role === role && <CheckCircle2 className="w-3.5 h-3.5 text-gold-200" />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Notification Button */}
           <div className="relative">
             <button

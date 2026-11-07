@@ -4,6 +4,7 @@ import type { RowDataPacket } from 'mysql2';
 import { pool } from './database';
 import type { BtcMarketData } from './market';
 import { PlanTerms, platformDay, utcDay, addDays, maturityDay } from './planPolicy';
+import { creditLevelIncome } from './levelIncome';
 
 const nowSql = () => new Date().toISOString().slice(0, 19).replace('T', ' ');
 const readTerms = (value: any): PlanTerms | null => typeof value === 'string' ? JSON.parse(value) : value;
@@ -22,6 +23,15 @@ async function enforceMonthlyLimit(conn: { query: (sql: string, params?: any[]) 
   if (requestUsd > remaining + 0.000001) throw new PolicyError(`Monthly withdrawal limit reached. Your limit is USD ${limit.toFixed(2)} per month; USD ${remaining.toFixed(2)} remains this month.`);
 }
 
+// The plan's withdrawal fee % is cut from every withdrawal when it is requested. The full
+// requested amount leaves the wallet; the investor is paid the net amount.
+export function withdrawalFee(profile: RowDataPacket, grossUsd: number): { percent: number; feeUsd: number; netUsd: number } {
+  const terms = readTerms(profile.plan_terms);
+  const percent = Math.max(0, Number(terms?.withdrawalEntryFeePercent ?? 0)) || 0;
+  const feeUsd = Math.round(grossUsd * percent) / 100;
+  return { percent, feeUsd, netUsd: Math.round((grossUsd - feeUsd) * 100) / 100 };
+}
+
 export async function submitUsdPayout(params: { investorUserId: string; amountUsd: number; destination: string }): Promise<string> {
   if (!Number.isFinite(params.amountUsd) || params.amountUsd < 0.01 || Math.abs(params.amountUsd * 100 - Math.round(params.amountUsd * 100)) > 0.000001) throw new PolicyError('Enter a positive USD amount with at most two decimal places.');
   if (!params.destination.trim() || params.destination.trim().length < 6 || params.destination.trim() === 'Not set') throw new PolicyError('Enter your USD bank/payment destination details.');
@@ -38,7 +48,9 @@ export async function submitUsdPayout(params: { investorUserId: string; amountUs
     if (params.amountUsd > available) throw new PolicyError('Requested amount exceeds your available USD wallet balance.');
     await enforceMonthlyLimit(conn, p, params.amountUsd);
     const id = crypto.randomUUID();
-    await conn.query("INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, currency, destination_wallet, network, status, requested_at, notes) VALUES (?, ?, ?, 0, ?, 'USD', ?, 'USD bank/payment', 'Requested', ?, '')", [id, p.user_id, p.investment_id, params.amountUsd, params.destination.trim(), nowSql()]);
+    const fee = withdrawalFee(p, params.amountUsd);
+    if (fee.netUsd <= 0) throw new PolicyError('Your plan withdrawal fee leaves nothing to pay out for this amount. Please contact support.');
+    await conn.query("INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, currency, destination_wallet, network, status, requested_at, notes, fee_percent, fee_usd, net_usd) VALUES (?, ?, ?, 0, ?, 'USD', ?, 'USD bank/payment', 'Requested', ?, '', ?, ?, ?)", [id, p.user_id, p.investment_id, params.amountUsd, params.destination.trim(), nowSql(), fee.percent, fee.feeUsd, fee.netUsd]);
     await conn.commit(); return id;
   } catch (err) { await conn.rollback(); throw err; }
   finally { conn.release(); }
@@ -61,8 +73,10 @@ export async function submitPayout(params: { investorUserId: string; amountBtc: 
     if (params.amountBtc > availableBtc) throw new PolicyError('Requested amount exceeds your available wallet balance, including pending withdrawals.');
     await enforceMonthlyLimit(conn, p, usd);
     const id = crypto.randomUUID();
-    await conn.query(`INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, destination_wallet, network, status, requested_at, notes)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'Requested', ?, '')`, [id, params.investorUserId, p.investment_id, params.amountBtc, usd, params.destinationWallet, params.network, nowSql()]);
+    const fee = withdrawalFee(p, usd);
+    if (fee.netUsd <= 0) throw new PolicyError('Your plan withdrawal fee leaves nothing to pay out for this amount. Please contact support.');
+    await conn.query(`INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, destination_wallet, network, status, requested_at, notes, fee_percent, fee_usd, net_usd)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'Requested', ?, '', ?, ?, ?)`, [id, params.investorUserId, p.investment_id, params.amountBtc, usd, params.destinationWallet, params.network, nowSql(), fee.percent, fee.feeUsd, fee.netUsd]);
     await conn.commit();
     return id;
   } catch (err) { await conn.rollback(); throw err; }
@@ -156,6 +170,8 @@ export async function reconcileDailyInterest(options: { now?: Date; investorUser
           await conn.query(`INSERT INTO wallet_transactions (id, investor_user_id, type, amount_btc, amount_usd, status, note, network, created_at)
             VALUES (?, ?, 'Daily Interest', 0, ?, 'Completed', ?, 'USD', ?)`, [id, p.user_id, amountUsd, `USD daily interest ${day}; investment ${p.investment_id}`, ts]);
           await conn.query('UPDATE investor_profiles SET usd_wallet_balance = usd_wallet_balance + ?, current_portfolio_value_usd = current_portfolio_value_usd + ?, updated_at = ? WHERE user_id = ?', [amountUsd, amountUsd, ts, p.user_id]);
+          // Uplines earn a configured share of this ROI (same transaction, so it cannot double-pay).
+          await creditLevelIncome(conn, p.user_id, amountUsd, day);
           credits++;
         }
         await conn.commit();

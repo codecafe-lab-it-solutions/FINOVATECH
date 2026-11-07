@@ -16,7 +16,7 @@ export function PlanConditions({ user, investmentUsd, walletUsd }: { user: Inves
       <div><dt>Allow Payout Request</dt><dd>{terms ? 'Any time; no waiting period between requests' : '—'}</dd></div>
       <div><dt>Minimum Threshold / 30-day payout obligation</dt><dd>{terms ? `${terms.dailyReturnPercent * 30}% of principal (30-day payout obligation) must remain` : '—'}</dd></div>
       <div><dt>Monthly Payout Obligation</dt><dd>{terms ? <Money usd={Math.round(investmentUsd * terms.dailyReturnPercent * 30) / 100} /> : '-'}</dd></div>
-      <div><dt>Withdrawal / Entry Fee</dt><dd>{terms ? `${terms.withdrawalEntryFeePercent}% (information only; no deduction)` : '—'}</dd></div>
+      <div><dt>Withdrawal / Entry Fee</dt><dd>{terms ? `${terms.withdrawalEntryFeePercent}% (deducted from each withdrawal request)` : '—'}</dd></div>
       <div><dt>Platform / Management Fee</dt><dd>{terms ? `${terms.managementFeePercent}%` : '—'}</dd></div>
       <div><dt>Plan Duration</dt><dd>{terms ? `${terms.durationMonths} months from Joining Date` : '—'}</dd></div>
       <div><dt>Next Eligible Withdrawal Date</dt><dd>{user.nextWithdrawalDate || 'Requires confirmed approval date and assigned plan'}</dd></div>

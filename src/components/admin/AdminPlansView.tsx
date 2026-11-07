@@ -125,10 +125,9 @@ export const AdminPlansView: React.FC<AdminPlansViewProps> = ({ authToken }) => 
         </div>
       )}
 
-      <section className="p-6 rounded-3xl bg-ink-950 border border-line space-y-4">
+      <section className="p-6 rounded-3xl bg-ink-950 border border-line space-y-3">
         <h3 className="text-lg font-bold text-white">Referral Settings</h3>
-        <p className="text-xs text-fg-muted">Direct Referral: percentage of the referred investor's confirmed investment credited to the referrer's USD wallet. Changes apply to future confirmations. Set 0% to disable rewards for a plan.</p>
-        {plans.map(plan => <ReferralRate key={plan.id} plan={plan} save={async rate => { await updateAdminPlan(authToken, plan.id, { directReferralPercent: rate }); await load(); }} />)}
+        <p className="text-xs text-fg-muted">Direct Referral commission is paid to the referrer's USD wallet when the referred investor's investment is confirmed. The rate depends on that investor's investment amount and applies to every plan: up to $10,000 = 4%, $10,001 to $15,000 = 5%, $15,001 to $20,000 = 7%, above $20,000 = 10%. Historical commissions keep the rate applied at confirmation.</p>
       </section>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {plans.map((plan) => (
@@ -150,7 +149,7 @@ export const AdminPlansView: React.FC<AdminPlansViewProps> = ({ authToken }) => 
               <div>Per Day Return: {plan.dailyReturnPercent}%</div>
               <div>Allow Payout Request: {plan.payoutRequestDays} days (minimum 7)</div>
               <div>Minimum Threshold: {plan.dailyReturnPercent * 30}% of principal (30-day payout obligation)</div>
-              <div>Withdrawal / Entry Fee: {plan.withdrawalEntryFeePercent}% (stored only)</div>
+              <div>Withdrawal / Entry Fee: {plan.withdrawalEntryFeePercent}% (deducted from each withdrawal request)</div>
             </div>
             <div className="flex gap-3">
               <button className="text-gold-200" onClick={() => { setEditingId(plan.id); setForm({ ...plan, directReferralPercent: plan.directReferralPercent ?? 5 }); setShowCreate(true); }}>Edit</button>

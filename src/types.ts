@@ -53,7 +53,6 @@ export type AdminTab =
   | 'support-communications'
   | 'notifications-center'
   | 'audit-logs'
-  | 'users-roles'
   | 'permissions'
   | 'fees-rules'
   | 'payout-rules'

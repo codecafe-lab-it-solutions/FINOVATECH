@@ -14,6 +14,7 @@ export interface StoredUser {
   role: UserRole;
   name: string;
   createdAt: string;
+  loginBlocked?: boolean;
 }
 
 interface UserRow extends RowDataPacket {
@@ -23,6 +24,7 @@ interface UserRow extends RowDataPacket {
   role: UserRole;
   name: string;
   created_at: string;
+  login_blocked?: number;
 }
 
 function toStoredUser(row: UserRow): StoredUser {
@@ -32,8 +34,15 @@ function toStoredUser(row: UserRow): StoredUser {
     passwordHash: row.password_hash,
     role: row.role,
     name: row.name,
-    createdAt: row.created_at
+    createdAt: row.created_at,
+    loginBlocked: Boolean(row.login_blocked)
   };
+}
+
+// Blocks or unblocks an investor's ability to sign in. Admin accounts can never be blocked here.
+export async function setLoginBlocked(userId: string, blocked: boolean): Promise<boolean> {
+  const [result] = await pool.query<any>("UPDATE users SET login_blocked = ? WHERE id = ? AND role = 'investor'", [blocked, userId]);
+  return result.affectedRows > 0;
 }
 
 async function insertUser(user: StoredUser): Promise<void> {

@@ -171,6 +171,8 @@ test('full admin/investor boundary and lifecycle audit',async t=>{
     const results=await Promise.all([approve(),approve()]);assert.equal(results.filter(r=>r.status===200).length,1,JSON.stringify(results));
     const p=(await getProfile(member.u.id))!;assert.equal(p.totalInvestmentUsd,10100);assert.ok(p.totalBtcAllocated>.02);
     const [ledger]=await pool.query<any[]>("SELECT COUNT(*) AS n,SUM(amount_usd) AS usd FROM wallet_transactions WHERE investor_user_id=? AND type='Deposit'",[member.u.id]);assert.equal(ledger[0].n,1);assert.equal(Number(ledger[0].usd),100);
+    // The approved deposit must appear in Investment Txns (the admin transaction ledger) exactly once.
+    const listed=((await req('GET','/api/admin/transactions',undefined,adminToken)).body.transactions as any[]).filter(x=>x.investorUserId===member.u.id&&x.type==='Deposit');assert.equal(listed.length,1);assert.equal(listed[0].amountUsd,100);assert.equal(listed[0].status,'Completed');
     assert.equal((await approve()).status,400);
   });
   await t.test('deposit rejection leaves principal and BTC unchanged and is visible to owner only',async()=>{

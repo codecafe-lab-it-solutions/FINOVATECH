@@ -20,7 +20,6 @@ import {
   Headphones,
   Bell,
   FileCheck,
-  UserCog,
   Sliders,
   LogOut,
   Globe,
@@ -133,8 +132,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     {
       title: 'GOVERNANCE & SYSTEM',
       items: [
-        { id: 'audit-logs', label: 'Audit Trail Logs', icon: FileCheck, hidden: true },
-        { id: 'users-roles', label: 'Roles & Permissions', icon: UserCog, hidden: true },
+        { id: 'audit-logs', label: 'Access & Activity Log', icon: FileCheck },
         { id: 'system-settings', label: 'System Settings', icon: Sliders }
       ]
     }
@@ -212,7 +210,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <div className="text-xs font-semibold text-white truncate">{adminUser.name}</div>
             <div className="flex items-center gap-1 text-[10px] font-mono text-gold-200 truncate">
               <Shield className="w-2.5 h-2.5 shrink-0" />
-              <span>{adminUser.role}</span>
+              <span>Administrator</span>
             </div>
           </div>
         </div>

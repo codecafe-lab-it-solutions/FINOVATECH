@@ -8,6 +8,7 @@ import { createUser } from '../server/db';
 import { createPlan, updatePlan } from '../server/adminData';
 import { getProfile, updateProfile, addTransaction } from '../server/investors';
 import { getReferralStats } from '../server/investorExtras';
+import { directReferralRate } from '../server/referrals';
 
 test('confirmed investments pay referral commission exactly once and preserve the applied rate', async () => {
   const users: string[] = []; let planId = '';
@@ -25,7 +26,8 @@ test('confirmed investments pay referral commission exactly once and preserve th
     assert.equal((await getReferralStats(parent.id)).referredUsers[0].commissions?.length, 0);
     await updateProfile(child.id, { kycStatus: 'Verified', accountStatus: 'Active' });
     const [balance] = await pool.query<any[]>('SELECT usd_wallet_balance FROM investor_profiles WHERE user_id = ?', [parent.id]);
-    assert.equal(Number(balance[0].usd_wallet_balance), 500);
+    assert.equal(Number(balance[0].usd_wallet_balance), 400); // 4% tier: investment up to 10,000
+    // The per-plan rate no longer drives commissions; the amount tier does.
     await updatePlan(plan.id, { directReferralPercent: 8 });
     const api = async (method: string, path: string, body?: object, token?: string) => {
       const response = await fetch('http://localhost:8787' + path, { method, headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) }, body: body ? JSON.stringify(body) : undefined });
@@ -44,8 +46,8 @@ test('confirmed investments pay referral commission exactly once and preserve th
     assert.equal(referral.referrerName, 'Referral test parent');
     assert.equal(referral.referralCode, parentProfile.referralCode);
     assert.equal(referral.investmentUsd, 10000);
-    assert.equal(referral.ratePercent, 5);
-    assert.equal(referral.commissionUsd, 500);
+    assert.equal(referral.ratePercent, 4);
+    assert.equal(referral.commissionUsd, 400);
     assert.equal(referral.status, 'Credited');
     assert.equal((await api('PUT', '/api/admin/plans/' + plan.id, { directReferralPercent: 9 }, investorToken)).status, 403);
     assert.equal((await api('PUT', '/api/admin/plans/' + plan.id, { directReferralPercent: -1 }, adminToken)).status, 400);
@@ -58,30 +60,31 @@ test('confirmed investments pay referral commission exactly once and preserve th
     assert.equal((await api('PUT', '/api/admin/investors/' + nextChild.id, { plan: plan.name, totalInvestmentUsd: 10000, kycStatus: 'Verified', accountStatus: 'Active' }, adminToken)).status, 200);
     const report = await api('GET', '/api/investor/referrals', undefined, investorToken);
     assert.equal(report.status, 200);
-    assert.equal(report.body.referredUsers.find((u: any) => u.username === nextChild.username).commissions[0].amountUsd, 800);
-    assert.equal(report.body.referredUsers.find((u: any) => u.username === child.username).commissions[0].amountUsd, 500);
+    assert.equal(report.body.referredUsers.find((u: any) => u.username === nextChild.username).commissions[0].amountUsd, 400);
+    assert.equal(report.body.referredUsers.find((u: any) => u.username === child.username).commissions[0].amountUsd, 400);
     const [updatedBalance] = await pool.query<any[]>('SELECT usd_wallet_balance FROM investor_profiles WHERE user_id = ?', [parent.id]);
-    assert.equal(Number(updatedBalance[0].usd_wallet_balance), 1300);
-    assert.equal((await api('PUT', '/api/admin/plans/' + plan.id, { directReferralPercent: 0 }, adminToken)).status, 200);
-    const zeroChild = await createUser({ username: 'ref_zero_' + tag, password: 'TestPassword123!', name: 'Zero rate child', role: 'investor', referredByCode: parentProfile.referralCode }); users.push(zeroChild.id);
-    await updateProfile(zeroChild.id, { plan: plan.name, totalInvestmentUsd: 10000, kycStatus: 'Verified', accountStatus: 'Active' });
-    const [zeroBalance] = await pool.query<any[]>('SELECT usd_wallet_balance FROM investor_profiles WHERE user_id = ?', [parent.id]);
-    assert.equal(Number(zeroBalance[0].usd_wallet_balance), 1300);
+    assert.equal(Number(updatedBalance[0].usd_wallet_balance), 800);
+    // Tier boundaries: 4% up to 10,000; 5% up to 15,000; 7% up to 20,000; 10% above.
+    assert.deepEqual([0.01, 10000, 10000.01, 15000, 15000.01, 20000, 20000.01, 500000].map(directReferralRate), [4, 4, 5, 5, 7, 7, 10, 10]);
+    const tierChild = await createUser({ username: 'ref_tier_' + tag, password: 'TestPassword123!', name: 'Tier rate child', role: 'investor', referredByCode: parentProfile.referralCode }); users.push(tierChild.id);
+    await updateProfile(tierChild.id, { plan: plan.name, totalInvestmentUsd: 20000, kycStatus: 'Verified', accountStatus: 'Active' });
+    const [tierBalance] = await pool.query<any[]>('SELECT usd_wallet_balance FROM investor_profiles WHERE user_id = ?', [parent.id]);
+    assert.equal(Number(tierBalance[0].usd_wallet_balance), 2200); // 800 + 7% of 20,000
     // Force two simultaneous eligibility transitions on an already rewarded investment.
     await updateProfile(child.id, { accountStatus: 'Under Review' });
     await Promise.all([updateProfile(child.id, { accountStatus: 'Active' }), updateProfile(child.id, { accountStatus: 'Active' })]);
     await Promise.all([updateProfile(child.id, { phone: '123456789' }), updateProfile(child.id, { phone: '123456790' })]);
     const stats = await getReferralStats(parent.id);
     assert.equal(stats.referredUsers.find(u => u.username === child.username)!.commissions?.length, 1);
-    assert.equal(stats.referredUsers.find(u => u.username === child.username)!.commissions?.[0].ratePercent, 5);
+    assert.equal(stats.referredUsers.find(u => u.username === child.username)!.commissions?.[0].ratePercent, 4);
     const [tx] = await pool.query<any[]>("SELECT * FROM wallet_transactions WHERE investor_user_id = ? AND type = 'Referral Commission'", [parent.id]);
-    assert.equal(tx.length, 2); assert.equal(tx.reduce((sum, row) => sum + Number(row.amount_usd), 0), 1300);
+    assert.equal(tx.length, 3); assert.equal(tx.reduce((sum, row) => sum + Number(row.amount_usd), 0), 2200);
     await updatePlan(plan.id, { directReferralPercent: 5 });
     const depositChild = await createUser({ username: 'ref_deposit_' + tag, password: 'TestPassword123!', name: 'Deposit referral child', role: 'investor', referredByCode: parentProfile.referralCode }); users.push(depositChild.id);
     await updateProfile(depositChild.id, { plan: plan.name, kycStatus: 'Verified', accountStatus: 'Active' });
     await addTransaction({ investorUserId: depositChild.id, type: 'Deposit', amountBtc: 0.01, amountUsd: 1000, applyToWallet: true });
     const depositStats = await getReferralStats(parent.id);
-    assert.equal(depositStats.referredUsers.find(u => u.username === depositChild.username)!.commissions?.[0].amountUsd, 50);
+    assert.equal(depositStats.referredUsers.find(u => u.username === depositChild.username)!.commissions?.[0].amountUsd, 40); // 4% of 1,000
     await assert.rejects(updatePlan(plan.id, { directReferralPercent: 101 }), /100/);
     await assert.rejects(createUser({ username: `bad_ref_${tag}`, password: 'TestPassword123!', name: 'Bad ref', role: 'investor', referredByCode: 'missing-code' }), /referral code/);
   } finally {

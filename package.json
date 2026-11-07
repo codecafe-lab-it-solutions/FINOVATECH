@@ -16,7 +16,7 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test:audit": "node --import tsx --test --test-concurrency=1 tests/productionConfig.test.ts tests/adminAmount.test.ts tests/investmentSummary.test.ts tests/finalAcceptance.test.ts tests/oct23.integration.test.ts tests/referrals.integration.test.ts tests/planPolicy.test.ts tests/financial.integration.test.ts tests/requirements.audit.test.tsx tests/full-system.audit.test.ts",
+    "test:audit": "node --import tsx --test --test-concurrency=1 tests/productionConfig.test.ts tests/adminAmount.test.ts tests/investmentSummary.test.ts tests/finalAcceptance.test.ts tests/oct23.integration.test.ts tests/referrals.integration.test.ts tests/planPolicy.test.ts tests/financial.integration.test.ts tests/requirements.audit.test.tsx tests/full-system.audit.test.ts tests/clientRequirements.test.ts",
     "test:smtp": "tsx tests/checkSmtp.ts"
   },
   "dependencies": {

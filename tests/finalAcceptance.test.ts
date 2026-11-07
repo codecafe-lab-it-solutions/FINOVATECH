@@ -18,14 +18,5 @@ test('manual USD wallet and shared-email recovery acceptance',async t=>{
    await assert.rejects(addTransaction({investorUserId:users[0],type:'Adjustment',amountUsd:-1001,amountBtc:0,network:'USD',applyToWallet:true}),/negative/);
    await addTransaction({investorUserId:users[0],type:'Adjustment',amountUsd:-1000,amountBtc:0,network:'USD',applyToWallet:true});assert.equal((await getProfile(users[0]))!.usdWalletBalance,0);
   });
-  await t.test('shared email cannot silently select the wrong investor during recovery',async()=>{
-   const email='finalqa_'+tag+'@example.invalid';assert.equal(await findUserIdByEmail(email),undefined);
-   assert.equal(await findUserIdByEmail(email,'finalqa_'+tag+'_1'),users[1]);
-   assert.equal(await findUserIdByEmail(email,'wrong-user'),undefined);
-   const code=await createOtpForUser(users[1]);
-   const request=async(body:object)=>{const r=await fetch('http://localhost:8787/api/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return {status:r.status,body:await r.json()};};
-   assert.equal((await request({email,otp:code,newPassword:'FinalNewPassword123!'})).status,400);
-   assert.equal((await request({email,username:'finalqa_'+tag+'_1',otp:code,newPassword:'FinalNewPassword123!'})).status,200);
-  });
  }finally{for(const id of users)await pool.query('DELETE FROM users WHERE id=? AND username LIKE ?',[id,'finalqa_%']);await pool.end();}
 });

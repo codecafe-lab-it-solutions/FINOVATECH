@@ -31,6 +31,8 @@ export const AdminWalletsView: React.FC<AdminWalletsViewProps> = ({ authToken, s
   const [balanceDraft, setBalanceDraft] = useState('0');
   const [deleteTarget,setDeleteTarget] = useState<ApiCompanyWallet|null>(null);
   const [deleting,setDeleting] = useState(false);
+  // Security PIN required by the server to add, delete or change the address of a company wallet.
+  const [pin, setPin] = useState('');
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -56,9 +58,10 @@ export const AdminWalletsView: React.FC<AdminWalletsViewProps> = ({ authToken, s
     }
     setIsSaving(true);
     try {
-      if (editingId) await updateAdminWallet(authToken, editingId, form);
-      else await createAdminWallet(authToken, form);
+      if (editingId) await updateAdminWallet(authToken, editingId, form, pin);
+      else await createAdminWallet(authToken, form, pin);
       setForm(emptyForm);
+      setPin('');
       setShowCreate(false);
       await load();
     } catch (err) {
@@ -157,8 +160,9 @@ export const AdminWalletsView: React.FC<AdminWalletsViewProps> = ({ authToken, s
 
       {deleteTarget && <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"><div role="dialog" aria-modal="true" aria-label="Delete wallet record" className="bg-ink-850 border border-line-warm p-6 rounded-2xl max-w-lg space-y-4 text-white">
         <h3 className="font-bold">Delete {deleteTarget.walletName}?</h3><p>This permanently removes the tracking record. It does not transfer funds.</p>
-        <button disabled={deleting} onClick={()=>setDeleteTarget(null)} className="px-4 py-2 bg-ink-700 rounded-xl">Cancel</button>
-        <button disabled={deleting} className="px-4 py-2 bg-rose-700 rounded-xl ml-3" onClick={async()=>{setDeleting(true);try{await deleteAdminWallet(authToken,deleteTarget.id);setDeleteTarget(null);await load();}catch(err){setError(err instanceof Error?err.message:'Delete failed.');}finally{setDeleting(false);}}}>{deleting?'Deleting...':'Confirm Delete Wallet'}</button>
+        <input type="password" aria-label="Security PIN" placeholder="Security PIN" value={pin} onChange={(e) => setPin(e.target.value)} className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
+        <button disabled={deleting} onClick={()=>{setDeleteTarget(null);setPin('');}} className="px-4 py-2 bg-ink-700 rounded-xl">Cancel</button>
+        <button disabled={deleting} className="px-4 py-2 bg-rose-700 rounded-xl ml-3" onClick={async()=>{setDeleting(true);try{await deleteAdminWallet(authToken,deleteTarget.id,pin);setDeleteTarget(null);setPin('');await load();}catch(err){setError(err instanceof Error?err.message:'Delete failed.');}finally{setDeleting(false);}}}>{deleting?'Deleting...':'Confirm Delete Wallet'}</button>
       </div></div>}
       {showCreate && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
@@ -172,6 +176,8 @@ export const AdminWalletsView: React.FC<AdminWalletsViewProps> = ({ authToken, s
             <input placeholder="Wallet name" value={form.walletName} onChange={(e) => setForm({ ...form, walletName: e.target.value })}
               className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
             <input placeholder="Wallet address (optional)" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })}
+              className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
+            <input type="password" aria-label="Security PIN" placeholder="Security PIN (required to add a wallet or change its address)" value={pin} onChange={(e) => setPin(e.target.value)}
               className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
             <label className="block text-fg-muted">Status<select aria-label="Wallet status" value={form.status} onChange={e => setForm({ ...form, status: e.target.value as ApiCompanyWallet['status'] })} className="w-full p-2 rounded bg-ink-950 text-white"><option>Active</option><option>Secure</option><option>Restricted</option></select></label><div className="grid grid-cols-2 gap-3">
               <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as ApiCompanyWallet['type'] })}

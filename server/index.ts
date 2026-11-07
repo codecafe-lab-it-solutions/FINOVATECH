@@ -9,7 +9,10 @@ import crypto from 'node:crypto';
 import express from 'express';
 import multer from 'multer';
 import bcrypt from 'bcryptjs';
-import { createUser, findUserById, findUserByUsername, seedIfEmpty, updateCredentials, deleteInvestor } from './db';
+import { createUser, findUserById, findUserByUsername, seedIfEmpty, updateCredentials, deleteInvestor, setLoginBlocked } from './db';
+import { logActivity, listActivity } from './activityLog';
+import { verifyWalletPin, WalletPinError } from './walletPin';
+import { getLevelIncomeSettings, saveLevelIncomeSettings, getLevelIncomeSummary, getRewardProgress, listRewardGrants, setRewardStatus } from './levelIncome';
 import { initSchema } from './database';
 import { initFinancialSchema } from './financialSchema';
 import { submitPayout, submitUsdPayout, settlePayout, PolicyError, startInterestScheduler } from './financialEngine';
@@ -29,11 +32,9 @@ import {
   createPayoutRequest,
   updatePayoutStatus,
   getPayoutById,
-  findUserIdByEmail,
   ProfileUpdate
 } from './investors';
-import { createOtpForUser, verifyAndConsumeOtp } from './passwordReset';
-import { sendWelcomeEmail, sendOtpEmail, sendDepositEmail, sendAnnouncementEmail } from './mailer';
+import { sendWelcomeEmail, sendDepositEmail, sendAnnouncementEmail } from './mailer';
 import { recordBroadcast, listBroadcasts } from './broadcasts';
 import {
   listPlans,
@@ -84,6 +85,44 @@ import {
 
 const app = express();
 app.use(express.json({ limit: '4mb' }));
+
+// Access/activity log: every state-changing API call is recorded after it finishes, with who did
+// it, what and whether it worked. Request values are never logged (only field names), so
+// passwords and PINs cannot leak into the log. Login attempts are logged by the login route.
+app.use('/api', (req, res, next) => {
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS' || req.path === '/auth/login') return next();
+  res.on('finish', () => {
+    try {
+      let actor: Partial<TokenPayload> = {};
+      try {
+        const header = req.headers.authorization || '';
+        if (header.startsWith('Bearer ')) actor = verifyToken(header.slice(7));
+      } catch { /* unauthenticated request */ }
+      const urlSegments = req.originalUrl.split('?')[0].split('/').filter(Boolean);
+      const routeSegments = String(req.route?.path ?? req.originalUrl.split('?')[0]).split('/').filter(Boolean);
+      // req.params is already reset once an async handler finishes, so read the id from the URL.
+      const idIndex = routeSegments.indexOf(':id');
+      const targetId = idIndex >= 0 ? decodeURIComponent(urlSegments[idIndex] ?? '') : '';
+      const named = routeSegments.slice(1).filter((s) => !s.startsWith(':'));
+      const verb = req.method === 'POST' ? 'Create' : req.method === 'DELETE' ? 'Delete' : 'Update';
+      void logActivity({
+        actorUserId: actor.sub ?? null,
+        actorName: actor.name ?? actor.username ?? '',
+        actorRole: actor.role ?? '',
+        action: `${verb} ${named.slice(1).join(' / ') || named.join(' / ')}`,
+        module: named[1] ?? named[0] ?? '',
+        targetId,
+        details: `${req.method} /api/${named.join('/')} fields: ${Object.keys(req.body ?? {}).join(', ') || 'none'}`,
+        status: res.statusCode < 400 ? 'Success' : 'Failed',
+        ip: clientIp(req),
+        userAgent: clientDevice(req)
+      });
+    } catch (err) {
+      console.error('Activity logging failed:', err);
+    }
+  });
+  next();
+});
 
 // In production this same process serves the built frontend (vite build's
 // dist/) alongside the API, so there's just one server to run and one port
@@ -148,6 +187,7 @@ async function requireRole(req: express.Request, role: 'admin' | 'investor'): Pr
 }
 
 function handleAuthError(err: unknown, res: express.Response): boolean {
+  if (err instanceof WalletPinError) { res.status(403).json({ error: err.message }); return true; }
   if (err instanceof Error && err.message === 'MAINTENANCE') { res.status(503).json({error:'Investor access is temporarily paused for maintenance.'}); return true; }
   if (err instanceof Error && err.message === 'NOT_AUTHENTICATED') {
     res.status(401).json({ error: 'Not authenticated.' });
@@ -232,6 +272,9 @@ app.post('/api/auth/register', async (req, res) => {
   }
 
   try {
+    // One investor, one entry: an email address can only belong to a single account.
+    const [sameEmail] = await pool.query<any[]>('SELECT 1 FROM investor_profiles WHERE LOWER(TRIM(email)) = LOWER(?) LIMIT 1', [email.trim()]);
+    if (sameEmail.length) return res.status(409).json({ error: 'An account with this email already exists. Please log in instead.' });
     // Self-service registration always creates an investor account.
     // Admin accounts are provisioned separately and are not publicly self-serve.
     const user = await createUser({
@@ -260,58 +303,6 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-app.post('/api/auth/forgot-password', async (req, res) => {
-  const { email, username } = req.body ?? {};
-  if (typeof email !== 'string' || !EMAIL_PATTERN.test(email.trim())) {
-    return res.status(400).json({ error: 'A valid email address is required.' });
-  }
-
-  try {
-    const userId = await findUserIdByEmail(email.trim(), typeof username === 'string' ? username.trim() : undefined);
-    if (userId) {
-      const user = await findUserById(userId);
-      const otp = await createOtpForUser(userId);
-      if (user) {
-        await sendOtpEmail(email.trim(), user.name, otp);
-      }
-    }
-    // Same response whether or not the email is registered, so this endpoint
-    // can't be used to discover which emails have accounts.
-    res.json({ ok: true, message: 'If that email is registered, a reset code has been sent to it.' });
-  } catch (err) {
-    console.error('Forgot password failed:', err);
-    res.status(500).json({ error: 'Could not process request. Please try again.' });
-  }
-});
-
-app.post('/api/auth/reset-password', async (req, res) => {
-  const { email, otp, newPassword, username } = req.body ?? {};
-  if (typeof email !== 'string' || !EMAIL_PATTERN.test(email.trim())) {
-    return res.status(400).json({ error: 'A valid email address is required.' });
-  }
-  if (typeof otp !== 'string' || !otp.trim()) {
-    return res.status(400).json({ error: 'Reset code is required.' });
-  }
-  if (typeof newPassword !== 'string' || newPassword.length < 5) {
-    return res.status(400).json({ error: 'New password must be at least 5 characters.' });
-  }
-
-  try {
-    const userId = await findUserIdByEmail(email.trim(), typeof username === 'string' ? username.trim() : undefined);
-    const valid = userId ? await verifyAndConsumeOtp(userId, otp.trim()) : false;
-    if (!userId || !valid) {
-      return res.status(400).json({ error: 'Invalid or expired reset code.' });
-    }
-
-    await updateCredentials(userId, { password: newPassword });
-    await revokeAllSessions(userId);
-    res.json({ ok: true });
-  } catch (err) {
-    console.error('Reset password failed:', err);
-    res.status(500).json({ error: 'Could not reset password. Please try again.' });
-  }
-});
-
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body ?? {};
 
@@ -321,14 +312,22 @@ app.post('/api/auth/login', async (req, res) => {
 
   try {
     const user = await findUserByUsername(username);
+    const base = { actorName: user?.name ?? username.trim(), actorRole: user?.role ?? '', actorUserId: user?.id ?? null, module: 'auth', ip: clientIp(req), userAgent: clientDevice(req) };
     if (!user || !bcrypt.compareSync(password, user.passwordHash)) {
+      void logActivity({ ...base, action: 'Login failed', details: `Wrong username or password for "${username.trim().slice(0, 64)}"`, status: 'Failed' });
       return res.status(401).json({ error: 'Invalid username or password.' });
+    }
+    // Admin can block an investor's login; the correct password is not enough then.
+    if (user.loginBlocked) {
+      void logActivity({ ...base, action: 'Login blocked', details: 'Login attempt on a blocked account', status: 'Blocked' });
+      return res.status(403).json({ error: 'Your account login has been blocked. Please contact support.' });
     }
 
     // Every investor must be able to enter the portal: create a missing profile row on login.
     if (user.role === 'investor') await ensureProfile(user.id).catch((e) => console.error('ensureProfile failed:', e));
 
     const token = await issueSessionToken(user, req);
+    void logActivity({ ...base, action: 'Login', details: `${user.role} signed in` });
     res.json({ token, user: publicUser(user) });
   } catch (err) {
     console.error('Login failed:', err);
@@ -621,7 +620,8 @@ app.get('/api/admin/deposit-addresses', async (req, res) => {
 
 app.post('/api/admin/deposit-addresses', async (req, res) => {
   try {
-    await requireRole(req, 'admin');
+    const admin = await requireRole(req, 'admin');
+    verifyWalletPin(admin.sub, req.body?.pin);
     const { address, network, visibility, visibleInvestorIds } = req.body ?? {};
 
     if (typeof address !== 'string' || !address.trim()) {
@@ -1099,6 +1099,93 @@ app.put('/api/admin/investors/:id/password', async (req, res) => {
   }
 });
 
+// Block or unblock an investor's login. Blocking also ends every open session at once.
+app.put('/api/admin/investors/:id/login-block', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    const { blocked } = req.body ?? {};
+    if (typeof blocked !== 'boolean') return res.status(400).json({ error: 'blocked must be true or false.' });
+    if (!(await setLoginBlocked(req.params.id, blocked))) return res.status(404).json({ error: 'Investor not found.' });
+    if (blocked) await revokeAllSessions(req.params.id);
+    res.json({ ok: true, loginBlocked: blocked });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Login block change failed:', err);
+    res.status(500).json({ error: 'Could not change the login block.' });
+  }
+});
+
+// --- Access / activity log (admin) ---
+
+app.get('/api/admin/activity-logs', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    res.json({ logs: await listActivity(Number(req.query.limit) || 500) });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Load activity logs failed:', err);
+    res.status(500).json({ error: 'Could not load the activity log.' });
+  }
+});
+
+// --- Level income (ROI on ROI) and rewards ---
+
+app.get('/api/admin/level-income-settings', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    res.json({ levels: await getLevelIncomeSettings() });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    res.status(500).json({ error: 'Could not load level income settings.' });
+  }
+});
+
+app.put('/api/admin/level-income-settings', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    res.json({ levels: await saveLevelIncomeSettings(req.body?.percents) });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    res.status(400).json({ error: err instanceof Error ? err.message : 'Invalid level income settings.' });
+  }
+});
+
+app.get('/api/admin/rewards', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    res.json({ rewards: await listRewardGrants() });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Load rewards failed:', err);
+    res.status(500).json({ error: 'Could not load rewards.' });
+  }
+});
+
+app.patch('/api/admin/rewards/:id', async (req, res) => {
+  try {
+    await requireRole(req, 'admin');
+    const { status, note } = req.body ?? {};
+    if (status !== 'Granted' && status !== 'Pending') return res.status(400).json({ error: 'Status must be Granted or Pending.' });
+    if (!(await setRewardStatus(req.params.id, status, typeof note === 'string' ? note : ''))) return res.status(404).json({ error: 'Reward not found.' });
+    res.json({ ok: true });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Update reward failed:', err);
+    res.status(500).json({ error: 'Could not update the reward.' });
+  }
+});
+
+app.get('/api/investor/level-income', async (req, res) => {
+  try {
+    const payload = await requireRole(req, 'investor');
+    res.json({ summary: await getLevelIncomeSummary(payload.sub), rewards: await getRewardProgress(payload.sub) });
+  } catch (err) {
+    if (handleAuthError(err, res)) return;
+    console.error('Load level income failed:', err);
+    res.status(500).json({ error: 'Could not load level income.' });
+  }
+});
+
 app.post('/api/admin/investors/:id/transactions', async (req, res) => {
   try {
     await requireRole(req, 'admin');
@@ -1255,7 +1342,7 @@ app.get('/api/exchange-rate', async (_req, res) => {
 // --- Admin: Company Wallets ---
 
 app.delete('/api/admin/wallets/:id', async (req, res) => {
-  try { await requireRole(req, 'admin'); await deleteWallet(req.params.id); res.json({ ok: true }); }
+  try { const admin = await requireRole(req, 'admin'); verifyWalletPin(admin.sub, req.body?.pin); await deleteWallet(req.params.id); res.json({ ok: true }); }
   catch (err) { if (handleAuthError(err, res)) return; res.status(400).json({ error: err instanceof Error ? err.message : 'Could not delete wallet.' }); }
 });
 app.get('/api/operating-metrics',async(req,res)=>{try{await requireAuth(req);res.json({metrics:await operatingMetrics()});}catch(err){if(handleAuthError(err,res))return;console.error(err);res.status(500).json({error:'Could not load operating metrics.'});}});
@@ -1276,7 +1363,8 @@ app.get('/api/admin/wallets', async (req, res) => {
 
 app.post('/api/admin/wallets', async (req, res) => {
   try {
-    await requireRole(req, 'admin');
+    const admin = await requireRole(req, 'admin');
+    verifyWalletPin(admin.sub, req.body?.pin);
     const { walletName, type, currency, address, balance, requiresMultisig, status } = req.body ?? {};
     if (typeof walletName !== 'string' || !walletName.trim()) {
       return res.status(400).json({ error: 'Wallet name is required.' });
@@ -1300,8 +1388,14 @@ app.post('/api/admin/wallets', async (req, res) => {
 
 app.put('/api/admin/wallets/:id', async (req, res) => {
   try {
-    await requireRole(req, 'admin');
-    await updateWallet(req.params.id, req.body ?? {});
+    const admin = await requireRole(req, 'admin');
+    // The PIN guards the address itself: any edit that sets a different address needs it.
+    const { pin, ...changes } = req.body ?? {};
+    if (typeof changes.address === 'string') {
+      const current = (await listWallets()).find((w) => w.id === req.params.id);
+      if (!current || current.address !== changes.address) verifyWalletPin(admin.sub, pin);
+    }
+    await updateWallet(req.params.id, changes);
     res.json({ ok: true });
   } catch (err) {
     if (handleAuthError(err, res)) return;

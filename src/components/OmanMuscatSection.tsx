@@ -46,7 +46,7 @@ export const OmanMuscatSection: React.FC<OmanMuscatSectionProps> = ({ onNavigate
                     Muscat Global Gateway
                   </h3>
                   <p className="text-xs text-fg-body">
-                    <span className="font-mono">{OPERATING_FACTS.coordinates}</span> · Sultanate of Oman
+                    Sultanate of Oman
                   </p>
                 </div>
               </div>

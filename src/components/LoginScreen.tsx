@@ -4,23 +4,20 @@ import {
   User,
   Mail,
   ArrowRight,
-  ArrowLeft,
   Eye,
   EyeOff,
   AlertCircle,
-  CheckCircle2,
   Building2,
   UserPlus
 } from 'lucide-react';
-import { AuthUser, loginRequest, registerRequest, forgotPasswordRequest, resetPasswordRequest } from '../lib/api';
+import { AuthUser, loginRequest, registerRequest } from '../lib/api';
 
 interface LoginScreenProps {
   onAuthSuccess: (token: string, user: AuthUser) => void;
   onNavigateHome: () => void;
 }
 
-type Mode = 'login' | 'register' | 'forgot';
-type ForgotStep = 'request' | 'reset' | 'done';
+type Mode = 'login' | 'register';
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({
   onAuthSuccess,
@@ -39,26 +36,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
-  // Forgot-password flow state
-  const [forgotStep, setForgotStep] = useState<ForgotStep>('request');
-  const [forgotEmail, setForgotEmail] = useState('');
-  const [forgotUsername, setForgotUsername] = useState('');
-  const [forgotOtp, setForgotOtp] = useState('');
-  const [forgotNewPassword, setForgotNewPassword] = useState('');
-  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
-  const [forgotMessage, setForgotMessage] = useState('');
-
   const switchMode = (next: Mode) => {
     setMode(next);
     setError('');
-    if (next === 'forgot') {
-      setForgotStep('request');
-      setForgotEmail('');
-      setForgotOtp('');
-      setForgotNewPassword('');
-      setForgotConfirmPassword('');
-      setForgotMessage('');
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,41 +59,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           ? await registerRequest(username.trim(), password, fullName.trim(), email.trim(), referralCode.trim() || undefined)
           : await loginRequest(username.trim(), password);
       onAuthSuccess(token, user);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRequestOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-    try {
-      const { message } = await forgotPasswordRequest(forgotEmail.trim(), forgotUsername.trim());
-      setForgotMessage(message);
-      setForgotStep('reset');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    if (forgotNewPassword !== forgotConfirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      await resetPasswordRequest(forgotEmail.trim(), forgotOtp.trim(), forgotNewPassword, forgotUsername.trim());
-      setForgotStep('done');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
@@ -169,22 +114,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             <span>SECURE LOGIN</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-3">
-            {mode === 'register' ? 'Create Account' : mode === 'forgot' ? 'Reset Password' : 'Login'}
+            {mode === 'register' ? 'Create Account' : 'Login'}
           </h1>
           <p className="text-xs sm:text-sm text-fg-muted mt-1 max-w-xs mx-auto">
             {mode === 'register'
               ? 'Set up your own investor username and password.'
-              : mode === 'forgot'
-                ? forgotStep === 'request'
-                  ? "Enter your registered email and we'll send you a reset code."
-                  : forgotStep === 'reset'
-                    ? 'Enter the code we emailed you and choose a new password.'
-                    : 'Your password has been reset.'
-                : 'Enter your username and password to sign in.'}
+              : 'Enter your username and password to sign in.'}
           </p>
         </div>
 
-        {/* Login / Register / Forgot Password Form Container */}
+        {/* Login / Register Form Container */}
         <div className="p-6 sm:p-8 rounded-2xl bg-ink-950 border border-line shadow-2xl backdrop-blur-xl">
 
           {error && (
@@ -194,166 +133,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </div>
           )}
 
-          {mode === 'forgot' ? (
-            <>
-              {forgotStep === 'request' && (
-                <form onSubmit={handleRequestOtp} className="space-y-4">
-                  <label className="block text-xs text-fg-muted">Username (required if your email is shared by multiple accounts)
-                    <input aria-label="Password reset username" value={forgotUsername} onChange={e=>setForgotUsername(e.target.value)} placeholder="Your username" className="w-full mt-2 px-3 py-3 rounded-xl bg-ink-950 border border-line text-white" />
-                  </label>
-                  <div>
-                    <label className="block text-xs font-mono font-semibold uppercase text-fg-muted mb-1.5">
-                      Registered Email
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-fg-muted">
-                        <Mail className="w-4 h-4" />
-                      </div>
-                      <input
-                        type="email"
-                        required
-                        value={forgotEmail}
-                        onChange={(e) => setForgotEmail(e.target.value)}
-                        placeholder="you@example.com"
-                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-mono"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full py-3.5 px-4 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-sm tracking-wide transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2 min-h-[48px] font-mono"
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-line border-t-transparent rounded-full animate-spin"></div>
-                        <span>Sending Code...</span>
-                      </div>
-                    ) : (
-                      <>
-                        <span>Send Reset Code</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </>
-                    )}
-                  </button>
-                </form>
-              )}
-
-              {forgotStep === 'reset' && (
-                <form onSubmit={handleResetPassword} className="space-y-4">
-                  {forgotMessage && (
-                    <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-mono">
-                      {forgotMessage}
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="block text-xs font-mono font-semibold uppercase text-fg-muted mb-1.5">
-                      Reset Code
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      autoFocus
-                      value={forgotOtp}
-                      onChange={(e) => setForgotOtp(e.target.value)}
-                      placeholder="6-digit code"
-                      className="w-full px-4 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm text-center tracking-[0.3em] font-mono focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-mono font-semibold uppercase text-fg-muted mb-1.5">
-                      New Password
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-fg-muted">
-                        <Lock className="w-4 h-4" />
-                      </div>
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        required
-                        value={forgotNewPassword}
-                        onChange={(e) => setForgotNewPassword(e.target.value)}
-                        placeholder="At least 5 characters"
-                        className="w-full pl-10 pr-11 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-mono"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-fg-muted hover:text-fg-body focus:outline-hidden cursor-pointer"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-mono font-semibold uppercase text-fg-muted mb-1.5">
-                      Confirm New Password
-                    </label>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={forgotConfirmPassword}
-                      onChange={(e) => setForgotConfirmPassword(e.target.value)}
-                      placeholder="Re-enter your new password"
-                      className="w-full px-4 py-3 rounded-xl bg-ink-950 border border-line text-white placeholder-fg-muted text-sm focus:outline-hidden focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all font-mono"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full py-3.5 px-4 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-sm tracking-wide transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2 min-h-[48px] font-mono"
-                  >
-                    {isLoading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-line border-t-transparent rounded-full animate-spin"></div>
-                        <span>Resetting Password...</span>
-                      </div>
-                    ) : (
-                      <>
-                        <span>Reset Password</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </>
-                    )}
-                  </button>
-                </form>
-              )}
-
-              {forgotStep === 'done' && (
-                <div className="text-center space-y-3 py-2">
-                  <div className="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto">
-                    <CheckCircle2 className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-base font-bold text-white">Password Reset</h4>
-                  <p className="text-fg-body text-xs font-mono">
-                    Your password has been changed. You can now sign in with your new password.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => switchMode('login')}
-                    className="w-full py-3 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-sm cursor-pointer mt-2"
-                  >
-                    Back to Sign In
-                  </button>
-                </div>
-              )}
-
-              {forgotStep !== 'done' && (
-                <button
-                  type="button"
-                  onClick={() => switchMode('login')}
-                  className="mt-5 w-full flex items-center justify-center gap-1.5 text-xs font-mono text-fg-muted hover:text-white cursor-pointer"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Back to Sign In</span>
-                </button>
-              )}
-            </>
-          ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
 
               {mode === 'register' && (
@@ -453,17 +232,6 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
-                {mode === 'login' && (
-                  <div className="text-right mt-1.5">
-                    <button
-                      type="button"
-                      onClick={() => switchMode('forgot')}
-                      className="text-xs font-mono text-fg-muted hover:text-gold-500 cursor-pointer"
-                    >
-                      Forgot Password?
-                    </button>
-                  </div>
-                )}
               </div>
 
               {mode === 'register' && (
@@ -538,10 +306,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
               </button>
 
             </form>
-          )}
 
           {/* Mode Toggle */}
-          {mode !== 'forgot' && (
+          {(
             <div className="mt-5 text-center text-xs font-mono text-fg-muted">
               {mode === 'register' ? (
                 <span>

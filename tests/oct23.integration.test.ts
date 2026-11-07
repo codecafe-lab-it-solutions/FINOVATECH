@@ -11,6 +11,7 @@ import {getProfile,updateProfile} from '../server/investors';
 import {addDays,platformDay,maximumWithdrawal,payoutObligation} from '../server/planPolicy';
 import {reconcileDailyInterest,submitUsdPayout,settlePayout,runDailyEarningsJob} from '../server/financialEngine';
 import {getPlatformSettings,savePlatformSettings} from '../server/platformSettings';
+const TEST_PIN=process.env.WALLET_TEST_PIN??'';
 const users:string[]=[],plans:string[]=[],entries:string[]=[],wallets:string[]=[],machines:string[]=[];
 const tag=crypto.randomUUID().slice(0,8),password='AuditOctober23!';
 const api=async(method:string,path:string,body?:any,token?:string)=>{const response=await fetch('http://localhost:8787'+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body?JSON.stringify(body):undefined});return{status:response.status,body:await response.json() as any};};
@@ -49,12 +50,12 @@ test('October 23 requested changes: real database/API acceptance',async t=>{
   await settlePayout(id,'Rejected','QA reversal');assert.equal((await getProfile(f.user.id))!.usdWalletBalance,2000);
  });
  await t.test('company wallets can be created, fully edited, restricted and deleted; invalid balance rejected',async()=>{
-  const created=await api('POST','/api/admin/wallets',{walletName:'QA wallet '+tag,currency:'BTC',balance:1,type:'Treasury'},adminToken);assert.equal(created.status,201);const id=created.body.wallet.id;wallets.push(id);
-  assert.equal((await api('PUT','/api/admin/wallets/'+id,{walletName:'Renamed '+tag,address:'QA only',status:'Restricted',requiresMultisig:true},adminToken)).status,200);
+  const created=await api('POST','/api/admin/wallets',{walletName:'QA wallet '+tag,currency:'BTC',balance:1,type:'Treasury'},adminToken);assert.equal(created.status,403,'creating a wallet needs the security PIN');const created2=await api('POST','/api/admin/wallets',{walletName:'QA wallet '+tag,currency:'BTC',balance:1,type:'Treasury',pin:'wrong-pin'},adminToken);assert.equal(created2.status,403);const created3=await api('POST','/api/admin/wallets',{walletName:'QA wallet '+tag,currency:'BTC',balance:1,type:'Treasury',pin:TEST_PIN},adminToken);assert.equal(created3.status,201);const id=created3.body.wallet.id;wallets.push(id);
+  assert.equal((await api('PUT','/api/admin/wallets/'+id,{walletName:'Renamed '+tag,address:'QA only',status:'Restricted',requiresMultisig:true},adminToken)).status,403,'changing the address needs the PIN');assert.equal((await api('PUT','/api/admin/wallets/'+id,{walletName:'Renamed '+tag,address:'QA only',status:'Restricted',requiresMultisig:true,pin:TEST_PIN},adminToken)).status,200);
   const list=await api('GET','/api/admin/wallets',undefined,adminToken);const row=list.body.wallets.find((w:any)=>w.id===id);assert.equal(row.status,'Restricted');assert.equal(row.address,'QA only');
   assert.equal((await api('PUT','/api/admin/wallets/'+id,{balance:-1},adminToken)).status,400);
   assert.equal((await api('DELETE','/api/admin/wallets/'+id,undefined,fixtures[0].token)).status,403);
-  assert.equal((await api('DELETE','/api/admin/wallets/'+id,undefined,adminToken)).status,200);
+  assert.equal((await api('DELETE','/api/admin/wallets/'+id,undefined,adminToken)).status,403,'delete needs the PIN');assert.equal((await api('DELETE','/api/admin/wallets/'+id,{pin:TEST_PIN},adminToken)).status,200);
  });
  await t.test('text and image ticket reaches admin, admin replies with image, other investors are denied',async()=>{
   const image='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=';

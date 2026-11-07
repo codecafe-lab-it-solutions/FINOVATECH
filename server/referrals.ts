@@ -3,6 +3,15 @@ import type { PoolConnection } from 'mysql2/promise';
 import type { RowDataPacket } from 'mysql2';
 import { pool } from './database';
 
+// Direct referral commission rate by the referred investor's investment amount (USD):
+// up to 10,000 = 4%; up to 15,000 = 5%; up to 20,000 = 7%; above 20,000 = 10%.
+export function directReferralRate(investmentUsd: number): number {
+  if (investmentUsd <= 10000) return 4;
+  if (investmentUsd <= 15000) return 5;
+  if (investmentUsd <= 20000) return 7;
+  return 10;
+}
+
 // Runs atomically with investment confirmation, with the investor profile locked.
 export async function creditDirectReferral(conn: PoolConnection, userId: string): Promise<void> {
   const [rows] = await conn.query<RowDataPacket[]>('SELECT * FROM investor_profiles WHERE user_id = ?', [userId]);
@@ -12,9 +21,9 @@ export async function creditDirectReferral(conn: PoolConnection, userId: string)
   if (existing.length) return;
   const [parents] = await conn.query<RowDataPacket[]>('SELECT user_id FROM investor_profiles WHERE referral_code = ? AND user_id <> ? FOR UPDATE', [p.referred_by_code, userId]);
   if (parents.length !== 1) return;
-  const [plans] = await conn.query<RowDataPacket[]>('SELECT name, direct_referral_percent FROM investment_plans WHERE id = ? LOCK IN SHARE MODE', [p.plan_id]);
+  const [plans] = await conn.query<RowDataPacket[]>('SELECT name FROM investment_plans WHERE id = ? LOCK IN SHARE MODE', [p.plan_id]);
   if (!plans[0]) return;
-  const rate = Number(plans[0].direct_referral_percent);
+  const rate = directReferralRate(Number(p.total_investment_usd));
   const amount = Math.round(Number(p.total_investment_usd) * rate) / 100;
   const id = crypto.randomUUID(), ts = new Date().toISOString().slice(0, 19).replace('T', ' ');
   await conn.query('INSERT INTO referral_commissions (id, referrer_user_id, referred_user_id, investment_id, referral_code, plan_name, principal_usd, rate_percent, amount_usd, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [id, parents[0].user_id, userId, p.investment_id, p.referred_by_code, plans[0].name, p.total_investment_usd, rate, amount, ts]);
