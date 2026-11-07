@@ -24,6 +24,6 @@ export async function createOperatingEntry(input:any,adminId:string){
  if(typeof input.amount!=='number'||!Number.isFinite(input.amount)||input.amount<=0)throw new Error('Amount must be positive.');
  if(!/^\d{4}-\d{2}-\d{2}$/.test(input.entryDay)||new Date(input.entryDay+'T00:00:00Z').toISOString().slice(0,10)!==input.entryDay||input.entryDay>platformDay())throw new Error('Enter a valid, non-future reporting date.');
  if(typeof input.note!=='string'||!input.note.trim()||input.note.length>500)throw new Error('Enter a source reference or invoice note (up to 500 characters).');
- if(input.kind!=='Production BTC'&&Math.abs(input.amount*100-Math.round(input.amount*100))>0.000001)throw new Error('USD amounts support two decimal places.');
+ if(input.kind!=='Production BTC'&&Math.abs(input.amount*100-Math.round(input.amount*100))>0.000001)throw new Error('USDT amounts support two decimal places.');
  const id=crypto.randomUUID();await pool.query('INSERT INTO operating_entries(id,kind,amount,entry_day,note,created_by,created_at) VALUES(?,?,?,?,?,?,UTC_TIMESTAMP())',[id,input.kind,input.amount,input.entryDay,input.note.trim(),adminId]);return id;
 }

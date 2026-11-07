@@ -22,7 +22,7 @@ export function PlanConditions({ user, investmentUsd, walletUsd }: { user: Inves
       <div><dt>Next Eligible Withdrawal Date</dt><dd>{user.nextWithdrawalDate || 'Requires confirmed approval date and assigned plan'}</dd></div>
       {terms && walletUsd !== undefined && <div><dt>Maximum Withdrawal Before Global Transaction Limit</dt><dd><Money usd={Math.max(0, Math.floor((walletUsd - Math.round(investmentUsd * terms.dailyReturnPercent * 30) / 100) * 100 + 0.000001) / 100)} /></dd></div>}
     </dl>
-    <p className="text-fg-muted">Daily interest is credited in USD at 12:00 AM ({user.platformTimezone}) for the preceding eligible day. A $50 daily return adds $50 to the USD earnings wallet. No BTC conversion applies.</p>
+    <p className="text-fg-muted">Daily interest is credited in USDT at 12:00 AM ({user.platformTimezone}) for the preceding eligible day. A $50 daily return adds $50 to the USDT earnings wallet. No BTC conversion applies.</p>
     {!terms || !user.joiningDate ? <p className="text-gold-200">An administrator must confirm the plan assignment and KYC approval date before interest or withdrawals become available.</p> : <p className="text-fg-muted">Agreed plan terms are preserved when the plan catalog is edited. Withdrawals require available funds, email verification and admin review.</p>}
   </section>;
 }

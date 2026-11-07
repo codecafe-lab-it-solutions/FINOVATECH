@@ -251,7 +251,7 @@ export const InvestorDashboardTab: React.FC<InvestorDashboardTabProps> = ({
               </div>
             </div>
             <div className="p-3 rounded-xl bg-ink-950/70 border border-line">
-              <div className="text-fg-muted text-[11px]">{user.planTerms ? 'Daily Plan Return (USD equivalent)' : 'Mining Credits Today'}</div>
+              <div className="text-fg-muted text-[11px]">{user.planTerms ? 'Daily Plan Return (USDT equivalent)' : 'Mining Credits Today'}</div>
               <div className="text-emerald-400 font-bold text-sm mt-0.5"><Money usd={user.planTerms ? metrics.totalInvestmentUsd * user.planTerms.dailyReturnPercent / 100 : metrics.miningRevenuePerDayUsd} />{user.planTerms ? ' / day' : ''}</div>
             </div>
             <div className="p-3 rounded-xl bg-ink-950/70 border border-line">

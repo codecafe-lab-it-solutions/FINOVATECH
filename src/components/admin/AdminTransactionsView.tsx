@@ -174,7 +174,7 @@ export const AdminTransactionsView: React.FC<AdminTransactionsViewProps> = ({ au
             </select>
             <div className="grid grid-cols-2 gap-3">
               <label className="block">
-                <span className="text-fg-muted text-[10px] uppercase block mb-1">Amount (USD)</span>
+                <span className="text-fg-muted text-[10px] uppercase block mb-1">Amount (USDT)</span>
                 <input type="text" inputMode="decimal" value={depositUsd} onChange={(e) => setDepositUsd(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
               </label>

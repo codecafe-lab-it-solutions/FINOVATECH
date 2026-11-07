@@ -332,7 +332,7 @@ export const InvestorProfileTab: React.FC<InvestorProfileTabProps> = ({
                 </button>
               </div>
               <div className="text-[11px] text-fg-muted font-mono">
-                Wallet withdrawal requests remain USD and use the bank/payment details below. The selected network and payout address are saved as payout preferences.
+                Wallet withdrawal requests remain USDT and use the bank/payment details below. The selected network and payout address are saved as payout preferences.
               </div>
             </div>
 

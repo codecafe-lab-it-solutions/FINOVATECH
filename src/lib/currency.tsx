@@ -48,10 +48,10 @@ export function CurrencySelector() {
           onClick={() => setCurrency(option)}
           title={option === 'INR' && !rate ? 'INR will be available when the exchange rate loads' : 'Display amounts in ' + option}
           className={'rounded-lg px-4 py-2 text-xs font-bold transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 ' + ((rate ? currency : 'USD') === option ? 'bg-gold-500 text-black shadow-sm' : 'text-fg-body hover:bg-ink-800 hover:text-white')}
-        >{option === 'USD' ? 'USD ($)' : 'INR (₹)'}</button>)}
+        >{option === 'USD' ? 'USDT ($)' : 'INR (₹)'}</button>)}
       </div>
     </div>
-    {rate ? <span>{rate.stale ? 'Last successful rate (provider unavailable)' : 'Latest available rate'}: $1 = ₹{rate.rate.toFixed(4)} · {rate.sourceDate} · {rate.source} · fetched {new Date(rate.fetchedAt).toLocaleString()}</span> : <span>{error || 'Loading exchange rate…'} · displaying USD</span>}
-    <span className="text-fg-muted">Display conversion only. Amount entry remains in USD or BTC as labeled.</span>
+    {rate ? <span>{rate.stale ? 'Last successful rate (provider unavailable)' : 'Latest available rate'}: $1 = ₹{rate.rate.toFixed(4)} · {rate.sourceDate} · {rate.source} · fetched {new Date(rate.fetchedAt).toLocaleString()}</span> : <span>{error || 'Loading exchange rate…'} · displaying USDT</span>}
+    <span className="text-fg-muted">Display conversion only. Amount entry remains in USDT or BTC as labeled.</span>
   </div>;
 }

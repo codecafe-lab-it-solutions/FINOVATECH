@@ -58,7 +58,7 @@ export const ReferralPartnerTab: React.FC<ReferralPartnerTabProps> = ({ referral
 
       <div className="p-6 rounded-3xl bg-ink-850 border border-line text-white space-y-3">
         <h3 className="font-bold">Direct Referral Earnings: <Money usd={referredUsers.reduce((sum, u) => sum + (u.commissions || []).reduce((n, c) => n + c.amountUsd, 0), 0)} /></h3>
-        <p className="text-xs text-fg-muted">Commission is credited to your USD wallet after investment confirmation, using the plan's referral rate.</p>
+        <p className="text-xs text-fg-muted">Commission is credited to your USDT wallet after investment confirmation, using the plan's referral rate.</p>
         <div className="overflow-x-auto"><table className="w-full text-left text-xs"><thead><tr><th className="p-2">Investor / Plan</th><th className="p-2">Referral ID</th><th className="p-2">Investment</th><th className="p-2">Rate</th><th className="p-2">Wallet Credit</th><th className="p-2">Date</th></tr></thead>
         <tbody>{referredUsers.flatMap(u => (u.commissions || []).map(c => <tr key={c.id}><td className="p-2">{u.name} / {c.plan}</td><td className="p-2">{c.referralCode}</td><td className="p-2"><Money usd={c.principalUsd} /></td><td className="p-2">{c.ratePercent}%</td><td className="p-2"><Money usd={c.amountUsd} /></td><td className="p-2">{c.createdAt}</td></tr>))}</tbody></table></div>
         {!referredUsers.some(u => u.commissions?.length) && <p className="text-xs text-fg-muted">No confirmed referral commissions yet.</p>}

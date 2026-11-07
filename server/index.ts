@@ -1108,7 +1108,7 @@ app.post('/api/admin/investors/:id/transactions', async (req, res) => {
       return res.status(400).json({ error: 'Transaction type is required.' });
     }
     if (typeof amountBtc !== 'number' || typeof amountUsd !== 'number') {
-      return res.status(400).json({ error: 'BTC and USD amounts are required.' });
+      return res.status(400).json({ error: 'BTC and USDT amounts are required.' });
     }
 
     const trimmedType = type.trim();
@@ -1249,7 +1249,7 @@ app.delete('/api/admin/plans/:id', async (req, res) => {
 
 app.get('/api/exchange-rate', async (_req, res) => {
   try { res.json(await getExchangeRate()); }
-  catch { res.status(503).json({ error: 'Exchange rate unavailable. USD amounts remain available.' }); }
+  catch { res.status(503).json({ error: 'Exchange rate unavailable. USDT amounts remain available.' }); }
 });
 
 // --- Admin: Company Wallets ---

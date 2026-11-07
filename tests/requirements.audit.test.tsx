@@ -99,7 +99,7 @@ test('additional requirement-by-requirement HTTP and rendered-output audit', asy
   const wallet = () => renderToStaticMarkup(<WalletTab user={user} metrics={metrics} reservedPayoutBtc={0} transactions={[]} depositRequests={[]} withdrawalSettings={{ maxWithdrawalUsd: 1000, withdrawalsEnabled: true, updatedAt: '' }} onRequestPayout={async () => {}} onFetchDepositAddress={async () => ({ address: 'test', network: 'BTC' })} onSubmitDeposit={async () => ({referenceNumber: 'test'})} />);
   await t.test('REQ 6 and 11: rendered wallet includes assigned terms, all new fields, and both KYC/joining dates', () => {
     const html = wallet();
-    for (const value of [input.name, 'Request USD Withdrawal', 'Daily interest is credited in USD', 'Daily Return', '0.5%', 'Allow Payout Request', 'no waiting period', 'Minimum Threshold', '15%', 'Withdrawal / Entry Fee', '1.25%', 'KYC Approval Date', 'Joining Date / Start Date', profile.joiningDate!]) assert.ok(html.includes(value), `Wallet does not contain ${value}`);
+    for (const value of [input.name, 'Request USDT Withdrawal', 'Daily interest is credited in USDT', 'Daily Return', '0.5%', 'Allow Payout Request', 'no waiting period', 'Minimum Threshold', '15%', 'Withdrawal / Entry Fee', '1.25%', 'KYC Approval Date', 'Joining Date / Start Date', profile.joiningDate!]) assert.ok(html.includes(value), `Wallet does not contain ${value}`);
     assert.ok(!html.includes('2.75%'), 'Catalog edits must not replace the saved 0.5% investor rate.');
   });
   await t.test('REQ 10: concurrent new investors receive unique consecutive FINOVA IDs and preserve UUID legacy keys', async () => {
@@ -131,7 +131,7 @@ test('additional requirement-by-requirement HTTP and rendered-output audit', asy
   });
   await t.test('daily dashboard return does not mislabel a missed-day catch-up total as a single-day return', () => {
     const html = renderToStaticMarkup(<InvestorDashboardTab user={user} metrics={{...metrics, miningRevenuePerDayUsd:800}} withdrawalSettings={null} onNavigateTab={() => {}} />);
-    const card = html.slice(html.indexOf('Daily Plan Return (USD equivalent)'),html.indexOf('Network Difficulty'));
+    const card = html.slice(html.indexOf('Daily Plan Return (USDT equivalent)'),html.indexOf('Network Difficulty'));
     assert.ok(card.includes('$50.00')); assert.ok(!card.includes('$800.00'));
   });
   await t.test('payout records use calculated eligibility rather than a fixed Friday/date or delivery claim', () => {

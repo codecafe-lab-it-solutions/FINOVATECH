@@ -127,7 +127,7 @@ export const AdminPlansView: React.FC<AdminPlansViewProps> = ({ authToken }) => 
 
       <section className="p-6 rounded-3xl bg-ink-950 border border-line space-y-4">
         <h3 className="text-lg font-bold text-white">Referral Settings</h3>
-        <p className="text-xs text-fg-muted">Direct Referral: percentage of the referred investor's confirmed investment credited to the referrer's USD wallet. Changes apply to future confirmations. Set 0% to disable rewards for a plan.</p>
+        <p className="text-xs text-fg-muted">Direct Referral: percentage of the referred investor's confirmed investment credited to the referrer's USDT wallet. Changes apply to future confirmations. Set 0% to disable rewards for a plan.</p>
         {plans.map(plan => <ReferralRate key={plan.id} plan={plan} save={async rate => { await updateAdminPlan(authToken, plan.id, { directReferralPercent: rate }); await load(); }} />)}
       </section>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -196,12 +196,12 @@ export const AdminPlansView: React.FC<AdminPlansViewProps> = ({ authToken }) => 
               {([['dailyReturnPercent', 'Per Day Return Percentage'], ['payoutRequestDays', 'Allow Payout Request (days)'], ['withdrawalEntryFeePercent', 'Withdrawal / Entry Fee (%)']] as const).map(([key, label]) => <label key={key} className="block text-fg-muted">{label}<input type="number" min={key === 'payoutRequestDays' ? 1 : 0} max={key === 'payoutRequestDays' ? 3650 : 100} step={key === 'payoutRequestDays' ? 1 : '0.00001'} value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} className="w-full mt-1 px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" /></label>)}
 
               <label className="block">
-                <span className="text-fg-muted text-[10px] uppercase block mb-1">Min Investment (USD)</span>
+                <span className="text-fg-muted text-[10px] uppercase block mb-1">Min Investment (USDT)</span>
                 <input type="number" value={form.minInvestmentUsd} onChange={(e) => setForm({ ...form, minInvestmentUsd: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
               </label>
               <label className="block">
-                <span className="text-fg-muted text-[10px] uppercase block mb-1">Max Investment (USD)</span>
+                <span className="text-fg-muted text-[10px] uppercase block mb-1">Max Investment (USDT)</span>
                 <input type="number" value={form.maxInvestmentUsd} onChange={(e) => setForm({ ...form, maxInvestmentUsd: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
               </label>

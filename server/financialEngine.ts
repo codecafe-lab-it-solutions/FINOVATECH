@@ -24,7 +24,7 @@ async function enforceMonthlyLimit(conn: { query: (sql: string, params?: any[]) 
 
 export async function submitUsdPayout(params: { investorUserId: string; amountUsd: number; destination: string }): Promise<string> {
   if (!Number.isFinite(params.amountUsd) || params.amountUsd < 0.01 || Math.abs(params.amountUsd * 100 - Math.round(params.amountUsd * 100)) > 0.000001) throw new PolicyError('Enter a positive USD amount with at most two decimal places.');
-  if (!params.destination.trim() || params.destination.trim().length < 6 || params.destination.trim() === 'Not set') throw new PolicyError('Enter your USD bank/payment destination details.');
+  if (!params.destination.trim() || params.destination.trim().length < 6 || params.destination.trim() === 'Not set') throw new PolicyError('Enter your USDT bank/payment destination details.');
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
@@ -85,7 +85,7 @@ export async function settlePayout(id: string, status: string, notes: string): P
       if (p.status !== 'Completed' && status === 'Completed') {
         const [reserved] = await conn.query<RowDataPacket[]>("SELECT COALESCE(SUM(amount_usd), 0) AS usd FROM payouts WHERE investor_user_id = ? AND id <> ? AND currency = 'USD' AND status IN ('Requested', 'Processing') AND (investment_id = ? OR investment_id IS NULL)", [p.investor_user_id, id, profile.investment_id]);
         const available = Number(profile.usd_wallet_balance) - Number(reserved[0].usd);
-        if (amount > available + 0.000001) throw new PolicyError('Insufficient USD funds after pending requests.');
+        if (amount > available + 0.000001) throw new PolicyError('Insufficient USDT funds after pending requests.');
       }
       const delta = p.status === 'Completed' && status !== 'Completed' ? amount : p.status !== 'Completed' && status === 'Completed' ? -amount : 0;
       if (delta) {

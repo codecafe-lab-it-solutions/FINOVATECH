@@ -168,12 +168,12 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
       }
       for (const key of NUMERIC_FIELDS) {
         const raw: unknown = payload[key];
-        const label = key === 'totalInvestmentUsd' ? 'Total Investment (USD)' : key === 'currentPortfolioValueUsd' ? 'Portfolio Value (USD)' : key === 'totalBtcAllocated' ? 'BTC Allotted' : key === 'btcMined' ? 'BTC Mined' : key;
+        const label = key === 'totalInvestmentUsd' ? 'Total Investment (USDT)' : key === 'currentPortfolioValueUsd' ? 'Portfolio Value (USDT)' : key === 'totalBtcAllocated' ? 'BTC Allotted' : key === 'btcMined' ? 'BTC Mined' : key;
         payload[key] = parseAdminAmount(raw, label);
       }
-      // Empty limit = no limit (stored as NULL); otherwise a non-negative USD amount per calendar month.
+      // Empty limit = no limit (stored as NULL); otherwise a non-negative USDT amount per calendar month.
       const rawLimit: unknown = payload.monthlyWithdrawalLimitUsd;
-      payload.monthlyWithdrawalLimitUsd = rawLimit === null || rawLimit === undefined || String(rawLimit).trim() === '' ? null : parseAdminAmount(rawLimit, 'Monthly withdrawal limit (USD)');
+      payload.monthlyWithdrawalLimitUsd = rawLimit === null || rawLimit === undefined || String(rawLimit).trim() === '' ? null : parseAdminAmount(rawLimit, 'Monthly withdrawal limit (USDT)');
       // Withdrawal lock dates are no longer applied; never send one back.
       delete payload.nextWithdrawalDate;
       const { profile } = await updateAdminInvestorProfile(authToken, selectedId, payload);
@@ -197,7 +197,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
       const { transaction } = await addAdminInvestorTransaction(authToken, selectedId, {
         type: newTxType,
         amountBtc: newTxBtc.trim() ? parseAdminAmount(newTxBtc, 'BTC amount', true) : 0,
-        amountUsd: newTxUsd.trim() ? parseAdminAmount(newTxUsd, 'USD amount', true) : 0,
+        amountUsd: newTxUsd.trim() ? parseAdminAmount(newTxUsd, 'USDT amount', true) : 0,
         network: newTxNetwork,
         note: newTxNote
       });
@@ -361,7 +361,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                   <div className="p-4 rounded-2xl bg-ink-850/80 border border-line space-y-3">
                     <div className="text-[10px] text-fg-muted uppercase font-bold">Profile & Compliance</div>
                     <p>Investor ID: {detailProfile?.investorId} · Legacy Contract ID: {detailProfile?.legacyInvestorId}</p>
-                    <p>USD earnings wallet: <Money usd={detailProfile?.usdWalletBalance || 0} /></p>
+                    <p>USDT earnings wallet: <Money usd={detailProfile?.usdWalletBalance || 0} /></p>
                     <p>KYC Approval Date: {detailProfile?.joiningDate || 'Not recorded'} · Joining Date: {detailProfile?.joiningDate || 'Awaiting confirmed KYC approval'}</p>
                     {!detailProfile?.kycApprovedAt && <label className="block text-fg-muted">Confirm historical KYC approval date (verified investors only)<input ref={historicalApprovalInput} type="datetime-local" value={formState.kycApprovedAt ? new Date(new Date(formState.kycApprovedAt).getTime() - new Date(formState.kycApprovedAt).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ''} onChange={e => handleField('kycApprovedAt', e.target.value ? new Date(e.target.value).toISOString() : '')} className="block p-2 bg-ink-950 border border-line text-white" /><span className="text-gold-200">Use the actual approval record. This date becomes permanent and starts interest eligibility.</span></label>}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -409,13 +409,13 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                           className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
                       </label>
                       <label className="block">
-                        <span className="text-fg-muted text-[10px] uppercase block mb-1">Total Investment (USD)</span>
+                        <span className="text-fg-muted text-[10px] uppercase block mb-1">Total Investment (USDT)</span>
                         <input type="text" inputMode="decimal" value={formState.totalInvestmentUsd ?? ''}
                           onChange={(e) => handleField('totalInvestmentUsd', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
                       </label>
                       <label className="block">
-                        <span className="text-fg-muted text-[10px] uppercase block mb-1">Portfolio Value (USD)</span>
+                        <span className="text-fg-muted text-[10px] uppercase block mb-1">Portfolio Value (USDT)</span>
                         <input type="text" inputMode="decimal" value={formState.currentPortfolioValueUsd ?? ''}
                           onChange={(e) => handleField('currentPortfolioValueUsd', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
@@ -433,7 +433,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                           className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
                       </label>
                       <label className="block">
-                        <span className="text-fg-muted text-[10px] uppercase block mb-1">Monthly Withdrawal Limit (USD)</span>
+                        <span className="text-fg-muted text-[10px] uppercase block mb-1">Monthly Withdrawal Limit (USDT)</span>
                         <input id="admin-investor-withdrawal-limit" type="text" inputMode="decimal" placeholder="Empty = no limit" value={formState.monthlyWithdrawalLimitUsd ?? ''}
                           onChange={(e) => handleField('monthlyWithdrawalLimitUsd', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-ink-950 border border-line text-white" />
@@ -513,7 +513,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                       <input type="text" inputMode="decimal" placeholder="BTC" value={newTxBtc}
                         onChange={(e) => setNewTxBtc(e.target.value)}
                         className="px-2 py-2 rounded-lg bg-ink-950 border border-line text-white text-[11px]" />
-                      <input type="text" inputMode="decimal" placeholder="USD" value={newTxUsd}
+                      <input type="text" inputMode="decimal" placeholder="USDT" value={newTxUsd}
                         onChange={(e) => setNewTxUsd(e.target.value)}
                         className="px-2 py-2 rounded-lg bg-ink-950 border border-line text-white text-[11px]" />
                       <button
@@ -527,7 +527,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                     <select value={newTxNetwork} onChange={(e) => setNewTxNetwork(e.target.value)}
                       className="w-full px-3 py-2 rounded-lg bg-ink-950 border border-line text-white text-[11px]">
                       <option value="BTC">Bitcoin (BTC)</option>
-                      <option value="USD">USD earnings wallet (no BTC conversion)</option>
+                      <option value="USD">USDT earnings wallet (no BTC conversion)</option>
                       <option value="TRC20">USDT Network: TRC20 (Tron)</option>
                       <option value="ERC20">USDT Network: ERC20 (Ethereum)</option>
                       <option value="BEP20">USDT Network: BEP20 (BNB Smart Chain)</option>

@@ -120,7 +120,7 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts, nex
                 <tr key={row.id} className="hover:bg-ink-800/40 transition-colors">
                   <td className="py-3.5 px-3 text-gold-500 font-bold whitespace-nowrap">{row.payoutId}</td>
                   <td className="py-3.5 px-3 text-fg-body whitespace-nowrap">{row.date}</td>
-                  <td className="py-3.5 px-3 text-white font-bold whitespace-nowrap">{row.currency === 'USD' ? 'USD' : `${row.amountBtc} BTC`}</td>
+                  <td className="py-3.5 px-3 text-white font-bold whitespace-nowrap">{row.currency === 'USD' ? 'USDT' : `${row.amountBtc} BTC`}</td>
                   <td className="py-3.5 px-3 text-emerald-400 whitespace-nowrap"><Money usd={row.amountUsd} /></td>
                   <td className="py-3.5 px-3 text-fg-muted whitespace-nowrap">
                     <span className="font-mono select-all text-[11px] text-gold-100/80">

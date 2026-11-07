@@ -121,10 +121,10 @@ export const WalletTab: React.FC<WalletTabProps> = ({
         if (!(amountBtc > 0) || amountBtc > availableBtc) throw new Error('Enter an amount within your available BTC balance.');
         await onRequestBtcPayout(amountBtc, destinationAddress, user.payoutNetwork || 'BTC');
       } else {
-        await onRequestPayout(requested, destinationAddress, 'USD bank/payment');
+        await onRequestPayout(requested, destinationAddress, 'USDT bank/payment');
       }
       setWithdrawStep(3);
-      setWithdrawSuccess(`Payout request for USD ${withdrawAmount} submitted and is awaiting admin approval.`);
+      setWithdrawSuccess(`Payout request for USDT ${withdrawAmount} submitted and is awaiting admin approval.`);
     } catch (err) {
       setWithdrawError(err instanceof Error ? err.message : 'Could not submit payout request.');
     } finally {
@@ -190,7 +190,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
   return (
     <div className="space-y-6 animate-in fade-in">
       <PlanConditions user={user} investmentUsd={metrics.totalInvestmentUsd} walletUsd={availableUsd} />
-      <div className="p-5 rounded-2xl bg-ink-850 border border-emerald-800 text-white"><h3 className="text-sm font-bold">USD Earnings Wallet</h3><p className="text-2xl font-bold mt-2"><Money usd={availableUsd} /></p><p className="text-xs text-fg-muted mt-2">Daily interest is credited in dollars without BTC conversion. Reserved USD payouts: <Money usd={reservedPayoutUsd} />. Maximum eligible withdrawal: <Money usd={maximumUsd} />.</p><p className="text-xs text-fg-muted mt-1">BTC holdings available: {availableBtc} BTC (<Money usd={maximumBtcUsd} />). Total available to withdraw: <Money usd={maximumUsd + maximumBtcUsd} />.{monthlyLimitUsd !== null ? <> Monthly withdrawal limit set by admin: <Money usd={monthlyLimitUsd} />.</> : null}</p></div>
+      <div className="p-5 rounded-2xl bg-ink-850 border border-emerald-800 text-white"><h3 className="text-sm font-bold">USDT Earnings Wallet</h3><p className="text-2xl font-bold mt-2"><Money usd={availableUsd} /></p><p className="text-xs text-fg-muted mt-2">Daily interest is credited in dollars without BTC conversion. Reserved USDT payouts: <Money usd={reservedPayoutUsd} />. Maximum eligible withdrawal: <Money usd={maximumUsd} />.</p><p className="text-xs text-fg-muted mt-1">BTC holdings available: {availableBtc} BTC (<Money usd={maximumBtcUsd} />). Total available to withdraw: <Money usd={maximumUsd + maximumBtcUsd} />.{monthlyLimitUsd !== null ? <> Monthly withdrawal limit set by admin: <Money usd={monthlyLimitUsd} />.</> : null}</p></div>
       
       {/* Header Banner */}
       <div className="p-6 rounded-3xl bg-ink-850 border border-line text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -203,7 +203,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             Investor Wallet & Treasury Management
           </h2>
           <p className="text-xs text-fg-muted font-mono mt-0.5">
-            Your dollar earnings, existing BTC holdings and transaction ledger, with admin-reviewed USD withdrawal requests
+            Your dollar earnings, existing BTC holdings and transaction ledger, with admin-reviewed USDT withdrawal requests
           </p>
         </div>
 
@@ -222,7 +222,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
             className="px-4 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-black font-bold text-xs font-mono flex items-center gap-2 cursor-pointer transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-3.5 h-3.5" />
-            <span>Request USD Withdrawal</span>
+            <span>Request USDT Withdrawal</span>
           </button>
         </div>
       </div>
@@ -547,7 +547,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                 )}
 
                 <div>
-                  <label className="block text-fg-muted mb-1">Amount You're Depositing (USD):</label>
+                  <label className="block text-fg-muted mb-1">Amount You're Depositing (USDT):</label>
                   <input
                     type="text"
                     inputMode="decimal"
@@ -647,7 +647,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
               <div className="flex items-center gap-2">
                 <Send className="w-5 h-5 text-gold-500" />
                 <span className="font-bold text-sm uppercase tracking-wider font-mono">
-                  USD Withdrawal Request
+                  USDT Withdrawal Request
                 </span>
               </div>
               <button
@@ -688,7 +688,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                       onClick={() => { setWithdrawSource(src); setWithdrawError(null); setDestinationAddress(src === 'USD' ? bankDefault : btcAddressDefault); }}
                       className={`p-3 rounded-xl border text-left cursor-pointer ${withdrawSource === src ? 'border-gold-500 bg-gold-500/10 text-white' : 'border-line-warm bg-ink-950 text-fg-muted'}`}
                     >
-                      <div className="font-bold">{src === 'USD' ? 'USD Earnings Wallet' : 'BTC Holdings'}</div>
+                      <div className="font-bold">{src === 'USD' ? 'USDT Earnings Wallet' : 'BTC Holdings'}</div>
                       <div className="text-[11px] mt-1">{src === 'USD' ? <>Available: <Money usd={maximumUsd} /></> : <>{availableBtc} BTC · <Money usd={maximumBtcUsd} /></>}</div>
                     </button>
                   ))}
@@ -698,8 +698,8 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                 )}
                 <div>
                   <div className="flex justify-between text-fg-muted mb-1">
-                    <span>Withdrawal Amount (USD):</span>
-                    <span>Max: USD {sourceMaxUsd.toFixed(2)}</span>
+                    <span>Withdrawal Amount (USDT):</span>
+                    <span>Max: USDT {sourceMaxUsd.toFixed(2)}</span>
                   </div>
                   <input
                     type="number"
@@ -718,8 +718,8 @@ export const WalletTab: React.FC<WalletTabProps> = ({
 
                 <div>
                   <div className="flex justify-between text-fg-muted mb-1">
-                    <span>{withdrawSource === 'USD' ? 'USD Payment Destination (bank/account details):' : 'BTC Wallet Address:'}</span>
-                    <span className="text-gold-500 font-bold">{withdrawSource === 'USD' ? 'USD bank/payment' : `BTC · ${withdrawAmount && btcPriceUsd > 0 ? (Math.floor((Number(withdrawAmount) / btcPriceUsd) * 1e8) / 1e8) : 0} BTC`}</span>
+                    <span>{withdrawSource === 'USD' ? 'USDT Payment Destination (bank/account details):' : 'BTC Wallet Address:'}</span>
+                    <span className="text-gold-500 font-bold">{withdrawSource === 'USD' ? 'USDT bank/payment' : `BTC · ${withdrawAmount && btcPriceUsd > 0 ? (Math.floor((Number(withdrawAmount) / btcPriceUsd) * 1e8) / 1e8) : 0} BTC`}</span>
                   </div>
                   <input
                     type="text"
@@ -755,7 +755,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                 </div>
                 <h4 className="text-base font-bold text-white">Payout Request Submitted</h4>
                 <p className="text-fg-body">
-                  Your request to withdraw <strong className="text-white">USD {withdrawAmount}</strong> has been recorded and is now awaiting admin review and approval. You'll see it under Payout Records once processed.
+                  Your request to withdraw <strong className="text-white">USDT {withdrawAmount}</strong> has been recorded and is now awaiting admin review and approval. You'll see it under Payout Records once processed.
                 </p>
                 <button
                   type="button"

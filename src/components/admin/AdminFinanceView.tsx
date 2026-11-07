@@ -51,7 +51,7 @@ export const AdminFinanceView: React.FC<AdminFinanceViewProps> = ({ financeRecor
                 selectedCurrency === 'USD' ? 'bg-gold-500 text-black font-bold' : 'text-fg-muted'
               }`}
             >
-              {currency}
+              {currency === 'USD' ? 'USDT' : currency}
             </button>
             <button
               onClick={() => setSelectedCurrency('BTC')}

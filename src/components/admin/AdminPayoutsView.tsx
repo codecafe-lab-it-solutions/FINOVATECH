@@ -99,7 +99,7 @@ export const AdminPayoutsView: React.FC<AdminPayoutsViewProps> = ({ authToken })
               ? 'Loading...'
               : `${pendingCount} request${pendingCount === 1 ? '' : 's'} awaiting review, totaling ${pendingBtc.toFixed(4)} BTC.`}
           </p>
-          <p className="text-xs text-emerald-400 mt-1">USD awaiting review: <Money usd={payouts.filter(p => p.currency === 'USD' && p.status === 'Requested').reduce((sum, p) => sum + p.amountUsd, 0)} /></p>
+          <p className="text-xs text-emerald-400 mt-1">USDT awaiting review: <Money usd={payouts.filter(p => p.currency === 'USD' && p.status === 'Requested').reduce((sum, p) => sum + p.amountUsd, 0)} /></p>
         </div>
       </div>
 
@@ -168,7 +168,7 @@ export const AdminPayoutsView: React.FC<AdminPayoutsViewProps> = ({ authToken })
                   <td className="py-3.5 px-3 font-sans font-semibold text-white">{p.investorName || 'Unknown'}</td>
 
                   <td className="py-3.5 px-3 text-right font-extrabold text-gold-500">
-                    {p.currency === 'USD' ? <><Money usd={p.amountUsd} /> (USD)</> : `${p.amountBtc} BTC`}
+                    {p.currency === 'USD' ? <><Money usd={p.amountUsd} /> (USDT)</> : `${p.amountBtc} BTC`}
                   </td>
 
                   <td className="py-3.5 px-3">
