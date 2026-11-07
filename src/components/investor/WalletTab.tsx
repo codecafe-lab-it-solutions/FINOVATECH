@@ -1,6 +1,6 @@
 import { PlanConditions } from './PlanConditions';
 import { todayInTimezone } from '../../lib/dates';
-import { Money } from '../../lib/currency';
+import { Money, usdt } from '../../lib/currency';
 import React, { useState } from 'react';
 import {
   Wallet,
@@ -365,7 +365,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                     {tx.amountUsd >= 0 ? '+' : ''}<Money usd={tx.amountUsd} />
                   </td>
                   <td className="py-3 px-3 text-fg-muted whitespace-nowrap">
-                    {tx.network || '—'}
+                    {usdt(tx.network) || '—'}
                   </td>
                   <td className="py-3 px-3 whitespace-nowrap">
                     <span className={`flex items-center gap-1 font-semibold ${
@@ -432,7 +432,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                   <tr key={r.id} className="hover:bg-ink-800/40">
                     <td className="py-3 px-3 text-gold-500 font-bold whitespace-nowrap">{r.referenceNumber}</td>
                     <td className="py-3 px-3 text-white whitespace-nowrap"><Money usd={r.amountUsd} /></td>
-                    <td className="py-3 px-3 text-fg-muted whitespace-nowrap">{r.network}</td>
+                    <td className="py-3 px-3 text-fg-muted whitespace-nowrap">{usdt(r.network)}</td>
                     <td className="py-3 px-3 whitespace-nowrap">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         r.status === 'Approved' ? 'bg-emerald-500/20 text-emerald-300' :
@@ -497,7 +497,7 @@ export const WalletTab: React.FC<WalletTabProps> = ({
                   <div className="p-4 rounded-xl bg-ink-950 border border-line-warm space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-fg-muted">Send USDT to:</span>
-                      <span className="text-emerald-400 font-bold">{depositAddressInfo.network} Network</span>
+                      <span className="text-emerald-400 font-bold">{usdt(depositAddressInfo.network)} Network</span>
                     </div>
                     <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg bg-ink-850 border border-line">
                       <span

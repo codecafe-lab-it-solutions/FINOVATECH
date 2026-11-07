@@ -1,4 +1,4 @@
-import { useCurrency } from '../../lib/currency';
+import { useCurrency, usdt } from '../../lib/currency';
 import React, { useState } from 'react';
 import { 
   Bell, 
@@ -172,8 +172,8 @@ export const InvestorNavbar: React.FC<InvestorNavbarProps> = ({
                           <span className="text-gold-500 font-semibold uppercase">{item.type}</span>
                           <span>{item.createdAt}</span>
                         </div>
-                        <div className="text-xs font-semibold text-white">{item.title}</div>
-                        <p className="text-[11px] text-fg-muted line-clamp-2 mt-0.5">{item.message}</p>
+                        <div className="text-xs font-semibold text-white">{usdt(item.title)}</div>
+                        <p className="text-[11px] text-fg-muted line-clamp-2 mt-0.5">{usdt(item.message)}</p>
                       </div>
                     ))}
                     {notifications.length === 0 && (

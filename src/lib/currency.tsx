@@ -55,3 +55,6 @@ export function CurrencySelector() {
     <span className="text-fg-muted">Display conversion only. Amount entry remains in USDT or BTC as labeled.</span>
   </div>;
 }
+
+// Display-only: stored/API values keep "USD"; the panel always shows USDT.
+export const usdt = <T extends string | null | undefined>(text: T): T => (typeof text === 'string' ? text.replace(/\bUSD\b/g, 'USDT') : text) as T;

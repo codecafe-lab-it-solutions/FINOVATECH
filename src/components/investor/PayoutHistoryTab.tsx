@@ -1,4 +1,4 @@
-import { Money } from '../../lib/currency';
+import { Money, usdt } from '../../lib/currency';
 import React, { useState } from 'react';
 import { 
   CreditCard, 
@@ -124,11 +124,11 @@ export const PayoutHistoryTab: React.FC<PayoutHistoryTabProps> = ({ payouts, nex
                   <td className="py-3.5 px-3 text-emerald-400 whitespace-nowrap"><Money usd={row.amountUsd} /></td>
                   <td className="py-3.5 px-3 text-fg-muted whitespace-nowrap">
                     <span className="font-mono select-all text-[11px] text-gold-100/80">
-                      {row.destinationWallet.slice(0, 8)}...{row.destinationWallet.slice(-6)}
+                      {row.destinationWallet.length > 24 ? row.destinationWallet.slice(0, 8) + '...' + row.destinationWallet.slice(-6) : usdt(row.destinationWallet)}
                     </span>
                   </td>
                   <td className="py-3.5 px-3 text-fg-muted whitespace-nowrap">
-                    {row.network || '—'}
+                    {usdt(row.network) || '—'}
                   </td>
                   <td className="py-3.5 px-3 whitespace-nowrap">
                     <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded border ${

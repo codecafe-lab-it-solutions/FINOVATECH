@@ -1,4 +1,4 @@
-import { Money } from '../../lib/currency';
+import { Money, usdt } from '../../lib/currency';
 import { parseAdminAmount } from '../../lib/adminAmount';
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
@@ -493,7 +493,7 @@ export const AdminInvestorsView: React.FC<AdminInvestorsViewProps> = ({ authToke
                       {transactions.map((t) => (
                         <div key={t.id} className="flex items-center justify-between p-2 rounded-lg bg-ink-950 border border-line">
                           <span className="text-fg-body">
-                            {t.type}{t.network ? <span className="text-fg-muted"> · {t.network}</span> : ''}
+                            {t.type}{t.network ? <span className="text-fg-muted"> · {usdt(t.network)}</span> : ''}
                           </span>
                           <span className={(t.amountBtc === 0 ? t.amountUsd : t.amountBtc) >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
                             {t.network === 'USD' || t.amountBtc === 0 ? <>{t.amountUsd >= 0 ? '+' : ''}<Money usd={t.amountUsd} /></> : <>{t.amountBtc >= 0 ? '+' : ''}{t.amountBtc} BTC (<Money usd={t.amountUsd} />)</>}

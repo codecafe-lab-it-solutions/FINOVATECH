@@ -1,4 +1,4 @@
-import { Money } from '../../lib/currency';
+import { Money, usdt } from '../../lib/currency';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   ArrowDownToLine,
@@ -185,7 +185,7 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
               </button>
             </div>
             <div className="flex items-center gap-3 text-fg-muted">
-              <span className="px-2 py-0.5 rounded bg-ink-800 text-fg-body font-bold">{activeAddress.network}</span>
+              <span className="px-2 py-0.5 rounded bg-ink-800 text-fg-body font-bold">{usdt(activeAddress.network)}</span>
               <span>
                 Visible to: {activeAddress.visibility === 'All' ? 'All Investors' : `${activeAddress.visibleInvestorIds.length} specific investor(s)`}
               </span>
@@ -213,7 +213,7 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
               <div>
                 <div className="font-sans font-bold text-white">{r.investorName}</div>
                 <div className="text-fg-muted mt-0.5">
-                  {r.referenceNumber} • <Money usd={r.amountUsd} /> • {r.network} • {r.createdAt}
+                  {r.referenceNumber} • <Money usd={r.amountUsd} /> • {usdt(r.network)} • {r.createdAt}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -273,7 +273,7 @@ export const AdminDepositsView: React.FC<AdminDepositsViewProps> = ({ authToken 
                   <td className="py-3 px-4 text-gold-500 font-bold">{r.referenceNumber}</td>
                   <td className="py-3 px-3 font-sans text-white">{r.investorName}</td>
                   <td className="py-3 px-3 text-right"><Money usd={r.amountUsd} /></td>
-                  <td className="py-3 px-3">{r.network}</td>
+                  <td className="py-3 px-3">{usdt(r.network)}</td>
                   <td className="py-3 px-3">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                       r.status === 'Approved' ? 'bg-emerald-500/20 text-emerald-300' :

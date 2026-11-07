@@ -395,8 +395,8 @@ export async function addTransaction(params: {
       const p = profiles[0];
       if (!p) throw new Error('Investor profile not found.');
       const isUsd = network === 'USD';
-      if (isUsd && params.amountBtc !== 0) throw new Error('A USD wallet entry must have zero BTC.');
-      if (isUsd && Number(p.usd_wallet_balance) + params.amountUsd < 0) throw new Error('Transaction would make the USD wallet balance negative.');
+      if (isUsd && params.amountBtc !== 0) throw new Error('A USDT wallet entry must have zero BTC.');
+      if (isUsd && Number(p.usd_wallet_balance) + params.amountUsd < 0) throw new Error('Transaction would make the USDT wallet balance negative.');
       if (Number(p.total_btc_allocated) + params.amountBtc < 0) throw new Error('Transaction would make the wallet balance negative.');
       if (params.depositRequestId) {
         const [requests] = await conn.query<RowDataPacket[]>('SELECT * FROM deposit_requests WHERE id = ? FOR UPDATE', [params.depositRequestId]);

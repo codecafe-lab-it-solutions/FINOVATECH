@@ -19,11 +19,11 @@ async function enforceMonthlyLimit(conn: { query: (sql: string, params?: any[]) 
   const [rows] = await conn.query("SELECT COALESCE(SUM(amount_usd), 0) AS used FROM payouts WHERE investor_user_id = ? AND status <> 'Rejected' AND requested_at >= ?", [profile.user_id, monthStart]);
   const used = Number(rows[0].used);
   const remaining = Math.max(0, Math.round((limit - used) * 100) / 100);
-  if (requestUsd > remaining + 0.000001) throw new PolicyError(`Monthly withdrawal limit reached. Your limit is USD ${limit.toFixed(2)} per month; USD ${remaining.toFixed(2)} remains this month.`);
+  if (requestUsd > remaining + 0.000001) throw new PolicyError(`Monthly withdrawal limit reached. Your limit is USDT ${limit.toFixed(2)} per month; USDT ${remaining.toFixed(2)} remains this month.`);
 }
 
 export async function submitUsdPayout(params: { investorUserId: string; amountUsd: number; destination: string }): Promise<string> {
-  if (!Number.isFinite(params.amountUsd) || params.amountUsd < 0.01 || Math.abs(params.amountUsd * 100 - Math.round(params.amountUsd * 100)) > 0.000001) throw new PolicyError('Enter a positive USD amount with at most two decimal places.');
+  if (!Number.isFinite(params.amountUsd) || params.amountUsd < 0.01 || Math.abs(params.amountUsd * 100 - Math.round(params.amountUsd * 100)) > 0.000001) throw new PolicyError('Enter a positive USDT amount with at most two decimal places.');
   if (!params.destination.trim() || params.destination.trim().length < 6 || params.destination.trim() === 'Not set') throw new PolicyError('Enter your USDT bank/payment destination details.');
   const conn = await pool.getConnection();
   try {
@@ -35,7 +35,7 @@ export async function submitUsdPayout(params: { investorUserId: string; amountUs
     // No waiting period, global on/off switch, per-transaction cap, profile lock date or
     // retained-balance obligation applies. The available balance is the only limit.
     const available = Number(p.usd_wallet_balance) - Number(previous[0].reserved);
-    if (params.amountUsd > available) throw new PolicyError('Requested amount exceeds your available USD wallet balance.');
+    if (params.amountUsd > available) throw new PolicyError('Requested amount exceeds your available USDT wallet balance.');
     await enforceMonthlyLimit(conn, p, params.amountUsd);
     const id = crypto.randomUUID();
     await conn.query("INSERT INTO payouts (id, investor_user_id, investment_id, amount_btc, amount_usd, currency, destination_wallet, network, status, requested_at, notes) VALUES (?, ?, ?, 0, ?, 'USD', ?, 'USD bank/payment', 'Requested', ?, '')", [id, p.user_id, p.investment_id, params.amountUsd, params.destination.trim(), nowSql()]);
@@ -90,7 +90,7 @@ export async function settlePayout(id: string, status: string, notes: string): P
       const delta = p.status === 'Completed' && status !== 'Completed' ? amount : p.status !== 'Completed' && status === 'Completed' ? -amount : 0;
       if (delta) {
         await conn.query('UPDATE investor_profiles SET usd_wallet_balance = usd_wallet_balance + ?, current_portfolio_value_usd = current_portfolio_value_usd + ?, updated_at = ? WHERE user_id = ?', [delta, delta, nowSql(), p.investor_user_id]);
-        await conn.query("INSERT INTO wallet_transactions (id, investor_user_id, type, amount_btc, amount_usd, status, note, network, created_at) VALUES (?, ?, 'Payout', 0, ?, ?, ?, 'USD bank/payment', ?)", [crypto.randomUUID(), p.investor_user_id, delta, delta > 0 ? 'Reversed' : 'Completed', `USD payout ${id}`, nowSql()]);
+        await conn.query("INSERT INTO wallet_transactions (id, investor_user_id, type, amount_btc, amount_usd, status, note, network, created_at) VALUES (?, ?, 'Payout', 0, ?, ?, ?, 'USD bank/payment', ?)", [crypto.randomUUID(), p.investor_user_id, delta, delta > 0 ? 'Reversed' : 'Completed', `USDT payout ${id}`, nowSql()]);
       }
       await conn.query('UPDATE payouts SET status = ?, notes = ?, processed_at = ? WHERE id = ?', [status, notes, ['Completed', 'Rejected'].includes(status) ? nowSql() : null, id]);
       await conn.commit(); return;
@@ -154,7 +154,7 @@ export async function reconcileDailyInterest(options: { now?: Date; investorUser
           const id = crypto.randomUUID(), ts = nowSql();
           await conn.query("INSERT INTO daily_interest_credits (id, investor_user_id, investment_id, eligible_day, amount_usd, amount_btc, btc_price_usd, created_at, currency) VALUES (?, ?, ?, ?, ?, 0, 0, ?, 'USD')", [id, p.user_id, p.investment_id, day, amountUsd, ts]);
           await conn.query(`INSERT INTO wallet_transactions (id, investor_user_id, type, amount_btc, amount_usd, status, note, network, created_at)
-            VALUES (?, ?, 'Daily Interest', 0, ?, 'Completed', ?, 'USD', ?)`, [id, p.user_id, amountUsd, `USD daily interest ${day}; investment ${p.investment_id}`, ts]);
+            VALUES (?, ?, 'Daily Interest', 0, ?, 'Completed', ?, 'USD', ?)`, [id, p.user_id, amountUsd, `USDT daily interest ${day}; investment ${p.investment_id}`, ts]);
           await conn.query('UPDATE investor_profiles SET usd_wallet_balance = usd_wallet_balance + ?, current_portfolio_value_usd = current_portfolio_value_usd + ?, updated_at = ? WHERE user_id = ?', [amountUsd, amountUsd, ts, p.user_id]);
           credits++;
         }

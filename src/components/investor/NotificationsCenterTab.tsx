@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Bell, CheckCheck, Clock, ShieldCheck, Zap, FileText } from 'lucide-react';
 import { ApiNotification } from '../../lib/api';
+import { usdt } from '../../lib/currency';
 
 interface NotificationsCenterTabProps {
   notifications: ApiNotification[];
@@ -92,10 +93,10 @@ export const NotificationsCenterTab: React.FC<NotificationsCenterTabProps> = ({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-white">{item.title}</span>
+                    <span className="text-xs font-bold text-white">{usdt(item.title)}</span>
                     {!item.isRead && <span className="w-2 h-2 rounded-full bg-gold-500 animate-pulse" />}
                   </div>
-                  <p className="text-xs text-fg-body font-sans mt-1 leading-relaxed">{item.message}</p>
+                  <p className="text-xs text-fg-body font-sans mt-1 leading-relaxed">{usdt(item.message)}</p>
                 </div>
               </div>
               <div className="text-right font-mono text-[10px] text-fg-muted shrink-0">{item.createdAt}</div>

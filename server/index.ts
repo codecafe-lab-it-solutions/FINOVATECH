@@ -469,10 +469,10 @@ app.post('/api/investor/payouts', async (req, res) => {
     const { amountBtc, amountUsd, currency, destinationWallet, network } = req.body ?? {};
     if (currency !== undefined && currency !== 'USD' && currency !== 'BTC') return res.status(400).json({error: 'Unsupported payout currency.'});
     if (currency === 'USD') {
-      if (typeof amountUsd !== 'number' || !Number.isFinite(amountUsd) || amountUsd <= 0 || typeof destinationWallet !== 'string') return res.status(400).json({error: 'Enter a valid USD amount and payment destination.'});
+      if (typeof amountUsd !== 'number' || !Number.isFinite(amountUsd) || amountUsd <= 0 || typeof destinationWallet !== 'string') return res.status(400).json({error: 'Enter a valid USDT amount and payment destination.'});
       const id = await submitUsdPayout({investorUserId: payload.sub, amountUsd, destination: destinationWallet});
       const payout = await getPayoutById(id);
-      await createNotification(payload.sub, 'USD Payout Request Submitted', `Your USD ${amountUsd.toFixed(2)} withdrawal request awaits administrator review.`, 'payout');
+      await createNotification(payload.sub, 'USD Payout Request Submitted', `Your USDT ${amountUsd.toFixed(2)} withdrawal request awaits administrator review.`, 'payout');
       return res.status(201).json({payout});
     }
 
@@ -1175,7 +1175,7 @@ app.patch('/api/admin/payouts/:id', async (req, res) => {
     await createNotification(
       payout.investorUserId,
       'Payout Status Updated',
-      `Your payout of ${payout.currency === 'USD' ? `USD ${payout.amountUsd.toFixed(2)}` : `${payout.amountBtc} BTC`} is now: ${status}.`,
+      `Your payout of ${payout.currency === 'USD' ? `USDT ${payout.amountUsd.toFixed(2)}` : `${payout.amountBtc} BTC`} is now: ${status}.`,
       'payout'
     );
     res.json({ payout });

@@ -1,3 +1,4 @@
+import { usdt } from '../../lib/currency';
 import React, { useState } from 'react';
 import {
   ShieldCheck,
@@ -143,7 +144,7 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ auditLog
                   </td>
 
                   <td className="py-3.5 px-3">
-                    <div className="text-fg-body font-sans">{log.details}</div>
+                    <div className="text-fg-body font-sans">{usdt(log.details)}</div>
                     {log.oldValue && log.newValue && (
                       <div className="text-[10px] text-fg-muted font-mono mt-0.5">
                         <span className="text-rose-400">{log.oldValue}</span> → <span className="text-emerald-400 font-bold">{log.newValue}</span>
@@ -186,7 +187,7 @@ export const AdminAuditLogsView: React.FC<AdminAuditLogsViewProps> = ({ auditLog
               <div><span className="text-fg-muted uppercase text-[10px]">IP & User Agent:</span> <span>{selectedLog.ipAddress} • {selectedLog.userAgent}</span></div>
               <div className="p-3 rounded-xl bg-ink-950 border border-line mt-2">
                 <span className="text-fg-muted uppercase text-[10px] block mb-1">Payload Audit Details</span>
-                <p className="text-white font-sans">{selectedLog.details}</p>
+                <p className="text-white font-sans">{usdt(selectedLog.details)}</p>
                 {selectedLog.oldValue && (
                   <div className="text-[11px] mt-2 pt-2 border-t border-line text-fg-muted">
                     <div>Old State: <span className="text-rose-400">{selectedLog.oldValue}</span></div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Money } from '../../lib/currency';
+import { Money, usdt } from '../../lib/currency';
 import {
   Clock,
   CheckCircle2,
@@ -174,7 +174,7 @@ export const AdminPayoutsView: React.FC<AdminPayoutsViewProps> = ({ authToken })
                   <td className="py-3.5 px-3">
                     <div className="flex items-center gap-1.5 max-w-[240px]">
                       <span className="text-fg-body truncate select-all font-mono text-[11px]">
-                        {p.destinationWallet}
+                        {usdt(p.destinationWallet)}
                       </span>
                       <button
                         type="button"
@@ -191,7 +191,7 @@ export const AdminPayoutsView: React.FC<AdminPayoutsViewProps> = ({ authToken })
                   </td>
 
                   <td className="py-3.5 px-3 text-fg-muted text-[11px] font-bold">
-                    {p.network || '—'}
+                    {usdt(p.network) || '—'}
                   </td>
 
                   <td className="py-3.5 px-3">

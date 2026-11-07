@@ -1,4 +1,4 @@
-import { Money } from '../../lib/currency';
+import { Money, usdt } from '../../lib/currency';
 import React, { useEffect, useState, useCallback } from 'react';
 import { Receipt, Plus, RotateCw, AlertTriangle, X, Save } from 'lucide-react';
 import {
@@ -144,7 +144,7 @@ export const AdminTransactionsView: React.FC<AdminTransactionsViewProps> = ({ au
                     {t.amountBtc >= 0 ? '+' : ''}{t.amountBtc} BTC
                   </td>
                   <td className="py-3 px-3 text-right text-fg-body"><Money usd={t.amountUsd} /></td>
-                  <td className="py-3 px-3 text-fg-muted">{t.network || '—'}</td>
+                  <td className="py-3 px-3 text-fg-muted">{usdt(t.network) || '—'}</td>
                   <td className="py-3 px-3">
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-ink-800 text-fg-body">{t.status}</span>
                   </td>
